@@ -1,0 +1,150 @@
+{
+  "createdDate": {
+    "S": "2020-12-11T10:47:47.829942Z"
+  },
+  "entityDescription": {
+    "M": {
+      "contributors": {
+        "L": [
+
+        ]
+      },
+      "date": {
+        "M": {
+          "type": {
+            "S": "PublicationDate"
+          }
+        }
+      },
+      "language": {
+        "S": ""
+      },
+      "reference": {
+        "M": {
+          "doi": {
+            "S": ""
+          },
+          "publicationContext": {
+            "M": {
+              "openAccess": {
+                "BOOL": false
+              },
+              "peerReviewed": {
+                "BOOL": false
+              },
+              "type": {
+                "S": "Report"
+              }
+            }
+          },
+          "publicationInstance": {
+            "M": {
+              "pages": {
+                "M": {
+                  "illustrated": {
+                    "BOOL": false
+                  },
+                  "pages": {
+                    "S": "abc123"
+                  },
+                  "type": {
+                    "S": "MonographPages"
+                  }
+                }
+              },
+              "peerReviewed": {
+                "BOOL": false
+              },
+              "type": {
+                "S": "ReportResearch"
+              }
+            }
+          },
+          "type": {
+            "S": "Reference"
+          }
+        }
+      },
+      "tags": {
+        "L": [
+
+        ]
+      },
+      "type": {
+        "S": "EntityDescription"
+      }
+    }
+  },
+  "fileSet": {
+    "M": {
+      "files": {
+        "L": [
+          {
+            "M": {
+              "administrativeAgreement": {
+                "BOOL": false
+              },
+              "identifier": {
+                "S": "53e5b763-371b-4e73-9c1a-de2e192f8eb7"
+              },
+              "mimeType": {
+                "S": "text/plain"
+              },
+              "name": {
+                "S": "example.txt"
+              },
+              "publisherAuthority": {
+                "BOOL": false
+              },
+              "size": {
+                "N": "1334"
+              },
+              "type": {
+                "S": "File"
+              }
+            }
+          }
+        ]
+      },
+      "type": {
+        "S": "FileSet"
+      }
+    }
+  },
+  "identifier": {
+    "S": "1e0d17d5-1612-4caa-9dcb-7db0c67a08f5"
+  },
+  "modifiedDate": {
+    "S": "2020-12-11T10:47:52.395622Z"
+  },
+  "owner": {
+    "S": "test-user-with-author@test.no"
+  },
+  "projects": {
+    "L": [
+
+    ]
+  },
+  "publisher": {
+    "M": {
+      "id": {
+        "S": "https://api.dev.nva.aws.unit.no/customer/f54c8aa9-073a-46a1-8f7c-dde66c853934"
+      },
+      "type": {
+        "S": "Organization"
+      }
+    }
+  },
+  "publisherId": {
+    "S": "https://api.dev.nva.aws.unit.no/customer/f54c8aa9-073a-46a1-8f7c-dde66c853934"
+  },
+  "publisherOwnerDate": {
+    "S": "https://api.dev.nva.aws.unit.no/customer/f54c8aa9-073a-46a1-8f7c-dde66c853934#test-user-with-author@test.no#2020-12-11T10:47:52.395622Z"
+  },
+  "status": {
+    "S": "Draft"
+  },
+  "type": {
+    "S": "Publication"
+  }
+}

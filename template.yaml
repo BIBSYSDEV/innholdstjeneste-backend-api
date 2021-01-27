@@ -1,0 +1,334 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    Contents API and Handler
+
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: ContentsAPI
+    Description: API for contents in AWS ElasticSearch
+    Author: Unit
+    SpdxLicenseId: MIT
+    LicenseUrl: LICENSE
+    Labels: ['${GIT_REPO}', '${CODEBUILD_RESOLVED_SOURCE_VERSION}', '@${BUILD_TIMESTAMP}']
+
+Globals:
+  Function:
+    Timeout: 20
+
+Parameters:
+  CustomDomain:
+    Type: String
+    Description: Custom API to connect this lambda to
+  CustomDomainBasePath:
+    Type: String
+    Description: Base path mapping in CustomDomain
+
+Resources:
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+
+  ReadOnlyAccessElasticSearchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      Policies:
+        - PolicyName: writeLog
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+
+  ReadOnlyAccessS3Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      Policies:
+        - PolicyName: writeLog
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+        - PolicyName: writetoelasticsearch
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - es:ESHttpPost
+                Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+
+  ContentsElasticSearch:
+    Type: AWS::Elasticsearch::Domain
+    Properties:
+      AccessPolicies:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !GetAtt TriggerExecutionRole.Arn
+            Action: 'es:*'
+            Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+          - Effect: Allow
+            Principal:
+              AWS: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
+            Action:
+              - es:ESHttpPost
+              - es:ESHttpGet
+              - es:ESHttpHead
+            Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+      ElasticsearchClusterConfig:
+        DedicatedMasterEnabled: false
+        InstanceCount: 1
+        ZoneAwarenessEnabled: false
+        InstanceType: t2.small.elasticsearch
+      ElasticsearchVersion: '7.9'
+      EBSOptions:
+        EBSEnabled: true
+        VolumeSize: 10
+        VolumeType: gp2
+      CognitoOptions:
+        Enabled: false
+
+  ContentsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
+      StageName: Prod
+      EndpointConfiguration: REGIONAL
+      DefinitionBody:
+        openapi: 3.0.3
+        info:
+          title: Contents API
+          version: '0.1.0'
+        paths:
+          /contents:
+            get:
+              description: "Search for contents by given isbn"
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              parameters:
+                - in: query
+                  name: query
+                  description: "term to search for contents."
+                  required: false
+                  schema:
+                    type: string
+                - in: query
+                  name: orderBy
+                  description: "Field to order result by."
+                  required: false
+                  schema:
+                    type: string
+                - in: query
+                  name: sortOrder
+                  description: "Order of search results (asc or desc)."
+                  required: false
+                  schema:
+                    type: string
+                - in: query
+                  name: from
+                  description: "Start position from results, 0-based."
+                  required: false
+                  schema:
+                    type: string
+                - in: query
+                  name: results
+                  description: "Maximum number of hits in response."
+                  required: false
+                  schema:
+                    type: string
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContentsApiFunction.Arn}/invocations
+                responses: {}
+                httpMethod: POST
+                type: AWS_PROXY
+              responses:
+                '200':
+                  description: "OK"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Contents'
+                '500':
+                  description: "Internal Server Error"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Problem'
+          /utils/importS3Bucket:
+            post:
+              description: "Scan S3 bucket for datafiles and import published publications"
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              parameters:
+                - in: body
+                  name: s3bucket
+                  description: "S3 bucket to scan"
+                  required: false
+                  schema:
+                    type: string
+                - in: body
+                  name: s3folderkey
+                  description: "Key in S3 bucket"
+                  required: false
+                  schema:
+                    type: string
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ReadDatafilesInBucketFunction.Arn}/invocations
+                responses: {}
+                httpMethod: POST
+                type: AWS_PROXY
+              responses:
+                '202':
+                  description: "Accepted"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Contents'
+                '500':
+                  description: "Internal Server Error"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Problem'
+
+        definitions:
+          Publication:
+            type: object
+          Problem:
+            type: object
+            description: Internal Server Error is logged
+            properties:
+              title:
+                type: string
+              status:
+                type: integer
+              detail:
+                type: string
+              requestId:
+                type: string
+
+  ContentsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: contents-layer
+      Description: Contents common libraries
+      ContentUri: commons/build/distributions/commons.zip
+      CompatibleRuntimes:
+        - java11
+      LicenseInfo: 'MIT'
+      RetentionPolicy: Retain
+
+
+  ContentsApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: contents-api
+      Handler: no.unit.bibs.elasticsearch.ContentsApiHandler::handleRequest
+      Layers:
+        - !Ref ContentsLayer
+      Runtime: java11
+      MemorySize: 1408
+      Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsElasticSearch.DomainEndpoint
+          ELASTICSEARCH_ENDPOINT_INDEX: contents
+          ELASTICSEARCH_REGION: !Ref "AWS::Region"
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /contents
+            Method: get
+            RestApiId: !Ref ContentsApi
+
+  ContentsListLatestContentsApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: contents-api
+      Handler: no.unit.bibs.elasticsearch.ListLatestContentsApiHandler::handleRequest
+      Layers:
+        - !Ref ContentsLayer
+      Runtime: java11
+      MemorySize: 1408
+      Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsElasticSearch.DomainEndpoint
+          ELASTICSEARCH_ENDPOINT_INDEX: contents
+          ELASTICSEARCH_REGION: !Ref "AWS::Region"
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+            RestApiId: !Ref ContentsApi
+
+  ReadDatafilesInBucketFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: index-import-util
+      Handler: no.unit.bibs.elasticsearch.ImportToSearchIndexHandler::handleRequest
+      Layers:
+        - !Ref ContentsLayer
+      Runtime: java11
+      MemorySize: 1408
+      Role: !GetAtt ReadOnlyAccessS3Role.Arn
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsElasticSearch.DomainEndpoint
+          ELASTICSEARCH_ENDPOINT_INDEX: contents
+          ELASTICSEARCH_REGION: !Ref "AWS::Region"
+          S3BUCKET_REGION: !Ref "AWS::Region"
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /utils/importS3Bucket
+            Method: post
+            RestApiId: !Ref ContentsApi
+
+  ContentsBasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: !Ref CustomDomainBasePath
+      DomainName: !Ref CustomDomain
+      RestApiId: !Ref ContentsApi
+      Stage: !Ref ContentsApi.Stage
+
