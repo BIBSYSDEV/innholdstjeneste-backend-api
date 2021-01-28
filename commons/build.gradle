@@ -29,7 +29,7 @@ dependencies {
 
 configurations.testImplementation.canBeResolved = true
 
-// Build and package search-commons and dependencies for Lambda Layer
+// Build and package commons and dependencies for Lambda Layer
 
 configurations.api.canBeResolved = true
 
