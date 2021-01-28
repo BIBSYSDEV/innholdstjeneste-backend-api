@@ -67,7 +67,7 @@ public class ElasticSearchHighLevelRestClient {
     private final String elasticSearchEndpointIndex;
     private final RestHighLevelClient elasticSearchClient;
 
-    public static final URI DEFAULT_SEARCH_CONTEXT = URI.create("https://api.nva.unit.no/resources/search");
+    public static final URI DEFAULT_SEARCH_CONTEXT = URI.create("https://api.bibs.unit.no/contents/search");
 
     /**
      * Creates a new ElasticSearchRestClient.

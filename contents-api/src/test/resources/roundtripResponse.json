@@ -1,5 +1,5 @@
 {
-  "@context": "https://api.nva.unit.no/resources/search",
+  "@context": "https://api.bibs.unit.no/contents/search",
   "took": 49,
   "total": 2,
   "hits": [
