@@ -239,25 +239,11 @@ Resources:
               requestId:
                 type: string
 
-  ContentsLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: contents-layer
-      Description: Contents common libraries
-      ContentUri: commons/build/distributions/commons.zip
-      CompatibleRuntimes:
-        - java11
-      LicenseInfo: 'MIT'
-      RetentionPolicy: Retain
-
-
   ContentsApiFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: contents-api
       Handler: no.unit.bibs.elasticsearch.ContentsApiHandler::handleRequest
-      Layers:
-        - !Ref ContentsLayer
       Runtime: java11
       MemorySize: 1408
       Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
@@ -275,37 +261,11 @@ Resources:
             Method: get
             RestApiId: !Ref ContentsApi
 
-  ContentsListLatestContentsApiFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: contents-api
-      Handler: no.unit.bibs.elasticsearch.ListLatestContentsApiHandler::handleRequest
-      Layers:
-        - !Ref ContentsLayer
-      Runtime: java11
-      MemorySize: 1408
-      Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsElasticSearch.DomainEndpoint
-          ELASTICSEARCH_ENDPOINT_INDEX: contents
-          ELASTICSEARCH_REGION: !Ref "AWS::Region"
-      Events:
-        GetEvent:
-          Type: Api
-          Properties:
-            Path: /
-            Method: get
-            RestApiId: !Ref ContentsApi
-
   ReadDatafilesInBucketFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: index-import-util
       Handler: no.unit.bibs.elasticsearch.ImportToSearchIndexHandler::handleRequest
-      Layers:
-        - !Ref ContentsLayer
       Runtime: java11
       MemorySize: 1408
       Role: !GetAtt ReadOnlyAccessS3Role.Arn
