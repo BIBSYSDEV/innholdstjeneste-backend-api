@@ -93,7 +93,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !GetAtt TriggerExecutionRole.Arn
+#              AWS: !GetAtt TriggerExecutionRole.Arn
             Action: 'es:*'
             Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
           - Effect: Allow
