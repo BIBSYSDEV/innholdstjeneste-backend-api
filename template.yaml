@@ -12,17 +12,31 @@ Metadata:
     LicenseUrl: LICENSE
     Labels: ['${GIT_REPO}', '${CODEBUILD_RESOLVED_SOURCE_VERSION}', '@${BUILD_TIMESTAMP}']
 
+Parameters:
+  CustomDomain:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: '/api/domainName'
+    Description: (Optional) Custom domain name for the API endpoint
+  CustomDomainBasePath:
+    Type: String
+    Default: 'contents'
+    Description: (Optional) Base path mapping in CustomDomain
+    AllowedPattern: "^[a-zA-Z0-9$\\-_.+!*'(),]*$"
+    ConstraintDescription: "May contain only letters, numbers and one of $-_.+!*'(),"
+
+Conditions:
+  HasDomainName: !Not [!Equals [!Ref CustomDomain, '']]
+  HasCustomDomainBasePath: !Not [!Equals [!Ref CustomDomainBasePath, '']]
+
 Globals:
   Function:
     Timeout: 20
-
-Parameters:
-  CustomDomain:
-    Type: String
-    Description: Custom API to connect this lambda to
-  CustomDomainBasePath:
-    Type: String
-    Description: Base path mapping in CustomDomain
+  Api:
+    Cors:
+      AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+      AllowMethods: '''OPTIONS, POST'''
+      AllowOrigin: '''*'''
+    EndpointConfiguration: REGIONAL
 
 Resources:
   ApiAccessLogGroup:
@@ -118,15 +132,16 @@ Resources:
       AccessLogSetting:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
         Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
-      StageName: Prod
-      EndpointConfiguration: REGIONAL
+      StageName: v1
+      EndpointConfiguration:
+        Type: REGIONAL
       DefinitionBody:
         openapi: 3.0.3
         info:
           title: Contents API
-          version: '0.1.0'
+          version: '1.0'
         paths:
-          /contents:
+          /:
             get:
               description: "Search for contents by given isbn"
               consumes:
@@ -224,7 +239,7 @@ Resources:
                         $ref: '#/definitions/Problem'
 
         definitions:
-          Publication:
+          Contents:
             type: object
           Problem:
             type: object
@@ -286,9 +301,20 @@ Resources:
 
   ContentsBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
+    Condition: HasDomainName
     Properties:
-      BasePath: !Ref CustomDomainBasePath
+      BasePath: !If
+        - HasCustomDomainBasePath
+        - !Ref CustomDomainBasePath
+        - !Ref 'AWS::NoValue'
       DomainName: !Ref CustomDomain
       RestApiId: !Ref ContentsApi
       Stage: !Ref ContentsApi.Stage
 
+Outputs:
+  ApiEndpoint:
+    Description: "Endpoint base URL for the API"
+    Value: !If
+      - HasDomainName
+      - !Sub "https://${CustomDomain}/${CustomDomainBasePath}"
+      - !Sub "https://${ContentsApi}.execute-api.${AWS::Region}.amazonaws.com/${ContentsApi.Stage}/"
