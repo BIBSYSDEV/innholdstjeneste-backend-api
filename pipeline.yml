@@ -255,6 +255,7 @@ Resources:
                   - codepipeline:*
                   - ec2:*
                   - ecs:*
+                  - es:*
                   - elasticfilesystem:*
                   - elasticloadbalancing:*
                   - events:*
