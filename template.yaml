@@ -3,15 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
     Contents API and Handler
 
-Metadata:
-  AWS::ServerlessRepo::Application:
-    Name: ContentsAPI
-    Description: API for contents in AWS ElasticSearch
-    Author: Unit
-    SpdxLicenseId: MIT
-    LicenseUrl: LICENSE
-    Labels: ['${GIT_REPO}', '${CODEBUILD_RESOLVED_SOURCE_VERSION}', '@${BUILD_TIMESTAMP}']
-
 Parameters:
   CustomDomain:
     Type: AWS::SSM::Parameter::Value<String>
@@ -128,7 +119,17 @@ Resources:
 
   ContentsApi:
     Type: AWS::Serverless::Api
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W64
+            reason: "Skip access logging for artifacts bucket"
+          - id: W68
+            reason: "Skip encryption for artifacts bucket"
+          - id: W69
+            reason: "Skip bucket policy for artifacts bucket"
     Properties:
+      Name: !Sub "${AWS::StackName}"
       AccessLogSetting:
         DestinationArn: !GetAtt ApiAccessLogGroup.Arn
         Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
