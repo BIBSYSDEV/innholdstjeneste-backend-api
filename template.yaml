@@ -30,8 +30,8 @@ Globals:
     EndpointConfiguration: REGIONAL
 
 Resources:
-  ApiAccessLogGroup:
-    Type: AWS::Logs::LogGroup
+#  ApiAccessLogGroup:
+#    Type: AWS::Logs::LogGroup
 
   TriggerExecutionRole:
     Type: AWS::IAM::Role
@@ -153,9 +153,9 @@ Resources:
             reason: "Skip bucket policy for artifacts bucket"
     Properties:
       Name: !Sub "${AWS::StackName}"
-      AccessLogSetting:
-        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
-        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
+#      AccessLogSetting:
+#        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+#        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "requestTime": "$context.requestTime", "requestTimeEpoch": "$context.requestTimeEpoch", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status",  "error.message": "$context.error.message" }'
       StageName: v1
       EndpointConfiguration:
         Type: REGIONAL
