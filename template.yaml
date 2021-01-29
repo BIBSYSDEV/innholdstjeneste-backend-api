@@ -33,6 +33,29 @@ Resources:
   ApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
 
+  TriggerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ lambda.amazonaws.com ]
+            Action: [ 'sts:AssumeRole' ]
+      Path: /
+      Policies:
+        - PolicyName: writeLog
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
+
   ReadOnlyAccessElasticSearchRole:
     Type: AWS::IAM::Role
     Properties:
@@ -92,8 +115,8 @@ Resources:
         Version: 2012-10-17
         Statement:
           - Effect: Allow
-#            Principal:
-#              AWS: !GetAtt TriggerExecutionRole.Arn
+            Principal:
+              AWS: !GetAtt TriggerExecutionRole.Arn
             Action: 'es:*'
             Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
           - Effect: Allow
