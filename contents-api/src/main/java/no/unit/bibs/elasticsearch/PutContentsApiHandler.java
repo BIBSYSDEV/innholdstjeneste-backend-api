@@ -14,7 +14,6 @@ import nva.commons.utils.Environment;
 import nva.commons.utils.JacocoGenerated;
 import nva.commons.utils.JsonUtils;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
