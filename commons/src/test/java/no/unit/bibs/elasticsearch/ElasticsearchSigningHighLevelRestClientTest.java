@@ -1,6 +1,5 @@
 package no.unit.bibs.elasticsearch;
 
-import no.unit.bibs.elasticsearch.exception.SearchException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.utils.Environment;
 import nva.commons.utils.IoUtils;
@@ -80,13 +79,13 @@ public class ElasticsearchSigningHighLevelRestClientTest {
         when(restHighLevelClient.search(any(), any())).thenReturn(searchResponse);
         ElasticSearchHighLevelRestClient elasticSearchRestClient =
                 new ElasticSearchHighLevelRestClient(environment, restHighLevelClient);
-        ContentsResponse contentsResponse =
+        QueryContentsResponse queryContentsResponse =
                 elasticSearchRestClient.searchSingleTerm(SAMPLE_TERM,
                         SAMPLE_NUMBER_OF_RESULTS,
                         SAMPLE_FROM,
                         SAMPLE_ORDERBY,
                         SortOrder.DESC);
-        assertNotNull(contentsResponse);
+        assertNotNull(queryContentsResponse);
     }
 
     @Test
@@ -99,14 +98,14 @@ public class ElasticsearchSigningHighLevelRestClientTest {
         when(restHighLevelClient.search(any(), any())).thenReturn(searchResponse);
         ElasticSearchHighLevelRestClient elasticSearchRestClient =
                 new ElasticSearchHighLevelRestClient(environment, restHighLevelClient);
-        ContentsResponse contentsResponse =
+        QueryContentsResponse queryContentsResponse =
                 elasticSearchRestClient.searchSingleTerm(SAMPLE_TERM,
                         MAX_RESULTS,
                         SAMPLE_FROM,
                         SAMPLE_ORDERBY,
                         SortOrder.DESC);
-        assertNotNull(contentsResponse);
-        assertEquals(contentsResponse.getTotal(), ELASTIC_ACTUAL_SAMPLE_NUMBER_OF_RESULTS);
+        assertNotNull(queryContentsResponse);
+        assertEquals(queryContentsResponse.getTotal(), ELASTIC_ACTUAL_SAMPLE_NUMBER_OF_RESULTS);
     }
 
     private String getElasticSEarchResponseAsString() {

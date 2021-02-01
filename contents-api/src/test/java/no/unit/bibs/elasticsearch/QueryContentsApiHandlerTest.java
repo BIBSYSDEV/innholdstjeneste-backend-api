@@ -31,7 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class GetContentsApiHandlerTest {
+public class QueryContentsApiHandlerTest {
 
     public static final String SAMPLE_SEARCH_TERM = "searchTerm";
     public static final String SAMPLE_ELASTICSEARCH_RESPONSE_JSON = "sample_elasticsearch_response.json";
@@ -42,7 +42,7 @@ public class GetContentsApiHandlerTest {
     public static final int SAMPLE_TOOK = 0;
     public static final int SAMPLE_TOTAL = 0;
     private Environment environment;
-    private GetContentsApiHandler getContentsApiHandler;
+    private QueryContentsApiHandler queryContentsApiHandler;
 
     private void initEnvironment() {
         environment = mock(Environment.class);
@@ -54,38 +54,38 @@ public class GetContentsApiHandlerTest {
     @BeforeEach
     public void init() {
         initEnvironment();
-        getContentsApiHandler = new GetContentsApiHandler(environment);
+        queryContentsApiHandler = new QueryContentsApiHandler(environment);
     }
 
     @Test
     void defaultConstructorThrowsIllegalStateExceptionWhenEnvironmentNotDefined() {
-        assertThrows(IllegalStateException.class, GetContentsApiHandler::new);
+        assertThrows(IllegalStateException.class, QueryContentsApiHandler::new);
     }
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        ContentsResponse response =  new ContentsResponse(EXAMPLE_CONTEXT,
+        QueryContentsResponse response =  new QueryContentsResponse(EXAMPLE_CONTEXT,
                 SAMPLE_TOOK,
                 SAMPLE_TOTAL,
                 SAMPLE_HITS);
-        Integer statusCode = getContentsApiHandler.getSuccessStatusCode(null, response);
+        Integer statusCode = queryContentsApiHandler.getSuccessStatusCode(null, response);
         assertEquals(statusCode, HttpStatus.SC_OK);
     }
 
     @Test
     void handlerReturnsSearchResultsWhemQueryIsSingleTerm() throws ApiGatewayException, IOException {
         var elasticSearchClient = new ElasticSearchHighLevelRestClient(environment, setUpRestHighLevelClient());
-        var handler = new GetContentsApiHandler(environment, elasticSearchClient);
+        var handler = new QueryContentsApiHandler(environment, elasticSearchClient);
         var actual = handler.processInput(null, getRequestInfo(), mock(Context.class));
         var expected = mapper.readValue(IoUtils.stringFromResources(Path.of(ROUNDTRIP_RESPONSE_JSON)),
-                ContentsResponse.class);
+                QueryContentsResponse.class);
         assertEquals(expected, actual);
     }
 
     @Test
     void handlerThrowsExceptionWhenGatewayIsBad() throws IOException {
         var elasticSearchClient = new ElasticSearchHighLevelRestClient(environment, setUpBadGateWay());
-        var handler = new GetContentsApiHandler(environment, elasticSearchClient);
+        var handler = new QueryContentsApiHandler(environment, elasticSearchClient);
         Executable executable = () -> handler.processInput(null, getRequestInfo(), mock(Context.class));
         assertThrows(ApiGatewayException.class, executable);
     }

@@ -9,7 +9,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class ContentsResponseTest {
+class QueryContentsResponseTest {
 
     public static final URI EXAMPLE_CONTEXT = URI.create("https://example.org/search");
     public static final List<JsonNode> SAMPLE_HITS = Collections.EMPTY_LIST;
@@ -18,7 +18,7 @@ class ContentsResponseTest {
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        ContentsResponse response =  new ContentsResponse(EXAMPLE_CONTEXT,
+        QueryContentsResponse response =  new QueryContentsResponse(EXAMPLE_CONTEXT,
                 SAMPLE_TOOK,
                 SAMPLE_TOTAL,
                 SAMPLE_HITS);

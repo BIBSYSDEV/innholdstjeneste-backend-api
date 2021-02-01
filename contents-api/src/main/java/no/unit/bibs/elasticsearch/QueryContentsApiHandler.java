@@ -11,21 +11,21 @@ import org.apache.http.HttpStatus;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.LoggerFactory;
 
-public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsResponse> {
+public class QueryContentsApiHandler extends ApiGatewayHandler<Void, QueryContentsResponse> {
 
     private final ElasticSearchHighLevelRestClient elasticSearchClient;
 
     @JacocoGenerated
-    public GetContentsApiHandler() {
+    public QueryContentsApiHandler() {
         this(new Environment());
     }
 
-    public GetContentsApiHandler(Environment environment) {
+    public QueryContentsApiHandler(Environment environment) {
         this(environment, new ElasticSearchHighLevelRestClient(environment));
     }
 
-    public GetContentsApiHandler(Environment environment, ElasticSearchHighLevelRestClient elasticSearchClient) {
-        super(Void.class, environment, LoggerFactory.getLogger(GetContentsApiHandler.class));
+    public QueryContentsApiHandler(Environment environment, ElasticSearchHighLevelRestClient elasticSearchClient) {
+        super(Void.class, environment, LoggerFactory.getLogger(QueryContentsApiHandler.class));
         this.elasticSearchClient = elasticSearchClient;
     }
 
@@ -42,9 +42,9 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsRespo
      *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
-    protected ContentsResponse processInput(Void input,
-                                            RequestInfo requestInfo,
-                                            Context context) throws ApiGatewayException {
+    protected QueryContentsResponse processInput(Void input,
+                                                 RequestInfo requestInfo,
+                                                 Context context) throws ApiGatewayException {
 
         String searchTerm = RequestUtil.getSearchTerm(requestInfo);
         int results = RequestUtil.getResults(requestInfo);
@@ -63,7 +63,7 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsRespo
      * @return the success status code.
      */
     @Override
-    protected Integer getSuccessStatusCode(Void input, ContentsResponse output) {
+    protected Integer getSuccessStatusCode(Void input, QueryContentsResponse output) {
         return HttpStatus.SC_OK;
     }
 }

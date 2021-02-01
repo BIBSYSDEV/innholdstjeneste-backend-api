@@ -205,7 +205,7 @@ Resources:
                     type: string
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentsApiFunction.Arn}/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${QueryContentsApiFunction.Arn}/invocations
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
@@ -316,11 +316,11 @@ Resources:
               requestId:
                 type: string
 
-  GetContentsApiFunction:
+  QueryContentsApiFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: contents-api
-      Handler: no.unit.bibs.elasticsearch.GetContentsApiHandler::handleRequest
+      Handler: no.unit.bibs.elasticsearch.QueryContentsApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1408
       Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn

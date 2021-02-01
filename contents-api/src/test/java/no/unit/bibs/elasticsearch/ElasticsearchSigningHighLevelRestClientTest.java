@@ -1,6 +1,5 @@
 package no.unit.bibs.elasticsearch;
 
-import no.unit.bibs.elasticsearch.exception.SearchException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.utils.Environment;
 import org.elasticsearch.action.DocWriteResponse;
@@ -75,13 +74,13 @@ public class ElasticsearchSigningHighLevelRestClientTest {
         when(restHighLevelClient.search(any(), any())).thenReturn(searchResponse);
         ElasticSearchHighLevelRestClient elasticSearchRestClient =
                 new ElasticSearchHighLevelRestClient(environment, restHighLevelClient);
-        ContentsResponse contentsResponse =
+        QueryContentsResponse queryContentsResponse =
                 elasticSearchRestClient.searchSingleTerm(SAMPLE_TERM,
                         SAMPLE_NUMBER_OF_RESULTS,
                         SAMPLE_FROM,
                         SAMPLE_ORDERBY,
                         SortOrder.DESC);
-        assertNotNull(contentsResponse);
+        assertNotNull(queryContentsResponse);
     }
 
     @Test

@@ -8,7 +8,6 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.unit.bibs.elasticsearch.exception.SearchException;
 import no.unit.bibs.utils.ImportDataRequest;
 import nva.commons.utils.JacocoGenerated;
 import nva.commons.utils.JsonUtils;

@@ -7,7 +7,6 @@ import com.amazonaws.http.AWSRequestSigningApacheInterceptor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.unit.bibs.elasticsearch.exception.SearchException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.utils.Environment;
 import nva.commons.utils.JsonUtils;
@@ -104,7 +103,7 @@ public class ElasticSearchHighLevelRestClient {
      * @param results number of results
      * @throws ApiGatewayException thrown when uri is misconfigured, service i not available or interrupted
      */
-    public ContentsResponse searchSingleTerm(String term,
+    public QueryContentsResponse searchSingleTerm(String term,
                                              int results,
                                              int from,
                                              String orderBy,
@@ -184,14 +183,14 @@ public class ElasticSearchHighLevelRestClient {
         }
     }
 
-    private ContentsResponse toSearchResourcesResponse(String body) throws JsonProcessingException {
+    private QueryContentsResponse toSearchResourcesResponse(String body) throws JsonProcessingException {
         JsonNode values = mapper.readTree(body);
 
         List<JsonNode> sourceList = extractSourceList(values);
         int total = intFromNode(values, TOTAL_JSON_POINTER);
         int took =  intFromNode(values, TOOK_JSON_POINTER);
 
-        return new ContentsResponse.Builder()
+        return new QueryContentsResponse.Builder()
                 .withContext(DEFAULT_SEARCH_CONTEXT)
                 .withTook(took)
                 .withTotal(total)

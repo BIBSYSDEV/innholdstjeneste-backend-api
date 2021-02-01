@@ -21,12 +21,4 @@ class ExceptionsTest {
         Assertions.assertEquals(HttpStatus.SC_BAD_REQUEST, exception.getStatusCode());
     }
 
-    @Test
-    public void searchExceptionHasStatusCode() {
-        ApiGatewayException exception = new SearchException(MESSAGE, new RuntimeException());
-        Assertions.assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, exception.getStatusCode());
-    }
-
-
-
 }

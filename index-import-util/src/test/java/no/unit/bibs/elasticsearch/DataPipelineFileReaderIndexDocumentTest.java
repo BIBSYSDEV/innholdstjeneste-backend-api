@@ -5,7 +5,6 @@ import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import no.unit.bibs.elasticsearch.exception.SearchException;
 import no.unit.bibs.utils.ImportDataRequest;
 import nva.commons.utils.Environment;
 import nva.commons.utils.IoUtils;
