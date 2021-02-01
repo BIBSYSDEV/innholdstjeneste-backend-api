@@ -205,9 +205,47 @@ Resources:
                     type: string
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContentsApiFunction.Arn}/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentsApiFunction.Arn}/invocations
                 responses: {}
                 httpMethod: POST
+                type: AWS_PROXY
+              responses:
+                '200':
+                  description: "OK"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Contents'
+                '500':
+                  description: "Internal Server Error"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Problem'
+            put:
+              description: "Adds contents"
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              parameters:
+                - in: query
+                  name: isbn
+                  description: "isbn for contents."
+                  required: true
+                  schema:
+                    type: string
+                - in: body
+                  name: contents
+                  description: "contents metadata"
+                  required: true
+                  schema:
+                    type: string
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PutContentsApiFunction.Arn}/invocations
+                responses: {}
+                httpMethod: PUT
                 type: AWS_PROXY
               responses:
                 '200':
@@ -278,11 +316,11 @@ Resources:
               requestId:
                 type: string
 
-  ContentsApiFunction:
+  GetContentsApiFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: contents-api
-      Handler: no.unit.bibs.elasticsearch.ContentsApiHandler::handleRequest
+      Handler: no.unit.bibs.elasticsearch.GetContentsApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1408
       Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
@@ -298,6 +336,28 @@ Resources:
           Properties:
             Path: /contents
             Method: get
+            RestApiId: !Ref ContentsApi
+
+  PutContentsApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: contents-api
+      Handler: no.unit.bibs.elasticsearch.PutContentsApiHandler::handleRequest
+      Runtime: java11
+      MemorySize: 1408
+      Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsElasticSearch.DomainEndpoint
+          ELASTICSEARCH_ENDPOINT_INDEX: contents
+          ELASTICSEARCH_REGION: !Ref "AWS::Region"
+      Events:
+        PutEvent:
+          Type: Api
+          Properties:
+            Path: /contents
+            Method: put
             RestApiId: !Ref ContentsApi
 
   ReadDatafilesInBucketFunction:

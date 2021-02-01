@@ -11,21 +11,21 @@ import org.apache.http.HttpStatus;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.LoggerFactory;
 
-public class ContentsApiHandler extends ApiGatewayHandler<Void, ContentsResponse> {
+public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsResponse> {
 
     private final ElasticSearchHighLevelRestClient elasticSearchClient;
 
     @JacocoGenerated
-    public ContentsApiHandler() {
+    public GetContentsApiHandler() {
         this(new Environment());
     }
 
-    public ContentsApiHandler(Environment environment) {
+    public GetContentsApiHandler(Environment environment) {
         this(environment, new ElasticSearchHighLevelRestClient(environment));
     }
 
-    public ContentsApiHandler(Environment environment, ElasticSearchHighLevelRestClient elasticSearchClient) {
-        super(Void.class, environment, LoggerFactory.getLogger(ContentsApiHandler.class));
+    public GetContentsApiHandler(Environment environment, ElasticSearchHighLevelRestClient elasticSearchClient) {
+        super(Void.class, environment, LoggerFactory.getLogger(GetContentsApiHandler.class));
         this.elasticSearchClient = elasticSearchClient;
     }
 
