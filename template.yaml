@@ -30,8 +30,6 @@ Globals:
     EndpointConfiguration: REGIONAL
 
 Resources:
-#  ApiAccessLogGroup:
-#    Type: AWS::Logs::LogGroup
 
   TriggerExecutionRole:
     Type: AWS::IAM::Role
@@ -41,7 +39,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: [ lambda.amazonaws.com ]
+              Service: [ lambda.amazonaws.com,  dms.amazonaws.com]
             Action: [ 'sts:AssumeRole' ]
       Path: /
       Policies:
@@ -55,6 +53,18 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
+        - PolicyName: writetoelasticsearch
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - es:ESHttpPost
+                    - es:ESHttpDelete
+                    - es:ESHttpGet
+                    - es:ESHttpHead
+                    - es:ESHttpPut
+                  Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
 
   ReadOnlyAccessElasticSearchRole:
     Type: AWS::IAM::Role
