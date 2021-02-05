@@ -65,7 +65,7 @@ public class IndexDocument implements JsonSerializable {
     }
 
     protected IndexDocument(IndexDocumentBuilder builder) {
-        id = builder.id;
+        id = UUID.randomUUID();
         title = builder.title;
         contributors = builder.contributors;
         year = builder.year;

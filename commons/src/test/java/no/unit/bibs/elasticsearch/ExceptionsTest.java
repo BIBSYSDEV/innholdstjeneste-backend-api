@@ -1,4 +1,4 @@
-package no.unit.bibs.elasticsearch.exception;
+package no.unit.bibs.elasticsearch;
 
 import nva.commons.exceptions.ApiGatewayException;
 import org.apache.http.HttpStatus;

@@ -3,7 +3,6 @@ package no.unit.bibs.elasticsearch;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import no.unit.bibs.elasticsearch.exception.ImportException;
 import no.unit.bibs.utils.ImportDataCreateResponse;
 import no.unit.bibs.utils.ImportDataRequest;
 import nva.commons.exceptions.ApiGatewayException;

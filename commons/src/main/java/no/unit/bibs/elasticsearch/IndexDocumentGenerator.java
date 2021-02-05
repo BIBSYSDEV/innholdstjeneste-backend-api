@@ -15,7 +15,6 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -27,27 +26,24 @@ import static nva.commons.utils.StringUtils.isEmpty;
 @SuppressWarnings("PMD.GodClass")
 public final class IndexDocumentGenerator extends IndexDocument {
 
-    public static final String CONTRIBUTOR_LIST_JSON_POINTER = "/contributors/l";
-    public static final String ISBN_LIST_JSON_POINTER = "/isbns/l";
-    public static final String CONTRIBUTOR_NAME_JSON_POINTER = "/m/identity/m/name/s";
-    public static final String ISBN_JSON_POINTER = "/m/identity/m/isbn/s";
-    public static final String IDENTIFIER_JSON_POINTER = "/identifier/s";
-    public static final String TITLE_JSON_POINTER = "/title/s";
-    public static final String YEAR_JSON_POINTER = "/year/s";
-    public static final String IMAGE_URL_SMALL_JSON_POINTER = "/reference/m/imageUrlSmall/s";
-    public static final String IMAGE_URL_LARGE_JSON_POINTER = "/reference/m/imageUrlLarge/s";
-    public static final String IMAGE_URL_ORIGINAL_JSON_POINTER = "/reference/m/imageUrlOriginal/s";
-    public static final String DESCRIPTION_SHORT_JSON_POINTER = "/descriptionShort/s";
-    public static final String DESCRIPTION_LONG_JSON_POINTER = "/descriptionLong/s";
-    public static final String TABLE_OF_CONTENTS_JSON_POINTER = "/tableOfContents/s";
-    public static final String MODIFIED_DATE_JSON_POINTER = "/modifiedDate/s";
-    public static final String CREATED_DATE_JSON_POINTER = "/createdDate/s";
-    public static final String SOURCE_JSON_POINTER = "/source/s";
+    public static final String CONTRIBUTOR_LIST_JSON_POINTER = "/contents/contributors";
+    public static final String ISBN_LIST_JSON_POINTER = "/contents/isbn";
+    public static final String TITLE_JSON_POINTER = "/contents/title";
+    public static final String YEAR_JSON_POINTER = "/contents/year";
+    public static final String IMAGE_URL_SMALL_JSON_POINTER = "/contents/image_url_small";
+    public static final String IMAGE_URL_LARGE_JSON_POINTER = "/contents/image_url_large";
+    public static final String IMAGE_URL_ORIGINAL_JSON_POINTER = "/contents/image_url_original";
+    public static final String DESCRIPTION_SHORT_JSON_POINTER = "/contents/description_short";
+    public static final String DESCRIPTION_LONG_JSON_POINTER = "/contents/description_long";
+    public static final String TABLE_OF_CONTENTS_JSON_POINTER = "/contents/table_of_contents";
+    public static final String MODIFIED_DATE_JSON_POINTER = "/contents/modifiedDate";
+    public static final String CREATED_DATE_JSON_POINTER = "/contents/createdDate";
+    public static final String SOURCE_JSON_POINTER = "/contents/source";
 
     public static final String MISSING_FIELD_LOGGER_WARNING_TEMPLATE =
-            "The data were incomplete, missing field {} on id: {}, ignoring entry";
+            "The data were incomplete, missing field {} on id: {}";
     public static final String DATE_FIELD_FORMAT_ERROR_LOGGER_WARNING_TEMPLATE =
-            "The data from DynamoDB was incorrect, field {} on id: {}, ignoring value {}";
+            "The data was incorrect, field {} on id: {}, ignoring value {}";
     public static final String EXCEPTION_READING_IMAGE_URL_MESSAGE = "Exception reading image url, recordId={}";
 
     public static final String STATUS = "status";
@@ -69,42 +65,31 @@ public final class IndexDocumentGenerator extends IndexDocument {
     }
 
     /**
-     * Transforms a DynamoDB streamRecord into IndexDocument.
-     *
-     * @param streamRecord of the original dynamoDB record
-     * @return A document usable for indexing in elasticsearch
-     */
-    public static IndexDocumentGenerator fromStreamRecord(DynamodbEvent.DynamodbStreamRecord streamRecord) {
-        JsonNode record = toJsonNode(streamRecord);
-        return fromJsonNode(record);
-    }
-
-    /**
      * Initialise an IndexDocumentGenerator from an jsonNode.
      * @param record jsonNode containing publication data to be indexed
      * @return a generator ready to make indexDocuments
      */
     public static IndexDocumentGenerator fromJsonNode(JsonNode record) {
-        UUID id = extractId(record);
+        String isbn = extractIsbnList(record).get(0);
 
         IndexDocumentBuilder builder = new IndexDocumentBuilder()
-                .withId(id)
-                .withTitle(extractTitle(record, id))
-                .withContributors(extractContributors(record))
-                .withYear(extractYear(record, id))
                 .withIsbn(extractIsbnList(record))
-                .withShortDescription(extractShortDescription(record, id))
-                .withLongDescription(extractLongDescription(record, id))
-                .withTableOfContents(extractTableOfContents(record, id))
-                .withSource(extractSource(record, id))
-                .withModifiedDate(extractModifiedDate(record, id))
-                .withCreatedDate(extractCreatedDate(record, id));
+                .withTitle(extractTitle(record, isbn))
+                .withContributors(extractContributors(record))
+                .withYear(extractYear(record, isbn))
+                .withIsbn(extractIsbnList(record))
+                .withShortDescription(extractShortDescription(record, isbn))
+                .withLongDescription(extractLongDescription(record, isbn))
+                .withTableOfContents(extractTableOfContents(record, isbn))
+                .withSource(extractSource(record, isbn))
+                .withModifiedDate(extractModifiedDate(record, isbn))
+                .withCreatedDate(extractCreatedDate(record, isbn));
 
-        Optional<URI> optionalURIsmall = extractImageUrlSmall(record);
+        Optional<URI> optionalURIsmall = extractImageUrlSmall(record, isbn);
         optionalURIsmall.ifPresent(builder::withSmallImage);
-        Optional<URI> optionalURIlarge = extractImageUrlLarge(record);
+        Optional<URI> optionalURIlarge = extractImageUrlLarge(record, isbn);
         optionalURIlarge.ifPresent(builder::withLargeImage);
-        Optional<URI> optionalURIoriginal = extractImageUrlOrginal(record);
+        Optional<URI> optionalURIoriginal = extractImageUrlOrginal(record, isbn);
         optionalURIoriginal.ifPresent(builder::withOriginalImage);
 
         return new IndexDocumentGenerator(builder);
@@ -112,36 +97,24 @@ public final class IndexDocumentGenerator extends IndexDocument {
 
     private static List<String> extractContributors(JsonNode record) {
         return toStream(record.at(CONTRIBUTOR_LIST_JSON_POINTER))
-                .map(IndexDocumentGenerator::extractContributor)
+                .map(IndexDocumentGenerator::extractAsText)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
     private static List<String> extractIsbnList(JsonNode record) {
         return toStream(record.at(ISBN_LIST_JSON_POINTER))
-                .map(IndexDocumentGenerator::extractIsbn)
+                .map(IndexDocumentGenerator::extractAsText)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private static String extractContributor(JsonNode jsonNode) {
-        String name = textFromNode(jsonNode, CONTRIBUTOR_NAME_JSON_POINTER);
+    private static String extractAsText(JsonNode jsonNode) {
+        String name = jsonNode.asText();
         return nonNull(name) ? name : null;
     }
 
-    private static String extractIsbn(JsonNode jsonNode) {
-        String name = textFromNode(jsonNode, ISBN_JSON_POINTER);
-        return nonNull(name) ? name : null;
-    }
-
-    private static UUID extractId(JsonNode record) {
-        return Optional.ofNullable(record)
-                .map(rec -> textFromNode(rec, IDENTIFIER_JSON_POINTER))
-                .map(UUID::fromString)
-                .orElseThrow();
-    }
-
-    private static String extractTitle(JsonNode record, UUID id) {
+    private static String extractTitle(JsonNode record, String id) {
         var title = textFromNode(record, TITLE_JSON_POINTER);
         if (isNull(title)) {
             logMissingField(id, TITLE);
@@ -149,12 +122,12 @@ public final class IndexDocumentGenerator extends IndexDocument {
         return title;
     }
 
-    private static Instant extractYear(JsonNode record, UUID id) {
+    private static Instant extractYear(JsonNode record, String id) {
         return getInstant(record, id, YEAR_JSON_POINTER, YEAR);
     }
 
     @JacocoGenerated
-    private static Optional<URI> extractImageUrlSmall(JsonNode record) {
+    private static Optional<URI> extractImageUrlSmall(JsonNode record, String id) {
         String textFromNode = textFromNode(record, IMAGE_URL_SMALL_JSON_POINTER);
         try {
             if (!isEmpty(textFromNode)) {
@@ -163,13 +136,13 @@ public final class IndexDocumentGenerator extends IndexDocument {
                 return Optional.empty();
             }
         } catch (Exception e) {
-            logger.warn(EXCEPTION_READING_IMAGE_URL_MESSAGE, textFromNode(record, IDENTIFIER_JSON_POINTER));
+            logger.warn(EXCEPTION_READING_IMAGE_URL_MESSAGE, id);
             return Optional.empty();
         }
     }
 
     @JacocoGenerated
-    private static Optional<URI> extractImageUrlLarge(JsonNode record) {
+    private static Optional<URI> extractImageUrlLarge(JsonNode record, String id) {
         String textFromNode = textFromNode(record, IMAGE_URL_LARGE_JSON_POINTER);
         try {
             if (!isEmpty(textFromNode)) {
@@ -178,13 +151,13 @@ public final class IndexDocumentGenerator extends IndexDocument {
                 return Optional.empty();
             }
         } catch (Exception e) {
-            logger.warn(EXCEPTION_READING_IMAGE_URL_MESSAGE, textFromNode(record, IDENTIFIER_JSON_POINTER));
+            logger.warn(EXCEPTION_READING_IMAGE_URL_MESSAGE, id);
             return Optional.empty();
         }
     }
 
     @JacocoGenerated
-    private static Optional<URI> extractImageUrlOrginal(JsonNode record) {
+    private static Optional<URI> extractImageUrlOrginal(JsonNode record, String id) {
         String textFromNode = textFromNode(record, IMAGE_URL_ORIGINAL_JSON_POINTER);
         try {
             if (!isEmpty(textFromNode)) {
@@ -193,7 +166,7 @@ public final class IndexDocumentGenerator extends IndexDocument {
                 return Optional.empty();
             }
         } catch (Exception e) {
-            logger.warn(EXCEPTION_READING_IMAGE_URL_MESSAGE, textFromNode(record, IDENTIFIER_JSON_POINTER));
+            logger.warn(EXCEPTION_READING_IMAGE_URL_MESSAGE, id);
             return Optional.empty();
         }
     }
@@ -202,7 +175,7 @@ public final class IndexDocumentGenerator extends IndexDocument {
         return new URI(textFromNode);
     }
 
-    private static String extractShortDescription(JsonNode record, UUID id) {
+    private static String extractShortDescription(JsonNode record, String id) {
         var description = textFromNode(record, DESCRIPTION_SHORT_JSON_POINTER);
         if (isNull(description)) {
             logMissingField(id, DESCRIPTION_SHORT);
@@ -210,7 +183,7 @@ public final class IndexDocumentGenerator extends IndexDocument {
         return description;
     }
 
-    private static String extractLongDescription(JsonNode record, UUID id) {
+    private static String extractLongDescription(JsonNode record, String id) {
         var description = textFromNode(record, DESCRIPTION_LONG_JSON_POINTER);
         if (isNull(description)) {
             logMissingField(id, DESCRIPTION_LONG);
@@ -218,7 +191,7 @@ public final class IndexDocumentGenerator extends IndexDocument {
         return description;
     }
 
-    private static String extractTableOfContents(JsonNode record, UUID id) {
+    private static String extractTableOfContents(JsonNode record, String id) {
         var publicationAbstract = textFromNode(record, TABLE_OF_CONTENTS_JSON_POINTER);
         if (isNull(publicationAbstract)) {
             logMissingField(id, TABLE_OF_CONTENTS);
@@ -226,7 +199,7 @@ public final class IndexDocumentGenerator extends IndexDocument {
         return publicationAbstract;
     }
 
-    private static String extractSource(JsonNode record, UUID id) {
+    private static String extractSource(JsonNode record, String id) {
         var publicationAbstract = textFromNode(record, SOURCE_JSON_POINTER);
         if (isNull(publicationAbstract)) {
             logMissingField(id, SOURCE);
@@ -234,16 +207,16 @@ public final class IndexDocumentGenerator extends IndexDocument {
         return publicationAbstract;
     }
 
-    private static Instant extractModifiedDate(JsonNode record, UUID id) {
+    private static Instant extractModifiedDate(JsonNode record, String id) {
         return getInstant(record, id, MODIFIED_DATE_JSON_POINTER, MODIFIED_DATE);
     }
 
-    private static Instant extractCreatedDate(JsonNode record, UUID id) {
+    private static Instant extractCreatedDate(JsonNode record, String id) {
         return getInstant(record, id, CREATED_DATE_JSON_POINTER, CREATED_DATE);
     }
 
     @JacocoGenerated
-    private static Instant getInstant(JsonNode record, UUID id, String fieldJsonPtr, String fieldName) {
+    private static Instant getInstant(JsonNode record, String id, String fieldJsonPtr, String fieldName) {
         String textFromNode = textFromNode(record, fieldJsonPtr);
         if (isEmpty(textFromNode)) {
             logMissingField(id, fieldName);
@@ -262,7 +235,7 @@ public final class IndexDocumentGenerator extends IndexDocument {
         }
     }
 
-    private static void logMissingField(UUID id, String field) {
+    private static void logMissingField(String id, String field) {
         logger.warn(MISSING_FIELD_LOGGER_WARNING_TEMPLATE, field, id);
     }
 
