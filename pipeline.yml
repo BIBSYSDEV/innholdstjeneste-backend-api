@@ -438,7 +438,7 @@ Resources:
               RoleArn: !GetAtt CloudFormationRole.Arn
               StackName: !Ref DeployStackName
               Capabilities: CAPABILITY_AUTO_EXPAND,CAPABILITY_NAMED_IAM,CAPABILITY_IAM
-              TemplatePath: 'BuildArtifacts::packaged.yml'
+              TemplatePath: 'BuildArtifacts::packaged.yaml'
               TemplateConfiguration: !Sub 'BuildArtifacts::${StackTemplateConfigurationPath}'
             RunOrder: 1
           - !If

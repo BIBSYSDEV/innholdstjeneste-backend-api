@@ -37,10 +37,10 @@ phases:
         # Use AWS SAM to build and package the application by using AWS CloudFormation
       - ./gradlew :commons:clean :commons:build
       - sam build
-      - sam package --s3-bucket $S3_BUCKET --output-template-file packaged.yml
+      - sam package --s3-bucket $S3_BUCKET --output-template-file packaged.yaml
 
       # Lint after 'package'
-      - cfn-lint packaged.yml
+      - cfn-lint packaged.yaml
 
     post_build:
       commands:
