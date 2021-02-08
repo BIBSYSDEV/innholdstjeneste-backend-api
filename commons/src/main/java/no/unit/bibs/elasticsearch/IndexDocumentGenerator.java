@@ -1,10 +1,7 @@
 package no.unit.bibs.elasticsearch;
 
-import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nva.commons.utils.JacocoGenerated;
-import nva.commons.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +43,6 @@ public final class IndexDocumentGenerator extends IndexDocument {
             "The data was incorrect, field {} on id: {}, ignoring value {}";
     public static final String EXCEPTION_READING_IMAGE_URL_MESSAGE = "Exception reading image url, recordId={}";
 
-    public static final String STATUS = "status";
     public static final String TITLE = "title";
     public static final String DESCRIPTION_SHORT = "descriptionShort";
     public static final String DESCRIPTION_LONG = "descriptionLong";
@@ -56,7 +52,6 @@ public final class IndexDocumentGenerator extends IndexDocument {
     public static final String YEAR = "year";
     public static final String SOURCE = "source";
 
-    private static final ObjectMapper mapper = JsonUtils.objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(IndexDocumentGenerator.class);
 
     @JacocoGenerated
@@ -248,15 +243,7 @@ public final class IndexDocumentGenerator extends IndexDocument {
         return !json.isNull() && !json.asText().isBlank();
     }
 
-    private static JsonNode toJsonNode(DynamodbEvent.DynamodbStreamRecord streamRecord) {
-        return mapper.valueToTree(streamRecord.getDynamodb().getNewImage());
-    }
-
     private static Stream<JsonNode> toStream(JsonNode contributors) {
         return StreamSupport.stream(contributors.spliterator(), false);
-    }
-
-    public IndexDocument toIndexDocument() {
-        return this;
     }
 }

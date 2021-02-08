@@ -1,4 +1,3 @@
 rootProject.name = 'innholdstjeneste-backend-api'
 include 'commons'
 include 'contents-api'
-include 'index-import-util'
