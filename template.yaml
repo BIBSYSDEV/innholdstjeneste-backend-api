@@ -14,6 +14,16 @@ Parameters:
     Description: (Optional) Base path mapping in CustomDomain
     AllowedPattern: "^[a-zA-Z0-9$\\-_.+!*'(),]*$"
     ConstraintDescription: "May contain only letters, numbers and one of $-_.+!*'(),"
+  MaxConcurrency:
+    Type: Number
+    Default: 20
+    Description: Max number of provisioned hot instances for a lambda function
+  MinConcurrency:
+    Type: Number
+    Default: 1
+    MaxValue: 1
+    MinValue: 1
+    Description: Min number of provisioned hot instances for a lambda function
 
 Conditions:
   HasDomainName: !Not [!Equals [!Ref CustomDomain, '']]
@@ -216,7 +226,7 @@ Resources:
                     type: string
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${QueryContentsApiFunction.Arn}/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${QueryContentsApiFunction.Arn}:live/invocations
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
@@ -254,7 +264,7 @@ Resources:
                     type: string
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PutContentsApiFunction.Arn}/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PutContentsApiFunction.Arn}:live/invocations
                 responses: {}
                 httpMethod: PUT
                 type: AWS_PROXY
@@ -294,7 +304,12 @@ Resources:
       CodeUri: contents-api
       Handler: no.unit.bibs.elasticsearch.QueryContentsApiHandler::handleRequest
       Runtime: java11
-      MemorySize: 1408
+      MemorySize: 1024
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
       Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
       Environment:
         Variables:
@@ -316,7 +331,12 @@ Resources:
       CodeUri: contents-api
       Handler: no.unit.bibs.elasticsearch.PutContentsApiHandler::handleRequest
       Runtime: java11
-      MemorySize: 1408
+      MemorySize: 1024
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
       Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
       Environment:
         Variables:
@@ -331,6 +351,50 @@ Resources:
             Path: /contents
             Method: put
             RestApiId: !Ref ContentsApi
+
+  QueryContentsApiFunctionScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxConcurrency
+      MinCapacity: !Ref MinConcurrency
+      ResourceId: !Sub function:${QueryContentsApiFunction}:live # You need to specify an alis or version here
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: QueryContentsApiFunctionAliaslive # This is your function logical ID + "Alias" + what you use for AutoPublishAlias
+
+  QueryContentsApiFunctionScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: QueryContentsApiFunctionScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref QueryContentsApiFunctionScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.70 # Any value between 0.1 and 0.9 can be used here
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+
+  PutContentsApiFunctionScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxConcurrency
+      MinCapacity: !Ref MinConcurrency
+      ResourceId: !Sub function:${PutContentsApiFunction}:live # You need to specify an alis or version here
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: PutContentsApiFunctionAliaslive # This is your function logical ID + "Alias" + what you use for AutoPublishAlias
+
+  PutContentsApiFunctionScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: PutContentsApiFunctionScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref PutContentsApiFunctionScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.70 # Any value between 0.1 and 0.9 can be used here
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
   ContentsBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
