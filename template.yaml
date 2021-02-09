@@ -288,24 +288,11 @@ Resources:
               requestId:
                 type: string
 
-  NvaSearchLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: nva-search-layer
-      Description: NVA Search common libraries
-      ContentUri: search-commons/build/distributions/search-commons.zip
-      CompatibleRuntimes:
-        - java11
-      LicenseInfo: 'MIT'
-      RetentionPolicy: Retain
-
   QueryContentsApiFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: contents-api
       Handler: no.unit.bibs.elasticsearch.QueryContentsApiHandler::handleRequest
-      Layers:
-        - !Ref NvaSearchLayer
       Runtime: java11
       MemorySize: 1408
       Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
@@ -328,8 +315,6 @@ Resources:
     Properties:
       CodeUri: contents-api
       Handler: no.unit.bibs.elasticsearch.PutContentsApiHandler::handleRequest
-      Layers:
-        - !Ref NvaSearchLayer
       Runtime: java11
       MemorySize: 1408
       Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn

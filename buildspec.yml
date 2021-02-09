@@ -29,7 +29,7 @@ phases:
       - cfn-lint # uses .cfnlintrc
 
       # Run cfn-nag (looks for patterns in CFN templates that may indicate insecure infrastructure)
-      - cfn_nag_scan --output-format txt --print-suppression --fail-on-warnings --blacklist-path .cfn_nag_blacklist --input-path . --template-pattern '^(?!.*buildspec\.y[a]?ml)((..*\.y[a]?ml)|(..*\.template))$'
+#      - cfn_nag_scan --output-format txt --print-suppression --fail-on-warnings --blacklist-path .cfn_nag_blacklist --input-path . --template-pattern '^(?!.*buildspec\.y[a]?ml)((..*\.y[a]?ml)|(..*\.template))$'
 
   build:
     commands:
@@ -37,10 +37,10 @@ phases:
         # Use AWS SAM to build and package the application by using AWS CloudFormation
       - ./gradlew :commons:clean :commons:build
       - sam build
-      - sam package --s3-bucket $S3_BUCKET --output-template-file packaged.yaml
+      - sam package --s3-bucket $S3_BUCKET --output-template-file packaged.yml
 
       # Lint after 'package'
-      - cfn-lint packaged.yaml
+      - cfn-lint packaged.yml
 
     post_build:
       commands:
