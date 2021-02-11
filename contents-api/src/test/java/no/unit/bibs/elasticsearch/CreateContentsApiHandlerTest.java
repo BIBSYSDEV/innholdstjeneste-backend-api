@@ -25,16 +25,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class PutContentsApiHandlerTest {
+public class CreateContentsApiHandlerTest {
 
     public static final String MESSAGE = "message";
     public static final Instant TIMESTAMP = Instant.now();
     public static final String SAMPLE_ELASTICSEARCH_RESPONSE_JSON = "sample_elasticsearch_response.json";
     public static final ObjectMapper mapper = JsonUtils.objectMapper;
     public static final String ROUNDTRIP_RESPONSE_JSON = "roundtripResponse.json";
-    public static final String PUT_REQUEST = "putEvent.json";
+    public static final String PUT_REQUEST = "createContentsEvent.json";
     private Environment environment;
-    private PutContentsApiHandler puContentsApiHandler;
+    private CreateContentsApiHandler puContentsApiHandler;
 
     private void initEnvironment() {
         environment = mock(Environment.class);
@@ -46,7 +46,7 @@ public class PutContentsApiHandlerTest {
     @BeforeEach
     public void init() {
         initEnvironment();
-        puContentsApiHandler = new PutContentsApiHandler(environment);
+        puContentsApiHandler = new CreateContentsApiHandler(environment);
     }
 
     @Test
@@ -57,8 +57,8 @@ public class PutContentsApiHandlerTest {
     @Test
     void getSuccessStatusCodeReturnsOK() {
         String contents = IoUtils.stringFromResources(Path.of(PUT_REQUEST));
-        PutContentsRequest request = new PutContentsRequest(contents);
-        PutContentsResponse response =  new PutContentsResponse(MESSAGE,
+        CreateContentsRequest request = new CreateContentsRequest(contents);
+        CreateContentsResponse response =  new CreateContentsResponse(MESSAGE,
         request, HttpStatus.SC_OK, TIMESTAMP);
         Integer statusCode = puContentsApiHandler.getSuccessStatusCode(null, response);
         assertEquals(statusCode, HttpStatus.SC_OK);
@@ -67,18 +67,18 @@ public class PutContentsApiHandlerTest {
     @Test
     void handlerReturnsSearchResultsWhemQueryIsSingleTerm() throws ApiGatewayException, IOException {
         var elasticSearchClient = new ElasticSearchHighLevelRestClient(environment, setUpRestHighLevelClient());
-        var handler = new PutContentsApiHandler(environment, elasticSearchClient);
+        var handler = new CreateContentsApiHandler(environment, elasticSearchClient);
         String contents = IoUtils.stringFromResources(Path.of(PUT_REQUEST));
-        PutContentsRequest request = new PutContentsRequest(contents);
+        CreateContentsRequest request = new CreateContentsRequest(contents);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertEquals(contents, actual.getRequest().getContents());
-        assertEquals(PutContentsApiHandler.CHECK_LOG_FOR_DETAILS_MESSAGE, actual.getMessage());
+        assertEquals(CreateContentsApiHandler.CHECK_LOG_FOR_DETAILS_MESSAGE, actual.getMessage());
     }
 
     @Test
     void handlerThrowsExceptionWhenGatewayIsBad() throws IOException {
         var elasticSearchClient = new ElasticSearchHighLevelRestClient(environment, setUpBadGateWay());
-        var handler = new PutContentsApiHandler(environment, elasticSearchClient);
+        var handler = new CreateContentsApiHandler(environment, elasticSearchClient);
         Executable executable = () -> handler.processInput(null, new RequestInfo(), mock(Context.class));
         assertThrows(ApiGatewayException.class, executable);
     }

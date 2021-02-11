@@ -243,7 +243,7 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/definitions/Problem'
-            put:
+            post:
               description: "Adds contents"
               consumes:
                 - application/json
@@ -264,9 +264,9 @@ Resources:
                     type: string
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PutContentsApiFunction.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateContentsApiFunction.Arn}:live/invocations
                 responses: {}
-                httpMethod: PUT
+                httpMethod: POST
                 type: AWS_PROXY
               responses:
                 '200':
@@ -325,11 +325,11 @@ Resources:
             Method: get
             RestApiId: !Ref ContentsApi
 
-  PutContentsApiFunction:
+  CreateContentsApiFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: contents-api
-      Handler: no.unit.bibs.elasticsearch.PutContentsApiHandler::handleRequest
+      Handler: no.unit.bibs.elasticsearch.CreateContentsApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1024
       AutoPublishAlias: live
@@ -345,11 +345,11 @@ Resources:
           ELASTICSEARCH_ENDPOINT_INDEX: contents
           ELASTICSEARCH_REGION: !Ref "AWS::Region"
       Events:
-        PutEvent:
+        PostEvent:
           Type: Api
           Properties:
             Path: /contents
-            Method: put
+            Method: post
             RestApiId: !Ref ContentsApi
 
   QueryContentsApiFunctionScalableTarget:
@@ -374,23 +374,23 @@ Resources:
         PredefinedMetricSpecification:
           PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
-  PutContentsApiFunctionScalableTarget:
+  CreateContentsApiFunctionScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
       MaxCapacity: !Ref MaxConcurrency
       MinCapacity: !Ref MinConcurrency
-      ResourceId: !Sub function:${PutContentsApiFunction}:live # You need to specify an alis or version here
+      ResourceId: !Sub function:${CreateContentsApiFunction}:live # You need to specify an alis or version here
       RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
       ScalableDimension: lambda:function:ProvisionedConcurrency
       ServiceNamespace: lambda
-    DependsOn: PutContentsApiFunctionAliaslive # This is your function logical ID + "Alias" + what you use for AutoPublishAlias
+    DependsOn: CreateContentsApiFunctionAliaslive # This is your function logical ID + "Alias" + what you use for AutoPublishAlias
 
-  PutContentsApiFunctionScalingPolicy:
+  CreateContentsApiFunctionScalingPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
-      PolicyName: PutContentsApiFunctionScalingPolicy
+      PolicyName: CreateContentsApiFunctionScalingPolicy
       PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref PutContentsApiFunctionScalableTarget
+      ScalingTargetId: !Ref CreateContentsApiFunctionScalableTarget
       TargetTrackingScalingPolicyConfiguration:
         TargetValue: 0.70 # Any value between 0.1 and 0.9 can be used here
         PredefinedMetricSpecification:

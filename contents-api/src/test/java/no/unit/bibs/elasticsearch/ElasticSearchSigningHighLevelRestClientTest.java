@@ -24,7 +24,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ElasticsearchSigningHighLevelRestClientTest {
+public class ElasticSearchSigningHighLevelRestClientTest {
 
     private static final String elasticSearchEndpoint = "http://localhost";
     public static final String SAMPLE_TERM = "SampleSearchTerm";

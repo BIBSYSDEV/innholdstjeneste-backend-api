@@ -5,10 +5,10 @@ import nva.commons.utils.JacocoGenerated;
 import java.time.Instant;
 import java.util.Objects;
 
-public class PutContentsResponse {
+public class CreateContentsResponse {
 
     private final String message;
-    private final PutContentsRequest request;
+    private final CreateContentsRequest request;
     private final Integer statusCode;
     private final Instant timestamp;
 
@@ -19,7 +19,7 @@ public class PutContentsResponse {
      * @param statusCode was the import started
      * @param timestamp when the request was handled
      */
-    public PutContentsResponse(String message, PutContentsRequest request, Integer statusCode, Instant timestamp) {
+    public CreateContentsResponse(String message, CreateContentsRequest request, Integer statusCode, Instant timestamp) {
         this.message = message;
         this.request = request;
         this.statusCode = statusCode;
@@ -34,7 +34,7 @@ public class PutContentsResponse {
         return statusCode;
     }
 
-    public PutContentsRequest getRequest() {
+    public CreateContentsRequest getRequest() {
         return request;
     }
 
@@ -51,7 +51,7 @@ public class PutContentsResponse {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PutContentsResponse that = (PutContentsResponse) o;
+        CreateContentsResponse that = (CreateContentsResponse) o;
         return Objects.equals(getMessage(), that.getMessage())
                 && Objects.equals(getRequest(), that.getRequest())
                 && Objects.equals(getTimestamp(), that.getTimestamp())

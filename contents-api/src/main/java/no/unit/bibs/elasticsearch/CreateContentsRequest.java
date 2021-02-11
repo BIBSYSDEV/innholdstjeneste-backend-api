@@ -6,16 +6,16 @@ import nva.commons.utils.JacocoGenerated;
 
 import java.util.Objects;
 
-public class PutContentsRequest {
+public class CreateContentsRequest {
 
     private final String contents;
 
     @JsonCreator
-    public PutContentsRequest(@JsonProperty("contents") String contents) {
+    public CreateContentsRequest(@JsonProperty("contents") String contents) {
         this.contents = contents;
     }
 
-    protected PutContentsRequest(Builder builder) {
+    protected CreateContentsRequest(Builder builder) {
         this.contents = builder.contents;
     }
 
@@ -30,10 +30,10 @@ public class PutContentsRequest {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof PutContentsRequest)) {
+        if (!(o instanceof CreateContentsRequest)) {
             return false;
         }
-        PutContentsRequest that = (PutContentsRequest) o;
+        CreateContentsRequest that = (CreateContentsRequest) o;
         return Objects.equals(contents, that.contents);
     }
 
@@ -51,13 +51,13 @@ public class PutContentsRequest {
         public Builder() {
         }
 
-        public PutContentsRequest.Builder withContents(String contents) {
+        public CreateContentsRequest.Builder withContents(String contents) {
             this.contents = contents;
             return this;
         }
 
-        public PutContentsRequest build() {
-            return new PutContentsRequest(this);
+        public CreateContentsRequest build() {
+            return new CreateContentsRequest(this);
         }
 
     }

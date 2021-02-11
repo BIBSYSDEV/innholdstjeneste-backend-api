@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import static java.util.Objects.isNull;
 
-public class PutContentsApiHandler extends ApiGatewayHandler<PutContentsRequest, PutContentsResponse> {
+public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRequest, CreateContentsResponse> {
 
     public static final String NO_PARAMETERS_GIVEN_TO_DATA_IMPORT_HANDLER = "No parameters given to PutContentsApiHandler";
     public static final String CHECK_LOG_FOR_DETAILS_MESSAGE = "DataImport created, check log for details";
@@ -30,16 +30,16 @@ public class PutContentsApiHandler extends ApiGatewayHandler<PutContentsRequest,
     private final ElasticSearchHighLevelRestClient elasticSearchClient;
 
     @JacocoGenerated
-    public PutContentsApiHandler() {
+    public CreateContentsApiHandler() {
         this(new Environment());
     }
 
-    public PutContentsApiHandler(Environment environment) {
+    public CreateContentsApiHandler(Environment environment) {
         this(environment, new ElasticSearchHighLevelRestClient(environment));
     }
 
-    public PutContentsApiHandler(Environment environment, ElasticSearchHighLevelRestClient elasticSearchClient) {
-        super(PutContentsRequest.class, environment, LoggerFactory.getLogger(PutContentsApiHandler.class));
+    public CreateContentsApiHandler(Environment environment, ElasticSearchHighLevelRestClient elasticSearchClient) {
+        super(CreateContentsRequest.class, environment, LoggerFactory.getLogger(CreateContentsApiHandler.class));
         this.elasticSearchClient = elasticSearchClient;
     }
 
@@ -56,7 +56,7 @@ public class PutContentsApiHandler extends ApiGatewayHandler<PutContentsRequest,
      *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
-    protected PutContentsResponse processInput(PutContentsRequest request, RequestInfo requestInfo, Context context)
+    protected CreateContentsResponse processInput(CreateContentsRequest request, RequestInfo requestInfo, Context context)
             throws ApiGatewayException {
         if (isNull(request)) {
             throw new ImportException(NO_PARAMETERS_GIVEN_TO_DATA_IMPORT_HANDLER);
@@ -68,7 +68,7 @@ public class PutContentsApiHandler extends ApiGatewayHandler<PutContentsRequest,
         } else {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);
         }
-        return new PutContentsResponse(CHECK_LOG_FOR_DETAILS_MESSAGE, request, HttpStatus.SC_ACCEPTED, Instant.now());
+        return new CreateContentsResponse(CHECK_LOG_FOR_DETAILS_MESSAGE, request, HttpStatus.SC_ACCEPTED, Instant.now());
     }
 
 
@@ -100,7 +100,7 @@ public class PutContentsApiHandler extends ApiGatewayHandler<PutContentsRequest,
      * @return the success status code.
      */
     @Override
-    protected Integer getSuccessStatusCode(PutContentsRequest input, PutContentsResponse output) {
+    protected Integer getSuccessStatusCode(CreateContentsRequest input, CreateContentsResponse output) {
         return output.getStatusCode();
     }
 }
