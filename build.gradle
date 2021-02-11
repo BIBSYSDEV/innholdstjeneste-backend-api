@@ -1,8 +1,9 @@
 plugins {
-    id 'java-library'
-    id 'jacoco'
+    id 'java'
     id 'checkstyle'
     id 'pmd'
+    id 'jacoco'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
     id 'nebula.lint' version '16.9.1'
     id 'base'
 }
@@ -10,179 +11,124 @@ plugins {
 group 'no.unit.bibs'
 version '1.0-SNAPSHOT'
 
+sourceCompatibility = JavaVersion.VERSION_11  // source-code version and must be <= targetCompatibility
+targetCompatibility = JavaVersion.VERSION_11 // bytecode target version
 
-allprojects {
+repositories {
+    jcenter()
+    maven { url "https://jitpack.io" }
+    maven { url  "https://dl.bintray.com/unit-nva/nva-commons" }
+}
 
-    apply plugin: 'base'
-    apply plugin: 'jacoco'
+project.ext {
+    junit5Version = '5.7.0'
+    jacksonVersion = '2.11.2'
+    awsSdkVersion = '1.11.946'
+    nvaCommonsVersion = '0.7.4'
+    elasticSearchVersion = '7.9.1'
+    slf4jVersion = '1.8.0-beta4'
 
-    repositories {
-        jcenter()
-        maven { url "https://jitpack.io" }
-        maven { url  "https://dl.bintray.com/unit-nva/nva-commons" }
-    }
+    nvaDatamodelVersion = '0.11.5'
+    nvaTestUtilsVersion = "0.1.15"
 
-    project.ext {
-        junit5Version = '5.7.0'
-        jacksonVersion = '2.11.2'
-        awsSdkVersion = '1.11.946'
-        nvaCommonsVersion = '0.7.4'
-        elasticSearchVersion = '7.9.1'
-        slf4jVersion = '1.8.0-beta4'
+}
 
-        nvaDatamodelVersion = '0.11.5'
-        nvaTestUtilsVersion = "0.1.15"
+dependencies {
+    implementation group: 'com.github.BIBSYSDEV', name: 'nva-datamodel-java', version: nvaDatamodelVersion
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: jacksonVersion
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: jacksonVersion
+    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: jacksonVersion
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-core', version: awsSdkVersion
+    implementation group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.1'
+    implementation group: 'com.amazonaws', name: 'aws-lambda-java-events', version: '3.2.0'
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: awsSdkVersion
+    implementation group: 'com.github.awslabs', name: 'aws-request-signing-apache-interceptor', version: 'deb7941e85'
+    implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.14'
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+    implementation group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.1.4'
+    implementation group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: nvaCommonsVersion
 
+    implementation group: 'org.elasticsearch', name: 'elasticsearch', version: elasticSearchVersion
+    implementation group: 'org.elasticsearch', name: 'elasticsearch-core', version: elasticSearchVersion
+    implementation group: 'org.elasticsearch.client', name: 'elasticsearch-rest-client', version: elasticSearchVersion
+    implementation group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: elasticSearchVersion
+    implementation group: 'org.elasticsearch', name: 'elasticsearch-x-content', version: elasticSearchVersion
+    testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.5.7'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junit5Version
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junit5Version
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junit5Version
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junit5Version
+
+    shadowJar {
+        archiveClassifier.set('')
+        zip64 true
     }
 }
 
 
-subprojects {
-
-    apply plugin: 'nebula.lint'
-    apply plugin: 'java-library'
-    apply plugin: 'jacoco'
-    apply plugin: 'checkstyle'
-    apply plugin: 'pmd'
-
-    repositories {
-        jcenter()
-        maven { url "https://jitpack.io" }
-    }
-
-
-    sourceCompatibility = JavaVersion.VERSION_11
-    // source-code version and must be <= targetCompatibility
-    targetCompatibility = JavaVersion.VERSION_11 // bytecode target version
-
-    dependencies {
-        testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
-        testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.5.7'
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junit5Version
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junit5Version
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junit5Version
-        testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junit5Version
-    }
-
-    test {
-        useJUnitPlatform()
-        failFast = true
-        testLogging {
-            events 'skipped', 'passed', 'failed'
-        }
-        finalizedBy jacocoTestReport
-    }
-
-    jacocoTestReport {
-        reports {
-            xml.enabled true
-        }
-    }
-
-    pmd {
-        ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
-        ruleSets = []
-        ignoreFailures = false
-    }
-
-    checkstyle {
-        configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
-        showViolations = true
-    }
-
-    tasks.withType(Checkstyle) {
-        reports {
-            xml.enabled false
-            html.enabled true
-            html.stylesheet rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
-        }
-    }
-
-    check.dependsOn jacocoTestCoverageVerification
-    jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
-
-    jacocoTestCoverageVerification {
-        violationRules {
-            rule {
-                limit {
-                    counter = 'METHOD'
-                    value = 'COVEREDRATIO'
-                    minimum = 0.21
-                }
-            }
-
-            rule {
-                limit {
-                    counter = 'CLASS'
-                    value = 'COVEREDRATIO'
-                    minimum = 0.25
-                }
-            }
-        }
-    }
+test {
+    useJUnitPlatform()
+    failFast = true
+    finalizedBy jacocoTestReport
 }
 
-def getProjectList() {
-    // These projects are considered. Replace with a different list as needed.
-    subprojects + project
+jar.enabled = false
+project.tasks.build.dependsOn project.tasks.shadowJar
+
+pmd {
+    ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
+    ruleSets = []
+    ignoreFailures = false
 }
 
-task jacocoMerge(type: JacocoMerge) {
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = 'Merge the JaCoCo data files from all subprojects into one'
-    project.afterEvaluate {  // do it at the end of the config phase to be sure all information is present
-        FileCollection execFiles = project.objects.fileCollection()   // an empty FileCollection
-        getProjectList().each { Project subproject ->
-            if (subproject.pluginManager.hasPlugin('jacoco')) {
-                def testTasks = subproject.tasks.withType(Test)
-                dependsOn(testTasks)   // ensure that .exec files are actually present
-
-                testTasks.each { Test task ->
-                    // The JacocoTaskExtension is the source of truth for the location of the .exec file.
-                    JacocoTaskExtension extension = task.getExtensions().findByType(JacocoTaskExtension.class)
-                    if (extension != null) {
-                        execFiles.from extension.getDestinationFile()
-                    }
-                }
-            }
-        }
-        executionData = execFiles
-    }
-    doFirst {
-        // .exec files might be missing if a project has no tests. Filter in execution phase.
-        executionData = executionData.filter { it.canRead() }
-    }
+checkstyle {
+    configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
+    showViolations = true
 }
 
-def getReportTasks(JacocoReport pRootTask) {
-    getProjectList().collect {
-        it.tasks.withType(JacocoReport).findAll { it != pRootTask }
-    }.flatten()
-}
-
-task jacocoRootReport(type: JacocoReport, dependsOn: tasks.jacocoMerge) {
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = 'Generates an aggregate report from all subprojects'
-
-    logger.lifecycle 'Using aggregated file: ' + tasks.jacocoMerge.destinationFile
-    executionData.from tasks.jacocoMerge.destinationFile
-
-    project.afterEvaluate {
-        // The JacocoReport tasks are the source of truth for class files and sources.
-        def reportTasks = getReportTasks(tasks.jacocoRootReport)
-        classDirectories.from project.files({
-            reportTasks.collect {it.classDirectories}.findAll {it != null}
-        })
-        sourceDirectories.from project.files({
-            reportTasks.collect {it.sourceDirectories}.findAll {it != null}
-        })
-    }
-
+tasks.withType(Checkstyle) {
     reports {
-        xml.enabled true
+        xml.enabled false
+        html.enabled true
+        html.stylesheet rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
     }
 }
 
-build {
-    dependsOn jacocoRootReport
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination file("${buildDir}/reports/jacoco")
+    }
 }
+
+jacoco {
+    toolVersion = "0.8.5"
+}
+
+check.dependsOn jacocoTestCoverageVerification
+jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'METHOD'
+                value = 'COVEREDRATIO'
+                minimum = 0.84
+            }
+        }
+
+        rule {
+            limit {
+                counter = 'CLASS'
+                value = 'COVEREDRATIO'
+                minimum = 0.9
+            }
+        }
+    }
+}
+
