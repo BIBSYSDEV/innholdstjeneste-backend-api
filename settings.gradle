@@ -1,6 +1,4 @@
 rootProject.name = 'innholdstjeneste-backend-api'
-include 'commons'
-include 'contents-api'
 include 'src:main'
 findProject(':src:main')?.name = 'main'
 
