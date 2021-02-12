@@ -27,14 +27,9 @@ project.ext {
     nvaCommonsVersion = '0.7.4'
     elasticSearchVersion = '7.9.1'
     slf4jVersion = '1.8.0-beta4'
-
-    nvaDatamodelVersion = '0.11.5'
-    nvaTestUtilsVersion = "0.1.15"
-
 }
 
 dependencies {
-    implementation group: 'com.github.BIBSYSDEV', name: 'nva-datamodel-java', version: nvaDatamodelVersion
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: jacksonVersion

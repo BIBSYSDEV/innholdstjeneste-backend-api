@@ -23,8 +23,7 @@ import static java.util.Objects.isNull;
 
 public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRequest, CreateContentsResponse> {
 
-    public static final String NO_PARAMETERS_GIVEN_TO_DATA_IMPORT_HANDLER =
-            "No parameters given to CreateContentsApiHandler";
+    public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to CreateContentsApiHandler";
     public static final String CHECK_LOG_FOR_DETAILS_MESSAGE = "DataImport created, check log for details";
     public static final String ERROR_ADDING_DOCUMENT_SEARCH_INDEX = "Error adding document with id={} to searchIndex";
     public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not index record provided. ";
@@ -60,10 +59,9 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
      */
     @Override
     protected CreateContentsResponse processInput(CreateContentsRequest request, RequestInfo requestInfo,
-                                                  Context context)
-            throws ApiGatewayException {
+                                                  Context context) throws ApiGatewayException {
         if (isNull(request)) {
-            throw new ImportException(NO_PARAMETERS_GIVEN_TO_DATA_IMPORT_HANDLER);
+            throw new ImportException(NO_PARAMETERS_GIVEN_TO_HANDLER);
         }
         String json = request.getContents();
         Optional<IndexDocument> indexDocument = fromJsonString(json);
