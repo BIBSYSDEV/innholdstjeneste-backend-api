@@ -64,6 +64,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
             throw new ImportException(NO_PARAMETERS_GIVEN_TO_HANDLER);
         }
         String json = request.getContents();
+        logger.debug("json input looks like that %s", json);
         Optional<IndexDocument> indexDocument = fromJsonString(json);
         if (indexDocument.isPresent()) {
             addDocumentToIndex(indexDocument.get());
