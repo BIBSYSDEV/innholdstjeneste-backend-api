@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import nva.commons.json.JsonSerializable;
 import nva.commons.utils.JacocoGenerated;
 
-import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -17,13 +16,13 @@ public class IndexDocument implements JsonSerializable {
     private final List<String> contributors;
     private final String title;
     private final Instant year;
-    private final List<String> isbn;
+    private final List<String> isbns;
     private final String descriptionShort;
     private final String descriptionLong;
     private final String tableOfContents;
-    private final URI imageUrlSmall;
-    private final URI imageUrlLarge;
-    private final URI imageUrlOriginal;
+    private final String imageUrlSmall;
+    private final String imageUrlLarge;
+    private final String imageUrlOriginal;
     private final String source;
     private final Instant modifiedDate;
     private final Instant createdDate;
@@ -38,13 +37,13 @@ public class IndexDocument implements JsonSerializable {
                          @JsonProperty("title") String title,
                          @JsonProperty("contributors") List<String> contributors,
                          @JsonProperty("year") Instant year,
-                         @JsonProperty("isbn") List<String> isbnList,
+                         @JsonProperty("isbns") List<String> isbns,
                          @JsonProperty("description_short") String descriptionShort,
                          @JsonProperty("description_long") String descriptionLong,
                          @JsonProperty("tableOfContents") String tableOfContents,
-                         @JsonProperty("image_url_small") URI imageUrlSmall,
-                         @JsonProperty("image_url_large") URI imageUrlLarge,
-                         @JsonProperty("image_url_original") URI imageUrlOriginal,
+                         @JsonProperty("image_url_small") String imageUrlSmall,
+                         @JsonProperty("image_url_large") String imageUrlLarge,
+                         @JsonProperty("image_url_original") String imageUrlOriginal,
                          @JsonProperty("source") String source,
                          @JsonProperty("modifiedDate") Instant modifiedDate,
                          @JsonProperty("createdDate") Instant createdDate) {
@@ -52,7 +51,7 @@ public class IndexDocument implements JsonSerializable {
         this.title = title;
         this.contributors = contributors;
         this.year = year;
-        this.isbn = isbnList;
+        this.isbns = isbns;
         this.descriptionShort = descriptionShort;
         this.descriptionLong = descriptionLong;
         this.tableOfContents = tableOfContents;
@@ -69,7 +68,7 @@ public class IndexDocument implements JsonSerializable {
         title = builder.title;
         contributors = builder.contributors;
         year = builder.year;
-        isbn = builder.isbn;
+        isbns = builder.isbns;
         descriptionShort = builder.descriptionShort;
         descriptionLong = builder.descriptionLong;
         tableOfContents = builder.tableOfContents;
@@ -97,6 +96,31 @@ public class IndexDocument implements JsonSerializable {
     }
 
     @JacocoGenerated
+    public String getDescriptionShort() {
+        return descriptionShort;
+    }
+
+    @JacocoGenerated
+    public String getDescriptionLong() {
+        return descriptionLong;
+    }
+
+    @JacocoGenerated
+    public String getTableOfContents() {
+        return tableOfContents;
+    }
+
+    @JacocoGenerated
+    public String getImageUrlSmall() {
+        return imageUrlSmall;
+    }
+
+    @JacocoGenerated
+    public List<String> getIsbns() {
+        return isbns;
+    }
+
+    @JacocoGenerated
     public Instant getModifiedDate() {
         return modifiedDate;
     }
@@ -120,7 +144,7 @@ public class IndexDocument implements JsonSerializable {
             && Objects.equals(descriptionShort, that.descriptionShort)
             && Objects.equals(descriptionLong, that.descriptionLong)
             && Objects.equals(source, that.source)
-            && Objects.equals(isbn, that.isbn);
+            && Objects.equals(isbns, that.isbns);
     }
 
     @JacocoGenerated
@@ -130,7 +154,7 @@ public class IndexDocument implements JsonSerializable {
                 contributors,
                 title,
                 year,
-                isbn,
+                isbns,
                 descriptionShort,
                 descriptionLong,
                 tableOfContents,

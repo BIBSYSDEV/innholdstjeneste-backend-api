@@ -67,6 +67,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
         logger.debug("json input looks like that :" + json);
         Optional<IndexDocument> indexDocument = fromJsonString(json);
         if (indexDocument.isPresent()) {
+            logger.debug("This is my IndexDocument to index: " + indexDocument.toString());
             addDocumentToIndex(indexDocument.get());
         } else {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);

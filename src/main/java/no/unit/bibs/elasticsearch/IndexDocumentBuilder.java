@@ -1,6 +1,5 @@
 package no.unit.bibs.elasticsearch;
 
-import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -11,13 +10,13 @@ public class IndexDocumentBuilder {
     protected String title;
     protected List<String> contributors;
     protected Instant year;
-    protected List<String> isbn;
+    protected List<String> isbns;
     protected String descriptionShort;
     protected String descriptionLong;
     protected String tableOfContents;
-    protected URI imageUrlSmall;
-    protected URI imageUrlLarge;
-    protected URI imageUrlOriginal;
+    protected String imageUrlSmall;
+    protected String imageUrlLarge;
+    protected String imageUrlOriginal;
     protected String source;
     protected Instant modifiedDate;
     protected Instant createdDate;
@@ -35,8 +34,8 @@ public class IndexDocumentBuilder {
         return this;
     }
 
-    public IndexDocumentBuilder withIsbn(List<String> isbn) {
-        this.isbn = isbn;
+    public IndexDocumentBuilder withIsbns(List<String> isbns) {
+        this.isbns = isbns;
         return this;
     }
 
@@ -65,17 +64,17 @@ public class IndexDocumentBuilder {
         return this;
     }
 
-    public IndexDocumentBuilder withSmallImage(URI imageUrlSmall) {
+    public IndexDocumentBuilder withSmallImage(String imageUrlSmall) {
         this.imageUrlSmall = imageUrlSmall;
         return this;
     }
 
-    public IndexDocumentBuilder withLargeImage(URI imageUrlLarge) {
+    public IndexDocumentBuilder withLargeImage(String imageUrlLarge) {
         this.imageUrlLarge = imageUrlLarge;
         return this;
     }
 
-    public IndexDocumentBuilder withOriginalImage(URI imageUrlOriginal) {
+    public IndexDocumentBuilder withOriginalImage(String imageUrlOriginal) {
         this.imageUrlOriginal = imageUrlOriginal;
         return this;
     }
