@@ -70,7 +70,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
         } else {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);
         }
-        return new CreateContentsResponse(CHECK_LOG_FOR_DETAILS_MESSAGE, request, HttpStatus.SC_ACCEPTED,
+        return new CreateContentsResponse(CHECK_LOG_FOR_DETAILS_MESSAGE, request, HttpStatus.SC_CREATED,
                 Instant.now());
     }
 

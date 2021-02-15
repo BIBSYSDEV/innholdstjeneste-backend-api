@@ -50,6 +50,7 @@ dependencies {
     implementation group: 'org.elasticsearch.client', name: 'elasticsearch-rest-client', version: elasticSearchVersion
     implementation group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: elasticSearchVersion
     implementation group: 'org.elasticsearch', name: 'elasticsearch-x-content', version: elasticSearchVersion
+    testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: '0.1.16'
     testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.5.7'
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junit5Version
