@@ -19,7 +19,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.time.Clock;
 import java.time.Instant;
 
 import static no.unit.bibs.elasticsearch.ElasticSearchHighLevelRestClient.*;
