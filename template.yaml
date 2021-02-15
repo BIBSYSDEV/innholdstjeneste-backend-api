@@ -335,7 +335,7 @@ Resources:
         Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: 1
-      Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
+      Role: !GetAtt TriggerExecutionRole.Arn
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
