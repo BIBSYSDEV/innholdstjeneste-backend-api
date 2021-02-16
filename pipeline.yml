@@ -65,7 +65,7 @@ Parameters:
     Description: The ARN for the CodestarConnection that connects to the GitHub repo
   GitRepo:
     Type: String
-    Default: BIBSYSDEV/innholdtjeneste-backend-api
+    Default: BIBSYSDEV/innholdstjeneste-backend-api
     Description: Git repository name
   GitBranch:
     Type: String
