@@ -257,6 +257,7 @@ Resources:
   QueryContentsApiFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Tracing: Active
       Handler: no.unit.bibs.elasticsearch.QueryContentsApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1024
@@ -283,6 +284,7 @@ Resources:
   CreateContentsApiFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Tracing: Active
       Handler: no.unit.bibs.elasticsearch.CreateContentsApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1024
