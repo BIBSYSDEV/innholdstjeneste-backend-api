@@ -250,12 +250,6 @@ Resources:
               produces:
                 - application/json
               parameters:
-                - in: query
-                  name: isbn
-                  description: "isbn for contents."
-                  required: true
-                  schema:
-                    type: string
                 - in: body
                   name: contents
                   description: "contents metadata"
