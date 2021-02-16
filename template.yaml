@@ -41,7 +41,7 @@ Globals:
 
 Resources:
 
-  TriggerExecutionRole:
+  WriteAccessElasticSearchRole:
     Type: AWS::IAM::Role
     Properties:
       ManagedPolicyArns:
@@ -77,6 +77,8 @@ Resources:
   ReadOnlyAccessElasticSearchRole:
     Type: AWS::IAM::Role
     Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -104,7 +106,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !GetAtt TriggerExecutionRole.Arn
+              AWS: !GetAtt WriteAccessElasticSearchRole.Arn
             Action: 'es:*'
             Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
           - Effect: Allow
@@ -295,7 +297,7 @@ Resources:
         Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: 1
-      Role: !GetAtt TriggerExecutionRole.Arn
+      Role: !GetAtt WriteAccessElasticSearchRole.Arn
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
