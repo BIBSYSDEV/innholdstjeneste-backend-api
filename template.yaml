@@ -274,7 +274,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          ELASTICSEARCH_ENDPOINT_ADDRESS: arn:aws:es:eu-west-1:979605241843:domain/contents
+          ELASTICSEARCH_ENDPOINT_ADDRESS: https://search-contents-2j7ed6asavrykqdlps5tlhwapy.eu-west-1.es.amazonaws.com
           ELASTICSEARCH_ENDPOINT_INDEX: contents
           ELASTICSEARCH_REGION: !Ref "AWS::Region"
       Events:
@@ -301,7 +301,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          ELASTICSEARCH_ENDPOINT_ADDRESS: arn:aws:es:eu-west-1:979605241843:domain/contents
+          ELASTICSEARCH_ENDPOINT_ADDRESS: https://search-contents-2j7ed6asavrykqdlps5tlhwapy.eu-west-1.es.amazonaws.com
           ELASTICSEARCH_ENDPOINT_INDEX: contents
           ELASTICSEARCH_REGION: !Ref "AWS::Region"
       Events:
