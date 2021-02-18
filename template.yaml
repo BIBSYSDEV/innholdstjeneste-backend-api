@@ -97,6 +97,15 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+        - PolicyName: writetoelasticsearch
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - es:ESHttpGet
+                  - es:ESHttpPost
+              Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
 
 #  ContentsElasticSearch:
 #    Type: AWS::Elasticsearch::Domain
