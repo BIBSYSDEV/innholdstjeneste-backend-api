@@ -79,8 +79,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
 
     private Optional<IndexDocument> fromJsonString(String line) {
         try {
-            JsonNode node = mapper.readTree(line);
-            var indexDocument = IndexDocumentGenerator.fromJsonNode(node);
+            IndexDocument indexDocument = mapper.readValue(line, IndexDocument.class);
             return Optional.of(indexDocument);
         } catch (JsonProcessingException e) {
             logger.error(e.getMessage(), e);

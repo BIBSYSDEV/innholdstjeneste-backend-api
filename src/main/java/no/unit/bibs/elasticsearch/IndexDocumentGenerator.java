@@ -20,19 +20,19 @@ import static nva.commons.utils.StringUtils.isEmpty;
 @SuppressWarnings("PMD.GodClass")
 public final class IndexDocumentGenerator extends IndexDocument {
 
-    public static final String CONTRIBUTOR_LIST_JSON_POINTER = "/contents/contributors";
-    public static final String ISBN_LIST_JSON_POINTER = "/contents/isbns";
-    public static final String TITLE_JSON_POINTER = "/contents/title";
-    public static final String YEAR_JSON_POINTER = "/contents/year";
-    public static final String IMAGE_URL_SMALL_JSON_POINTER = "/contents/image_url_small";
-    public static final String IMAGE_URL_LARGE_JSON_POINTER = "/contents/image_url_large";
-    public static final String IMAGE_URL_ORIGINAL_JSON_POINTER = "/contents/image_url_original";
-    public static final String DESCRIPTION_SHORT_JSON_POINTER = "/contents/description_short";
-    public static final String DESCRIPTION_LONG_JSON_POINTER = "/contents/description_long";
-    public static final String TABLE_OF_CONTENTS_JSON_POINTER = "/contents/table_of_contents";
-    public static final String MODIFIED_DATE_JSON_POINTER = "/contents/modifiedDate";
-    public static final String CREATED_DATE_JSON_POINTER = "/contents/createdDate";
-    public static final String SOURCE_JSON_POINTER = "/contents/source";
+    public static final String CONTRIBUTOR_LIST_JSON_POINTER = "/contributors";
+    public static final String ISBN_LIST_JSON_POINTER = "/isbns";
+    public static final String TITLE_JSON_POINTER = "/title";
+    public static final String YEAR_JSON_POINTER = "/year";
+    public static final String IMAGE_URL_SMALL_JSON_POINTER = "/image_url_small";
+    public static final String IMAGE_URL_LARGE_JSON_POINTER = "/image_url_large";
+    public static final String IMAGE_URL_ORIGINAL_JSON_POINTER = "/image_url_original";
+    public static final String DESCRIPTION_SHORT_JSON_POINTER = "/description_short";
+    public static final String DESCRIPTION_LONG_JSON_POINTER = "/description_long";
+    public static final String TABLE_OF_CONTENTS_JSON_POINTER = "/table_of_contents";
+    public static final String MODIFIED_DATE_JSON_POINTER = "/modifiedDate";
+    public static final String CREATED_DATE_JSON_POINTER = "/createdDate";
+    public static final String SOURCE_JSON_POINTER = "/source";
 
     public static final String MISSING_FIELD_LOGGER_WARNING_TEMPLATE =
             "The data were incomplete, missing field {} on id: {}";
