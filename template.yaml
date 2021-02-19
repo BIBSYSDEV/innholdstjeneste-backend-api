@@ -107,37 +107,37 @@ Resources:
                   - es:ESHttpPost
                 Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
 
-#  ContentsElasticSearch:
-#    Type: AWS::Elasticsearch::Domain
-#    Properties:
-#      AccessPolicies:
-#        Version: 2012-10-17
-#        Statement:
-#          - Effect: Allow
-#            Principal:
-#              AWS: !GetAtt WriteAccessElasticSearchRole.Arn
-#            Action: 'es:*'
-#            Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
-#          - Effect: Allow
-#            Principal:
-#              AWS: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
-#            Action:
-#              - es:ESHttpPost
-#              - es:ESHttpGet
-#              - es:ESHttpHead
-#            Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
-#      ElasticsearchClusterConfig:
-#        DedicatedMasterEnabled: false
-#        InstanceCount: 1
-#        ZoneAwarenessEnabled: false
-#        InstanceType: t2.small.elasticsearch
-#      ElasticsearchVersion: '7.9'
-#      EBSOptions:
-#        EBSEnabled: true
-#        VolumeSize: 10
-#        VolumeType: gp2
-#      CognitoOptions:
-#        Enabled: false
+  ContentsElasticSearch:
+    Type: AWS::Elasticsearch::Domain
+    Properties:
+      AccessPolicies:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !GetAtt WriteAccessElasticSearchRole.Arn
+            Action: 'es:*'
+            Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+          - Effect: Allow
+            Principal:
+              AWS: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
+            Action:
+              - es:ESHttpPost
+              - es:ESHttpGet
+              - es:ESHttpHead
+            Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+      ElasticsearchClusterConfig:
+        DedicatedMasterEnabled: false
+        InstanceCount: 1
+        ZoneAwarenessEnabled: false
+        InstanceType: t2.medium.elasticsearch
+      ElasticsearchVersion: '7.9'
+      EBSOptions:
+        EBSEnabled: true
+        VolumeSize: 10
+        VolumeType: gp2
+      CognitoOptions:
+        Enabled: false
 
   ContentsApi:
     Type: AWS::Serverless::Api
@@ -271,7 +271,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          ELASTICSEARCH_ENDPOINT_ADDRESS: https://search-inconte-conten-g4i35ktx89na-saawevqyii4q6bfq4h5qdyfrxe.eu-west-1.es.amazonaws.com
+          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsElasticSearch.DomainEndpoint
           ELASTICSEARCH_ENDPOINT_INDEX: contents
           ELASTICSEARCH_REGION: !Ref "AWS::Region"
       Events:
@@ -298,7 +298,7 @@ Resources:
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          ELASTICSEARCH_ENDPOINT_ADDRESS: https://search-inconte-conten-g4i35ktx89na-saawevqyii4q6bfq4h5qdyfrxe.eu-west-1.es.amazonaws.com
+          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsElasticSearch.DomainEndpoint
           ELASTICSEARCH_ENDPOINT_INDEX: contents
           ELASTICSEARCH_REGION: !Ref "AWS::Region"
       Events:
