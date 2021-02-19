@@ -176,18 +176,6 @@ Resources:
                   schema:
                     type: string
                 - in: query
-                  name: orderBy
-                  description: "Field to order result by."
-                  required: false
-                  schema:
-                    type: string
-                - in: query
-                  name: sortOrder
-                  description: "Order of search results (asc or desc)."
-                  required: false
-                  schema:
-                    type: string
-                - in: query
                   name: from
                   description: "Start position from results, 0-based."
                   required: false
