@@ -8,7 +8,6 @@ import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.search.sort.SortOrder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -76,9 +75,8 @@ public class ElasticSearchSigningHighLevelRestClientTest {
         QueryContentsResponse queryContentsResponse =
                 elasticSearchRestClient.searchSingleTerm(SAMPLE_TERM,
                         SAMPLE_NUMBER_OF_RESULTS,
-                        SAMPLE_FROM,
-                        SAMPLE_ORDERBY,
-                        SortOrder.DESC);
+                        SAMPLE_FROM
+                );
         assertNotNull(queryContentsResponse);
     }
 

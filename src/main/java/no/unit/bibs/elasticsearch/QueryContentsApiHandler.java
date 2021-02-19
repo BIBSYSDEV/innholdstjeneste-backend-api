@@ -8,7 +8,6 @@ import nva.commons.handlers.RestRequestHandler;
 import nva.commons.utils.Environment;
 import nva.commons.utils.JacocoGenerated;
 import org.apache.http.HttpStatus;
-import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.LoggerFactory;
 
 public class QueryContentsApiHandler extends ApiGatewayHandler<Void, QueryContentsResponse> {
@@ -49,9 +48,7 @@ public class QueryContentsApiHandler extends ApiGatewayHandler<Void, QueryConten
         String searchTerm = RequestUtil.getSearchTerm(requestInfo);
         int results = RequestUtil.getResults(requestInfo);
         int from = RequestUtil.getFrom(requestInfo);
-        String orderBy = RequestUtil.getOrderBy(requestInfo);
-        SortOrder sortOrder = RequestUtil.getSortOrder(requestInfo);
-        return elasticSearchClient.searchSingleTerm(searchTerm, results, from, orderBy, sortOrder);
+        return elasticSearchClient.searchSingleTerm(searchTerm, results, from);
     }
 
 

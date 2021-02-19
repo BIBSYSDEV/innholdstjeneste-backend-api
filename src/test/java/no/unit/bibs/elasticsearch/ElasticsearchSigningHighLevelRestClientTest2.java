@@ -9,7 +9,6 @@ import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.search.sort.SortOrder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -81,9 +80,8 @@ public class ElasticsearchSigningHighLevelRestClientTest2 {
         QueryContentsResponse queryContentsResponse =
                 elasticSearchRestClient.searchSingleTerm(SAMPLE_TERM,
                         SAMPLE_NUMBER_OF_RESULTS,
-                        SAMPLE_FROM,
-                        SAMPLE_ORDERBY,
-                        SortOrder.DESC);
+                        SAMPLE_FROM
+                );
         assertNotNull(queryContentsResponse);
     }
 
@@ -100,9 +98,8 @@ public class ElasticsearchSigningHighLevelRestClientTest2 {
         QueryContentsResponse queryContentsResponse =
                 elasticSearchRestClient.searchSingleTerm(SAMPLE_TERM,
                         MAX_RESULTS,
-                        SAMPLE_FROM,
-                        SAMPLE_ORDERBY,
-                        SortOrder.DESC);
+                        SAMPLE_FROM
+                );
         assertNotNull(queryContentsResponse);
         assertEquals(queryContentsResponse.getTotal(), ELASTIC_ACTUAL_SAMPLE_NUMBER_OF_RESULTS);
     }
@@ -123,9 +120,8 @@ public class ElasticsearchSigningHighLevelRestClientTest2 {
 
         assertThrows(SearchException.class, () -> elasticSearchRestClient.searchSingleTerm(SAMPLE_TERM,
                         SAMPLE_NUMBER_OF_RESULTS,
-                        SAMPLE_FROM,
-                        SAMPLE_ORDERBY,
-                        SortOrder.DESC));
+                        SAMPLE_FROM
+        ));
 
     }
 

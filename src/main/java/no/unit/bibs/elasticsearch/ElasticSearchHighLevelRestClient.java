@@ -26,7 +26,6 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,12 +104,10 @@ public class ElasticSearchHighLevelRestClient {
      * @throws ApiGatewayException thrown when uri is misconfigured, service i not available or interrupted
      */
     public QueryContentsResponse searchSingleTerm(String term,
-                                             int results,
-                                             int from,
-                                             String orderBy,
-                                             SortOrder sortOrder) throws ApiGatewayException {
+                                                  int results,
+                                                  int from) throws ApiGatewayException {
         try {
-            SearchResponse searchResponse = doSearch(term, results, from, orderBy, sortOrder);
+            SearchResponse searchResponse = doSearch(term, results, from);
             return toSearchResourcesResponse(searchResponse.toString());
         } catch (Exception e) {
             throw new SearchException(e.getMessage(), e);
@@ -119,17 +116,14 @@ public class ElasticSearchHighLevelRestClient {
 
     private SearchResponse doSearch(String term,
                                     int results,
-                                    int from,
-                                    String orderBy,
-                                    SortOrder sortOrder) throws IOException {
+                                    int from) throws IOException {
         return elasticSearchClient.search(getSearchRequest(term,
                 results,
-                from,
-                orderBy,
-                sortOrder), RequestOptions.DEFAULT);
+                from
+        ), RequestOptions.DEFAULT);
     }
 
-    private SearchRequest getSearchRequest(String term, int results, int from, String orderBy, SortOrder sortOrder) {
+    private SearchRequest getSearchRequest(String term, int results, int from) {
         final SearchSourceBuilder sourceBuilder = new SearchSourceBuilder()
             .query(QueryBuilders.queryStringQuery(term))
             .from(from)
