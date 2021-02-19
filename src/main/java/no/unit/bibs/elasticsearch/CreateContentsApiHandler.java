@@ -64,10 +64,10 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
             throw new ImportException(NO_PARAMETERS_GIVEN_TO_HANDLER);
         }
         String json = request.getContents();
-        logger.debug("json input looks like that :" + json);
+        logger.error("json input looks like that :" + json);
         Optional<IndexDocument> indexDocument = fromJsonString(json);
         if (indexDocument.isPresent()) {
-            logger.debug("This is my IndexDocument to index: " + indexDocument.toString());
+            logger.error("This is my IndexDocument to index: " + indexDocument.toString());
             addDocumentToIndex(indexDocument.get());
         } else {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);
