@@ -47,7 +47,11 @@ public class IndexDocument implements JsonSerializable {
                          @JsonProperty("source") String source,
                          @JsonProperty("modifiedDate") Instant modifiedDate,
                          @JsonProperty("createdDate") Instant createdDate) {
-        this.id = id;
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        } else {
+            this.id = id;
+        }
         this.title = title;
         this.contributors = contributors;
         this.year = year;
