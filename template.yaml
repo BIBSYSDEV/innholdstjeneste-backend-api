@@ -41,40 +41,7 @@ Globals:
 
 Resources:
 
-  WriteAccessElasticSearchRole:
-    Type: AWS::IAM::Role
-    Properties:
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: [ lambda.amazonaws.com ]
-            Action: [ 'sts:AssumeRole' ]
-      Path: /
-      Policies:
-        - PolicyName: writeLog
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
-        - PolicyName: writetoelasticsearch
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - es:*
-                Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
-
-  ReadOnlyAccessElasticSearchRole:
+  AccessDynamoDBRole:
     Type: AWS::IAM::Role
     Properties:
       ManagedPolicyArns:
@@ -97,47 +64,67 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
-        - PolicyName: writetoelasticsearch
+        - PolicyName: accessToDynamDB
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
                 Action:
-                  - es:ESHttpGet
-                  - es:ESHttpPost
-                Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+                  - dynamodb:*
+                Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*'
 
-  ContentsElasticSearch:
-    Type: AWS::Elasticsearch::Domain
+  ContentsDynamoDBTable:
+    Type: AWS::DynamoDB::Table
     Properties:
-      AccessPolicies:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: !GetAtt WriteAccessElasticSearchRole.Arn
-            Action: 'es:*'
-            Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
-          - Effect: Allow
-            Principal:
-              AWS: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
-            Action:
-              - es:ESHttpPost
-              - es:ESHttpGet
-              - es:ESHttpHead
-            Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
-      ElasticsearchClusterConfig:
-        DedicatedMasterEnabled: false
-        InstanceCount: 1
-        ZoneAwarenessEnabled: false
-        InstanceType: t2.medium.elasticsearch
-      ElasticsearchVersion: '7.9'
-      EBSOptions:
-        EBSEnabled: true
-        VolumeSize: 10
-        VolumeType: gp2
-      CognitoOptions:
-        Enabled: false
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        -
+          AttributeName: "isbn"
+          AttributeType: "S"
+        -
+          AttributeName: "title"
+          AttributeType: "S"
+        -
+          AttributeName: "year"
+          AttributeType: "S"
+        -
+          AttributeName: "author"
+          AttributeType: "S"
+        -
+          AttributeName: "description_short"
+          AttributeType: "S"
+        -
+          AttributeName: "description_long"
+          AttributeType: "S"
+        -
+          AttributeName: "table_of_contents"
+          AttributeType: "S"
+        -
+          AttributeName: "image_small"
+          AttributeType: "S"
+        -
+          AttributeName: "image_large"
+          AttributeType: "S"
+        -
+          AttributeName: "image_original"
+          AttributeType: "S"
+        -
+          AttributeName: "audio_file"
+          AttributeType: "S"
+        -
+          AttributeName: "source"
+          AttributeType: "S"
+        -
+          AttributeName: "created"
+          AttributeType: "S"
+        -
+          AttributeName: "modified"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "isbn"
+          KeyType: "HASH"
+      TableName: "contents"
 
   ContentsApi:
     Type: AWS::Serverless::Api
@@ -267,11 +254,11 @@ Resources:
         Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: 1
-      Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
+      Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsElasticSearch.DomainEndpoint
+#          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsDynamoDBTable.DomainEndpoint
           ELASTICSEARCH_ENDPOINT_INDEX: contents
           ELASTICSEARCH_REGION: !Ref "AWS::Region"
       Events:
@@ -294,11 +281,11 @@ Resources:
         Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: 1
-      Role: !GetAtt WriteAccessElasticSearchRole.Arn
+      Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
           ALLOWED_ORIGIN: '*'
-          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsElasticSearch.DomainEndpoint
+#          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsDynamoDBTable.DomainEndpoint
           ELASTICSEARCH_ENDPOINT_INDEX: contents
           ELASTICSEARCH_REGION: !Ref "AWS::Region"
       Events:
