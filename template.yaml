@@ -81,45 +81,6 @@ Resources:
         -
           AttributeName: "isbn"
           AttributeType: "S"
-        -
-          AttributeName: "title"
-          AttributeType: "S"
-        -
-          AttributeName: "year"
-          AttributeType: "S"
-        -
-          AttributeName: "author"
-          AttributeType: "S"
-        -
-          AttributeName: "description_short"
-          AttributeType: "S"
-        -
-          AttributeName: "description_long"
-          AttributeType: "S"
-        -
-          AttributeName: "table_of_contents"
-          AttributeType: "S"
-        -
-          AttributeName: "image_small"
-          AttributeType: "S"
-        -
-          AttributeName: "image_large"
-          AttributeType: "S"
-        -
-          AttributeName: "image_original"
-          AttributeType: "S"
-        -
-          AttributeName: "audio_file"
-          AttributeType: "S"
-        -
-          AttributeName: "source"
-          AttributeType: "S"
-        -
-          AttributeName: "created"
-          AttributeType: "S"
-        -
-          AttributeName: "modified"
-          AttributeType: "S"
       KeySchema:
         -
           AttributeName: "isbn"
