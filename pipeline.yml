@@ -254,6 +254,7 @@ Resources:
                   - codebuild:*
                   - codedeploy:*
                   - codepipeline:*
+                  - dynamoDB:*
                   - ec2:*
                   - ecs:*
                   - es:*
