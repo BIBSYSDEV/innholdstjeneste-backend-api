@@ -216,12 +216,12 @@ Resources:
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: 1
       Role: !GetAtt AccessDynamoDBRole.Arn
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-#          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsDynamoDBTable.DomainEndpoint
-          ELASTICSEARCH_ENDPOINT_INDEX: contents
-          ELASTICSEARCH_REGION: !Ref "AWS::Region"
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+##          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsDynamoDBTable.DomainEndpoint
+#          ELASTICSEARCH_ENDPOINT_INDEX: contents
+#          ELASTICSEARCH_REGION: !Ref "AWS::Region"
       Events:
         GetEvent:
           Type: Api
@@ -243,12 +243,12 @@ Resources:
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: 1
       Role: !GetAtt AccessDynamoDBRole.Arn
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-#          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsDynamoDBTable.DomainEndpoint
-          ELASTICSEARCH_ENDPOINT_INDEX: contents
-          ELASTICSEARCH_REGION: !Ref "AWS::Region"
+#      Environment:
+#        Variables:
+#          ALLOWED_ORIGIN: '*'
+##          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsDynamoDBTable.DomainEndpoint
+#          ELASTICSEARCH_ENDPOINT_INDEX: contents
+#          ELASTICSEARCH_REGION: !Ref "AWS::Region"
       Events:
         PostEvent:
           Type: Api
