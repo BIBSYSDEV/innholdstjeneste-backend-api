@@ -27,8 +27,9 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
     public static final String ERROR_ADDING_DOCUMENT_SEARCH_INDEX = "Error adding document with id={} to searchIndex";
     public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not index record provided. ";
 
+
     private static final ObjectMapper mapper = JsonUtils.objectMapper;
-    private final ElasticSearchHighLevelRestClient elasticSearchClient;
+    private final DynamoDBClient dynamoDBClient;
 
     @JacocoGenerated
     public CreateContentsApiHandler() {
@@ -36,12 +37,12 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
     }
 
     public CreateContentsApiHandler(Environment environment) {
-        this(environment, new ElasticSearchHighLevelRestClient(environment));
+        this(environment, new DynamoDBClient(environment));
     }
 
-    public CreateContentsApiHandler(Environment environment, ElasticSearchHighLevelRestClient elasticSearchClient) {
+    public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
         super(CreateContentsRequest.class, environment, LoggerFactory.getLogger(CreateContentsApiHandler.class));
-        this.elasticSearchClient = elasticSearchClient;
+        this.dynamoDBClient = dynamoDBClient;
     }
 
 
@@ -64,7 +65,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
         }
         String json = request.getContents();
         logger.error("json input looks like that :" + json);
-        Optional<IndexDocument> indexDocument = fromJsonString(json);
+        Optional<ContentsDocument> indexDocument = fromJsonString(json);
         if (indexDocument.isPresent()) {
             logger.error("This is my IndexDocument to index: " + indexDocument.toString());
             addDocumentToIndex(indexDocument.get());
@@ -75,22 +76,21 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
                 Instant.now());
     }
 
-
-    private Optional<IndexDocument> fromJsonString(String line) {
+    private Optional<ContentsDocument> fromJsonString(String line) {
         try {
-            IndexDocument indexDocument = mapper.readValue(line, IndexDocument.class);
-            return Optional.of(indexDocument);
+            ContentsDocument contentsDocument = mapper.readValue(line, ContentsDocument.class);
+            return Optional.of(contentsDocument);
         } catch (JsonProcessingException e) {
             logger.error(e.getMessage(), e);
         }
         return Optional.empty();
     }
 
-    private void addDocumentToIndex(IndexDocument document) {
+    private void addDocumentToIndex(ContentsDocument document) {
         try {
-            elasticSearchClient.addDocumentToIndex(document);
+            dynamoDBClient.addDocumentToIndex(document);
         } catch (SearchException e) {
-            logger.error(ERROR_ADDING_DOCUMENT_SEARCH_INDEX, document.getId(), e);
+            logger.error(ERROR_ADDING_DOCUMENT_SEARCH_INDEX, document.getIsbn(), e);
         }
     }
 

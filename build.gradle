@@ -35,9 +35,10 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: jacksonVersion
     implementation group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: '1.11.972'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-core', version: awsSdkVersion
     implementation group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.1'
-    implementation group: 'com.amazonaws', name: 'aws-lambda-java-events', version: '3.2.0'
+    implementation group: 'com.amazonaws', name: 'aws-lambda-java-events', version: '3.7.0'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: awsSdkVersion
     implementation group: 'com.github.awslabs', name: 'aws-request-signing-apache-interceptor', version: 'deb7941e85'
     implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.14'

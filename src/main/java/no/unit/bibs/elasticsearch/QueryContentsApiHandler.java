@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 public class QueryContentsApiHandler extends ApiGatewayHandler<Void, QueryContentsResponse> {
 
-    private final ElasticSearchHighLevelRestClient elasticSearchClient;
+    private final DynamoDBClient dynamoDBClient;
 
     @JacocoGenerated
     public QueryContentsApiHandler() {
@@ -20,12 +20,12 @@ public class QueryContentsApiHandler extends ApiGatewayHandler<Void, QueryConten
     }
 
     public QueryContentsApiHandler(Environment environment) {
-        this(environment, new ElasticSearchHighLevelRestClient(environment));
+        this(environment, new DynamoDBClient(environment));
     }
 
-    public QueryContentsApiHandler(Environment environment, ElasticSearchHighLevelRestClient elasticSearchClient) {
+    public QueryContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
         super(Void.class, environment, LoggerFactory.getLogger(QueryContentsApiHandler.class));
-        this.elasticSearchClient = elasticSearchClient;
+        this.dynamoDBClient = dynamoDBClient;
     }
 
 
@@ -45,10 +45,8 @@ public class QueryContentsApiHandler extends ApiGatewayHandler<Void, QueryConten
                                                  RequestInfo requestInfo,
                                                  Context context) throws ApiGatewayException {
 
-        String searchTerm = RequestUtil.getSearchTerm(requestInfo);
-        int results = RequestUtil.getResults(requestInfo);
-        int from = RequestUtil.getFrom(requestInfo);
-        return elasticSearchClient.searchSingleTerm(searchTerm, results, from);
+        String isbn = requestInfo.getQueryParameters().get("isbn");
+        return dynamoDBClient.get(isbn);
     }
 
 

@@ -21,7 +21,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Instant;
 
-import static no.unit.bibs.elasticsearch.ElasticSearchHighLevelRestClient.*;
+import static no.unit.bibs.elasticsearch.DynamoDBClient.*;
 import static nva.commons.handlers.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -74,7 +74,7 @@ public class CreateContentsApiHandlerTest {
 
     @Test
     void handlerReturnsSearchResultsWhenQueryIsSingleTerm() throws ApiGatewayException, IOException {
-        var elasticSearchClient = new ElasticSearchHighLevelRestClient(environment, setUpRestHighLevelClient());
+        var elasticSearchClient = new DynamoDBClient(environment, setUpRestHighLevelClient());
         var handler = new CreateContentsApiHandler(environment, elasticSearchClient);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         CreateContentsRequest request = new CreateContentsRequest(contents);
@@ -85,7 +85,7 @@ public class CreateContentsApiHandlerTest {
 
     @Test
     void handlerThrowsExceptionWhenGatewayIsBad() throws IOException {
-        var elasticSearchClient = new ElasticSearchHighLevelRestClient(environment, setUpBadGateWay());
+        var elasticSearchClient = new DynamoDBClient(environment, setUpBadGateWay());
         var handler = new CreateContentsApiHandler(environment, elasticSearchClient);
         Executable executable = () -> handler.processInput(null, new RequestInfo(), mock(Context.class));
         assertThrows(ApiGatewayException.class, executable);

@@ -7,22 +7,16 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static nva.commons.utils.StringUtils.isEmpty;
 
 @SuppressWarnings("PMD.GodClass")
-public final class IndexDocumentGenerator extends IndexDocument {
+public final class ContentsDocumentGenerator extends ContentsDocument {
 
-    public static final String CONTRIBUTOR_LIST_JSON_POINTER = "/contributors";
-    public static final String ISBN_LIST_JSON_POINTER = "/isbns";
+    public static final String ISBN_JSON_POINTER = "/isbn";
     public static final String TITLE_JSON_POINTER = "/title";
+    public static final String AUTHOR_JSON_POINTER = "/author";
     public static final String YEAR_JSON_POINTER = "/year";
     public static final String IMAGE_URL_SMALL_JSON_POINTER = "/image_url_small";
     public static final String IMAGE_URL_LARGE_JSON_POINTER = "/image_url_large";
@@ -39,6 +33,8 @@ public final class IndexDocumentGenerator extends IndexDocument {
     public static final String DATE_FIELD_FORMAT_ERROR_LOGGER_WARNING_TEMPLATE =
             "The data was incorrect, field {} on id: {}, ignoring value {}";
     public static final String TITLE = "title";
+    public static final String AUTHOR = "author";
+    public static final String ISBN = "isbn";
     public static final String DESCRIPTION_SHORT = "descriptionShort";
     public static final String DESCRIPTION_LONG = "descriptionLong";
     public static final String TABLE_OF_CONTENTS = "tableOfContents";
@@ -50,10 +46,10 @@ public final class IndexDocumentGenerator extends IndexDocument {
     public static final String YEAR = "year";
     public static final String SOURCE = "source";
 
-    private static final Logger logger = LoggerFactory.getLogger(IndexDocumentGenerator.class);
+    private static final Logger logger = LoggerFactory.getLogger(ContentsDocumentGenerator.class);
 
     @JacocoGenerated
-    private IndexDocumentGenerator(IndexDocumentBuilder builder) {
+    private ContentsDocumentGenerator(ContentsDocumentBuilder builder) {
         super(builder);
     }
 
@@ -62,13 +58,12 @@ public final class IndexDocumentGenerator extends IndexDocument {
      * @param record jsonNode containing publication data to be indexed
      * @return a generator ready to make indexDocuments
      */
-    public static IndexDocumentGenerator fromJsonNode(JsonNode record) {
-        String isbn = extractIsbns(record).get(0);
-
-        IndexDocumentBuilder builder = new IndexDocumentBuilder()
-                .withIsbns(extractIsbns(record))
+    public static ContentsDocumentGenerator fromJsonNode(JsonNode record) {
+        String isbn = extractIsbn(record);
+        ContentsDocumentBuilder builder = new ContentsDocumentBuilder()
+                .withIsbn(isbn)
                 .withTitle(extractTitle(record, isbn))
-                .withContributors(extractContributors(record))
+                .withAuthor(extractAuthor(record, isbn))
                 .withYear(extractYear(record, isbn))
                 .withShortDescription(extractShortDescription(record, isbn))
                 .withLongDescription(extractLongDescription(record, isbn))
@@ -77,29 +72,26 @@ public final class IndexDocumentGenerator extends IndexDocument {
                 .withSmallImage(extractImageUrlSmall(record, isbn))
                 .withLargeImage(extractImageUrlLarge(record, isbn))
                 .withOriginalImage(extractImageUrlOriginal(record, isbn))
-                .withModifiedDate(extractModifiedDate(record, isbn))
-                .withCreatedDate(extractCreatedDate(record, isbn));
+                .withModified(extractModifiedDate(record, isbn))
+                .withCreated(extractCreatedDate(record, isbn));
 
-        return new IndexDocumentGenerator(builder);
+        return new ContentsDocumentGenerator(builder);
     }
 
-    private static List<String> extractContributors(JsonNode record) {
-        return toStream(record.at(CONTRIBUTOR_LIST_JSON_POINTER))
-                .map(IndexDocumentGenerator::extractAsText)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+    private static String extractAuthor(JsonNode record, String id) {
+        var author = textFromNode(record, AUTHOR_JSON_POINTER);
+        if (isNull(author)) {
+            logMissingField(id, AUTHOR);
+        }
+        return author;
     }
 
-    private static List<String> extractIsbns(JsonNode record) {
-        return toStream(record.at(ISBN_LIST_JSON_POINTER))
-                .map(IndexDocumentGenerator::extractAsText)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-    }
-
-    private static String extractAsText(JsonNode jsonNode) {
-        String name = jsonNode.asText();
-        return nonNull(name) ? name : null;
+    private static String extractIsbn(JsonNode record) {
+        var title = textFromNode(record, ISBN_JSON_POINTER);
+        if (isNull(title)) {
+            logMissingField(null, ISBN);
+        }
+        return title;
     }
 
     private static String extractTitle(JsonNode record, String id) {
@@ -214,7 +206,4 @@ public final class IndexDocumentGenerator extends IndexDocument {
         return !json.isNull() && !json.asText().isBlank();
     }
 
-    private static Stream<JsonNode> toStream(JsonNode contributors) {
-        return StreamSupport.stream(contributors.spliterator(), false);
-    }
 }
