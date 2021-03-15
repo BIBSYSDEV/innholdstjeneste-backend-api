@@ -3,6 +3,7 @@ package no.unit.bibs.elasticsearch;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import no.unit.bibs.elasticsearch.exception.CommunicationException;
 import no.unit.bibs.elasticsearch.exception.ImportException;
 import no.unit.bibs.elasticsearch.exception.SearchException;
 import nva.commons.exceptions.ApiGatewayException;
@@ -32,11 +33,11 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
     private final DynamoDBClient dynamoDBClient;
 
     @JacocoGenerated
-    public CreateContentsApiHandler() {
+    public CreateContentsApiHandler() throws CommunicationException {
         this(new Environment());
     }
 
-    public CreateContentsApiHandler(Environment environment) {
+    public CreateContentsApiHandler(Environment environment) throws CommunicationException {
         this(environment, new DynamoDBClient(environment));
     }
 
@@ -88,7 +89,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
 
     private void addDocumentToIndex(ContentsDocument document) {
         try {
-            dynamoDBClient.addDocumentToIndex(document);
+            dynamoDBClient.addDocument(document);
         } catch (SearchException e) {
             logger.error(ERROR_ADDING_DOCUMENT_SEARCH_INDEX, document.getIsbn(), e);
         }

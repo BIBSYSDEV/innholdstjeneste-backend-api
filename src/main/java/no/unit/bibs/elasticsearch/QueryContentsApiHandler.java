@@ -1,6 +1,7 @@
 package no.unit.bibs.elasticsearch;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import no.unit.bibs.elasticsearch.exception.CommunicationException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.RequestInfo;
@@ -12,14 +13,15 @@ import org.slf4j.LoggerFactory;
 
 public class QueryContentsApiHandler extends ApiGatewayHandler<Void, QueryContentsResponse> {
 
+    public static final String ISBN = "isbn";
     private final DynamoDBClient dynamoDBClient;
 
     @JacocoGenerated
-    public QueryContentsApiHandler() {
+    public QueryContentsApiHandler() throws CommunicationException {
         this(new Environment());
     }
 
-    public QueryContentsApiHandler(Environment environment) {
+    public QueryContentsApiHandler(Environment environment) throws CommunicationException {
         this(environment, new DynamoDBClient(environment));
     }
 
@@ -45,7 +47,7 @@ public class QueryContentsApiHandler extends ApiGatewayHandler<Void, QueryConten
                                                  RequestInfo requestInfo,
                                                  Context context) throws ApiGatewayException {
 
-        String isbn = requestInfo.getQueryParameters().get("isbn");
+        String isbn = requestInfo.getQueryParameters().get(ISBN);
         return dynamoDBClient.get(isbn);
     }
 
