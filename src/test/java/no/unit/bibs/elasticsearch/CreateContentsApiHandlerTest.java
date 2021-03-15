@@ -45,9 +45,6 @@ public class CreateContentsApiHandlerTest {
 
     private void initEnvironment() {
         environment = mock(Environment.class);
-        when(environment.readEnv(ELASTICSEARCH_ENDPOINT_ADDRESS_KEY)).thenReturn("localhost");
-        when(environment.readEnv(ELASTICSEARCH_ENDPOINT_INDEX_KEY)).thenReturn("resources");
-        when(environment.readEnv(ELASTICSEARCH_ENDPOINT_API_SCHEME_KEY)).thenReturn("http");
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
     }
 

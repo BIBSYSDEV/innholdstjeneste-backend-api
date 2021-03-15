@@ -4,8 +4,6 @@ import no.unit.bibs.elasticsearch.exception.SearchException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.utils.Environment;
 import nva.commons.utils.IoUtils;
-import org.elasticsearch.action.DocWriteResponse;
-import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -13,14 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.UUID;
 
-import static no.unit.bibs.elasticsearch.DynamoDBClient.ELASTICSEARCH_ENDPOINT_ADDRESS_KEY;
-import static no.unit.bibs.elasticsearch.DynamoDBClient.ELASTICSEARCH_ENDPOINT_API_SCHEME_KEY;
-import static no.unit.bibs.elasticsearch.DynamoDBClient.ELASTICSEARCH_ENDPOINT_INDEX_KEY;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -40,9 +32,6 @@ public class ElasticsearchSigningHighLevelRestClientTest2 {
     private Environment environment;
 
     private void initEnvironment() {
-        when(environment.readEnv(ELASTICSEARCH_ENDPOINT_ADDRESS_KEY)).thenReturn(elasticSearchEndpoint);
-        when(environment.readEnv(ELASTICSEARCH_ENDPOINT_INDEX_KEY)).thenReturn("resources");
-        when(environment.readEnv(ELASTICSEARCH_ENDPOINT_API_SCHEME_KEY)).thenReturn("https");
     }
 
     /**
@@ -78,10 +67,7 @@ public class ElasticsearchSigningHighLevelRestClientTest2 {
         DynamoDBClient elasticSearchRestClient =
                 new DynamoDBClient(environment, restHighLevelClient);
         QueryContentsResponse queryContentsResponse =
-                elasticSearchRestClient.searchSingleTerm(SAMPLE_TERM,
-                        SAMPLE_NUMBER_OF_RESULTS,
-                        SAMPLE_FROM
-                );
+                elasticSearchRestClient.get(SAMPLE_TERM);
         assertNotNull(queryContentsResponse);
     }
 
@@ -96,10 +82,7 @@ public class ElasticsearchSigningHighLevelRestClientTest2 {
         DynamoDBClient elasticSearchRestClient =
                 new DynamoDBClient(environment, restHighLevelClient);
         QueryContentsResponse queryContentsResponse =
-                elasticSearchRestClient.searchSingleTerm(SAMPLE_TERM,
-                        MAX_RESULTS,
-                        SAMPLE_FROM
-                );
+                elasticSearchRestClient.get(SAMPLE_TERM);
         assertNotNull(queryContentsResponse);
         assertEquals(queryContentsResponse.getTotal(), ELASTIC_ACTUAL_SAMPLE_NUMBER_OF_RESULTS);
     }
@@ -118,10 +101,7 @@ public class ElasticsearchSigningHighLevelRestClientTest2 {
         DynamoDBClient elasticSearchRestClient =
                 new DynamoDBClient(environment, restHighLevelClient);
 
-        assertThrows(SearchException.class, () -> elasticSearchRestClient.searchSingleTerm(SAMPLE_TERM,
-                        SAMPLE_NUMBER_OF_RESULTS,
-                        SAMPLE_FROM
-        ));
+        assertThrows(SearchException.class, () -> elasticSearchRestClient.get(SAMPLE_TERM));
 
     }
 
@@ -140,31 +120,6 @@ public class ElasticsearchSigningHighLevelRestClientTest2 {
         assertThrows(SearchException.class, () -> elasticSearchRestClient.addDocumentToIndex(contentsDocument));
     }
 
-    @Test
-    public void removeDocumentThrowsException() throws IOException {
-
-        ContentsDocument contentsDocument = mock(ContentsDocument.class);
-        doThrow(RuntimeException.class).when(contentsDocument).toJsonString();
-        RestHighLevelClient restHighLevelClient = mock(RestHighLevelClient.class);
-        when(restHighLevelClient.update(any(), any())).thenThrow(new RuntimeException());
-        DynamoDBClient elasticSearchRestClient =
-                new DynamoDBClient(environment, restHighLevelClient);
-
-        assertThrows(SearchException.class, () -> elasticSearchRestClient.removeDocumentFromIndex(""));
-    }
-
-    @Test
-    public void removeDocumentReturnsDocumentNotFoundWhenNoDocumentMatchesIdentifier() throws IOException,
-            SearchException {
-
-        RestHighLevelClient restHighLevelClient = mock(RestHighLevelClient.class);
-        DeleteResponse nothingFoundResponse = mock(DeleteResponse.class);
-        when(nothingFoundResponse.getResult()).thenReturn(DocWriteResponse.Result.NOT_FOUND);
-        when(restHighLevelClient.delete(any(), any())).thenReturn(nothingFoundResponse);
-        DynamoDBClient elasticSearchRestClient =
-                new DynamoDBClient(environment, restHighLevelClient);
-        elasticSearchRestClient.removeDocumentFromIndex("1234");
-    }
 
     @Test
     public void addDocumentToIndex() throws IOException, SearchException {
@@ -172,7 +127,7 @@ public class ElasticsearchSigningHighLevelRestClientTest2 {
         UpdateResponse updateResponse = mock(UpdateResponse.class);
         ContentsDocument mockDocument = mock(ContentsDocument.class);
         when(mockDocument.toJsonString()).thenReturn("{}");
-        when(mockDocument.getId()).thenReturn(UUID.randomUUID());
+        when(mockDocument.getIsbn()).thenReturn(SAMPLE_TERM);
         RestHighLevelClient restHighLevelClient = mock(RestHighLevelClient.class);
         when(restHighLevelClient.update(any(), any())).thenReturn(updateResponse);
 

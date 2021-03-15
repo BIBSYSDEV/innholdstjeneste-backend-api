@@ -22,9 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static no.unit.bibs.elasticsearch.DynamoDBClient.ELASTICSEARCH_ENDPOINT_ADDRESS_KEY;
-import static no.unit.bibs.elasticsearch.DynamoDBClient.ELASTICSEARCH_ENDPOINT_API_SCHEME_KEY;
-import static no.unit.bibs.elasticsearch.DynamoDBClient.ELASTICSEARCH_ENDPOINT_INDEX_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,9 +43,6 @@ public class QueryContentsApiHandlerTest {
 
     private void initEnvironment() {
         environment = mock(Environment.class);
-        when(environment.readEnv(ELASTICSEARCH_ENDPOINT_ADDRESS_KEY)).thenReturn("localhost");
-        when(environment.readEnv(ELASTICSEARCH_ENDPOINT_INDEX_KEY)).thenReturn("resources");
-        when(environment.readEnv(ELASTICSEARCH_ENDPOINT_API_SCHEME_KEY)).thenReturn("http");
     }
 
     @BeforeEach
