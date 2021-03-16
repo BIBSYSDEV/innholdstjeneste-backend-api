@@ -7,18 +7,17 @@ import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.utils.Environment;
 import nva.commons.utils.JsonUtils;
+import nva.commons.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 
 
 public class DynamoDBClient {
@@ -26,8 +25,7 @@ public class DynamoDBClient {
 
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBClient.class);
 
-    public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND
-            = "Document with id={} was not found.";
+    public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id={} was not found.";
     private static final ObjectMapper mapper = JsonUtils.objectMapper;
     public static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
 
@@ -90,16 +88,11 @@ public class DynamoDBClient {
 
     }
 
-    public GetContentsResponse getContents(String isbn) throws NotFoundException {
+    public String getContents(String isbn) throws NotFoundException {
         Item item = contentsTable.getItem("isbn", isbn);
-        GetContentsResponse.Builder builder = new GetContentsResponse.Builder();
-        List<JsonNode> hits = new ArrayList<>();
-        try {
-            hits.add(mapper.readTree(item.toJSON()));
-        } catch (Exception e) {
-            throw new NotFoundException(e, DOCUMENT_WITH_ID_WAS_NOT_FOUND);
+        if (Objects.isNull(item) || StringUtils.isEmpty(item.toJSON())) {
+            throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
         }
-        builder.withHits(hits);
-        return new GetContentsResponse(builder);
+        return item.toJSON();
     }
 }

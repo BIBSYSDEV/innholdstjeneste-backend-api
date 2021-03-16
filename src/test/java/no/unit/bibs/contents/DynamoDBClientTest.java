@@ -57,7 +57,7 @@ public class DynamoDBClientTest {
         Item item = new Item();
         item.withJSON("contents", contents);
         when(dynamoTable.getItem(anyString(), anyString())).thenReturn(item);
-        GetContentsResponse getContentsResponse = dynamoDBClient.getContents(SAMPLE_TERM);
+        String getContentsResponse = dynamoDBClient.getContents(SAMPLE_TERM);
         assertNotNull(getContentsResponse);
     }
 

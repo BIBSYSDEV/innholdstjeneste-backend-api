@@ -3,6 +3,7 @@ package no.unit.bibs.contents;
 import com.amazonaws.services.lambda.runtime.Context;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.ApiGatewayException;
+import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.RequestInfo;
 import nva.commons.handlers.RestRequestHandler;
@@ -11,7 +12,7 @@ import nva.commons.utils.JacocoGenerated;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
-public class GetContentsApiHandler extends ApiGatewayHandler<Void, GetContentsResponse> {
+public class GetContentsApiHandler extends ApiGatewayHandler<Void, GatewayResponse> {
 
     public static final String ISBN = "isbn";
     private final DynamoDBClient dynamoDBClient;
@@ -43,12 +44,19 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, GetContentsRe
      *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
-    protected GetContentsResponse processInput(Void input,
-                                               RequestInfo requestInfo,
-                                               Context context) throws ApiGatewayException {
-
+    protected GatewayResponse processInput(Void input, RequestInfo requestInfo, Context context)
+            throws ApiGatewayException {
         String isbn = requestInfo.getQueryParameters().get(ISBN);
-        return dynamoDBClient.getContents(isbn);
+        GatewayResponse gatewayResponse = new GatewayResponse(environment);
+        try {
+            String contents = dynamoDBClient.getContents(isbn);
+            gatewayResponse.setStatusCode(HttpStatus.SC_OK);
+            gatewayResponse.setBody(contents);
+        } catch (NotFoundException e) {
+            gatewayResponse.setErrorBody(e.getMessage());
+            gatewayResponse.setStatusCode(HttpStatus.SC_NOT_FOUND);
+        }
+        return gatewayResponse;
     }
 
 
@@ -60,7 +68,7 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, GetContentsRe
      * @return the success status code.
      */
     @Override
-    protected Integer getSuccessStatusCode(Void input, GetContentsResponse output) {
-        return HttpStatus.SC_OK;
+    protected Integer getSuccessStatusCode(Void input, GatewayResponse output) {
+        return output.getStatusCode();
     }
 }
