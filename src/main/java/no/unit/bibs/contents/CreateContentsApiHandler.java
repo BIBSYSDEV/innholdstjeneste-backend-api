@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.bibs.contents.exception.CommunicationException;
 import no.unit.bibs.contents.exception.ImportException;
-import no.unit.bibs.contents.exception.SearchException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.RequestInfo;
@@ -89,9 +88,9 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
 
     private void addDocumentToIndex(ContentsDocument document) {
         try {
-            dynamoDBClient.addDocument(document);
-        } catch (SearchException e) {
-            logger.error(ERROR_ADDING_DOCUMENT_SEARCH_INDEX, document.getIsbn(), e);
+            dynamoDBClient.addContents(document);
+        } catch (CommunicationException e) {
+            e.printStackTrace();
         }
     }
 

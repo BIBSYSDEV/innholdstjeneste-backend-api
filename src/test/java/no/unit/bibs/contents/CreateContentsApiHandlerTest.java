@@ -52,7 +52,7 @@ public class CreateContentsApiHandlerTest {
 
     @Test
     void defaultConstructorThrowsIllegalStateExceptionWhenEnvironmentNotDefined() {
-        assertThrows(CommunicationException.class, QueryContentsApiHandler::new);
+        assertThrows(CommunicationException.class, GetContentsApiHandler::new);
     }
 
     @Test
@@ -69,7 +69,7 @@ public class CreateContentsApiHandlerTest {
         var handler = new CreateContentsApiHandler(environment, dynamoDBClient);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
-        doNothing().when(dynamoDBClient).addDocument(contentsDocument);
+        doNothing().when(dynamoDBClient).addContents(contentsDocument);
         CreateContentsRequest request = new CreateContentsRequest(contents);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertEquals(contents, actual.getRequest().getContents());

@@ -2,7 +2,7 @@ package no.unit.bibs.contents;
 
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.Table;
-import no.unit.bibs.contents.exception.SearchException;
+import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.utils.IoUtils;
@@ -57,8 +57,8 @@ public class DynamoDBClientTest {
         Item item = new Item();
         item.withJSON("contents", contents);
         when(dynamoTable.getItem(anyString(), anyString())).thenReturn(item);
-        QueryContentsResponse queryContentsResponse = dynamoDBClient.get(SAMPLE_TERM);
-        assertNotNull(queryContentsResponse);
+        GetContentsResponse getContentsResponse = dynamoDBClient.getContents(SAMPLE_TERM);
+        assertNotNull(getContentsResponse);
     }
 
     @Test
@@ -68,24 +68,28 @@ public class DynamoDBClientTest {
         RestHighLevelClient restHighLevelClient = mock(RestHighLevelClient.class);
         when(restHighLevelClient.update(any(), any())).thenThrow(new RuntimeException());
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
-        assertThrows(SearchException.class, () -> dynamoDBClient.addDocument(contentsDocument));
+        assertThrows(CommunicationException.class, () -> dynamoDBClient.addContents(contentsDocument));
     }
 
 
     @Test
-    public void searchSingleTermReturnsErrorResponseWhenExceptionInDoSearch() throws ApiGatewayException, IOException {
+    public void searchSingleTermReturnsErrorResponseWhenExceptionInDoSearch() throws IOException {
         RestHighLevelClient restHighLevelClient = mock(RestHighLevelClient.class);
         when(restHighLevelClient.search(any(), any())).thenThrow(new IOException());
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
-        assertThrows(NotFoundException.class, () -> dynamoDBClient.get(SAMPLE_TERM));
+        assertThrows(NotFoundException.class, () -> dynamoDBClient.getContents(SAMPLE_TERM));
     }
     
     @Test
-    public void addDocumentTest() throws IOException, SearchException {
+    public void addDocumentTest() throws IOException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
-        dynamoDBClient.addDocument(contentsDocument);
+        try {
+            dynamoDBClient.addContents(contentsDocument);
+        } catch (no.unit.bibs.contents.exception.CommunicationException e) {
+            e.printStackTrace();
+        }
     }
     
 }

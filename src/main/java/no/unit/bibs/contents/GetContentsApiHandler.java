@@ -11,22 +11,22 @@ import nva.commons.utils.JacocoGenerated;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
-public class QueryContentsApiHandler extends ApiGatewayHandler<Void, QueryContentsResponse> {
+public class GetContentsApiHandler extends ApiGatewayHandler<Void, GetContentsResponse> {
 
     public static final String ISBN = "isbn";
     private final DynamoDBClient dynamoDBClient;
 
     @JacocoGenerated
-    public QueryContentsApiHandler() throws CommunicationException {
+    public GetContentsApiHandler() throws CommunicationException {
         this(new Environment());
     }
 
-    public QueryContentsApiHandler(Environment environment) throws CommunicationException {
+    public GetContentsApiHandler(Environment environment) throws CommunicationException {
         this(environment, new DynamoDBClient(environment));
     }
 
-    public QueryContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
-        super(Void.class, environment, LoggerFactory.getLogger(QueryContentsApiHandler.class));
+    public GetContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
+        super(Void.class, environment, LoggerFactory.getLogger(GetContentsApiHandler.class));
         this.dynamoDBClient = dynamoDBClient;
     }
 
@@ -43,12 +43,12 @@ public class QueryContentsApiHandler extends ApiGatewayHandler<Void, QueryConten
      *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
-    protected QueryContentsResponse processInput(Void input,
-                                                 RequestInfo requestInfo,
-                                                 Context context) throws ApiGatewayException {
+    protected GetContentsResponse processInput(Void input,
+                                               RequestInfo requestInfo,
+                                               Context context) throws ApiGatewayException {
 
         String isbn = requestInfo.getQueryParameters().get(ISBN);
-        return dynamoDBClient.get(isbn);
+        return dynamoDBClient.getContents(isbn);
     }
 
 
@@ -60,7 +60,7 @@ public class QueryContentsApiHandler extends ApiGatewayHandler<Void, QueryConten
      * @return the success status code.
      */
     @Override
-    protected Integer getSuccessStatusCode(Void input, QueryContentsResponse output) {
+    protected Integer getSuccessStatusCode(Void input, GetContentsResponse output) {
         return HttpStatus.SC_OK;
     }
 }

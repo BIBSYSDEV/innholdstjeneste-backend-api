@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 
 @JsonPropertyOrder({"@context", "took","email", "total", "hits" })
-public class QueryContentsResponse {
+public class GetContentsResponse {
 
     @JsonProperty("@context")
     private final URI context;
@@ -24,17 +24,17 @@ public class QueryContentsResponse {
      */
     @JacocoGenerated
     @JsonCreator
-    public QueryContentsResponse(@JsonProperty("@context") URI context,
-                                 @JsonProperty("took") int took,
-                                 @JsonProperty("total") int total,
-                                 @JsonProperty("hits") List<JsonNode> hits) {
+    public GetContentsResponse(@JsonProperty("@context") URI context,
+                               @JsonProperty("took") int took,
+                               @JsonProperty("total") int total,
+                               @JsonProperty("hits") List<JsonNode> hits) {
         this.context = context;
         this.took = took;
         this.total = total;
         this.hits = hits;
     }
 
-    protected QueryContentsResponse(Builder builder) {
+    protected GetContentsResponse(Builder builder) {
         this.context = builder.context;
         this.took = builder.took;
         this.total = builder.total;
@@ -72,7 +72,7 @@ public class QueryContentsResponse {
             return false;
         }
 
-        QueryContentsResponse that = (QueryContentsResponse) o;
+        GetContentsResponse that = (GetContentsResponse) o;
         return     took == that.took
                 && total == that.total
                 && Objects.equals(context, that.context)
@@ -113,8 +113,8 @@ public class QueryContentsResponse {
             return this;
         }
 
-        public QueryContentsResponse build() {
-            return new QueryContentsResponse(this);
+        public GetContentsResponse build() {
+            return new GetContentsResponse(this);
         }
 
     }

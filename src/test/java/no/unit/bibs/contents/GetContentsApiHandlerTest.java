@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class QueryContentsApiHandlerTest {
+public class GetContentsApiHandlerTest {
 
     public static final String SAMPLE_SEARCH_TERM = "searchTerm";
     public static final ObjectMapper mapper = JsonUtils.objectMapper;
@@ -37,7 +37,7 @@ public class QueryContentsApiHandlerTest {
     public static final int SAMPLE_TOOK = 0;
     public static final int SAMPLE_TOTAL = 0;
     private Environment environment;
-    private QueryContentsApiHandler queryContentsApiHandler;
+    private GetContentsApiHandler getContentsApiHandler;
     private Table dynamoTable;
 
     private void initEnvironment() {
@@ -48,31 +48,31 @@ public class QueryContentsApiHandlerTest {
     @BeforeEach
     public void init() {
         initEnvironment();
-        queryContentsApiHandler = new QueryContentsApiHandler(environment, new DynamoDBClient(dynamoTable));
+        getContentsApiHandler = new GetContentsApiHandler(environment, new DynamoDBClient(dynamoTable));
     }
 
     @Test
     void defaultConstructorThrowsIllegalStateExceptionWhenEnvironmentNotDefined() {
-        assertThrows(CommunicationException.class, QueryContentsApiHandler::new);
+        assertThrows(CommunicationException.class, GetContentsApiHandler::new);
     }
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        QueryContentsResponse response =  new QueryContentsResponse(EXAMPLE_CONTEXT,
+        GetContentsResponse response =  new GetContentsResponse(EXAMPLE_CONTEXT,
                 SAMPLE_TOOK,
                 SAMPLE_TOTAL,
                 SAMPLE_HITS);
-        Integer statusCode = queryContentsApiHandler.getSuccessStatusCode(null, response);
+        Integer statusCode = getContentsApiHandler.getSuccessStatusCode(null, response);
         assertEquals(statusCode, HttpStatus.SC_OK);
     }
 
     @Test
     void handlerReturnsContentsDocumentByGivenTerm() throws ApiGatewayException, IOException {
         DynamoDBClient dynamoDBClient = mock(DynamoDBClient.class);
-        var handler = new QueryContentsApiHandler(environment, dynamoDBClient);
+        var handler = new GetContentsApiHandler(environment, dynamoDBClient);
         var expected = mapper.readValue(IoUtils.stringFromResources(Path.of(ROUNDTRIP_RESPONSE_JSON)),
-                QueryContentsResponse.class);
-        when(dynamoDBClient.get(SAMPLE_SEARCH_TERM)).thenReturn(expected);
+                GetContentsResponse.class);
+        when(dynamoDBClient.getContents(SAMPLE_SEARCH_TERM)).thenReturn(expected);
         var actual = handler.processInput(null, getRequestInfo(), mock(Context.class));
         assertEquals(expected, actual);
     }
@@ -80,14 +80,14 @@ public class QueryContentsApiHandlerTest {
     @Test
     void handlerThrowsExceptionWhenGatewayIsBad() throws IOException {
         var dynamoDBClient = new DynamoDBClient(dynamoTable);
-        var handler = new QueryContentsApiHandler(environment, dynamoDBClient);
+        var handler = new GetContentsApiHandler(environment, dynamoDBClient);
         Executable executable = () -> handler.processInput(null, getRequestInfo(), mock(Context.class));
         assertThrows(ApiGatewayException.class, executable);
     }
 
     private RequestInfo getRequestInfo() {
         var requestInfo = new RequestInfo();
-        requestInfo.setQueryParameters(Map.of(QueryContentsApiHandler.ISBN, SAMPLE_SEARCH_TERM));
+        requestInfo.setQueryParameters(Map.of(GetContentsApiHandler.ISBN, SAMPLE_SEARCH_TERM));
         return requestInfo;
     }
 

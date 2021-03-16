@@ -9,7 +9,6 @@ import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.bibs.contents.exception.CommunicationException;
-import no.unit.bibs.contents.exception.SearchException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.utils.Environment;
 import nva.commons.utils.JsonUtils;
@@ -73,9 +72,9 @@ public class DynamoDBClient {
     /**
      * Adds or insert a document to an elasticsearch index.
      * @param document the document to be inserted
-     * @throws SearchException when something goes wrong
+     * @throws CommunicationException when something goes wrong
      * */
-    public void addDocument(ContentsDocument document) throws SearchException {
+    public void addContents(ContentsDocument document) throws CommunicationException {
         try {
             Item item = new Item()
                     .withString("isbn", document.getIsbn())
@@ -83,14 +82,14 @@ public class DynamoDBClient {
                     .withString("created", Instant.now().toString());
             contentsTable.putItem(new PutItemSpec().withItem(item));
         } catch (Exception e) {
-            throw new SearchException(e.getMessage(), e);
+            throw new CommunicationException(e.getMessage(), e);
         }
 
     }
 
-    public QueryContentsResponse get(String isbn) throws NotFoundException {
+    public GetContentsResponse getContents(String isbn) throws NotFoundException {
         Item item = contentsTable.getItem("isbn", isbn);
-        QueryContentsResponse.Builder builder = new QueryContentsResponse.Builder();
+        GetContentsResponse.Builder builder = new GetContentsResponse.Builder();
         List<JsonNode> hits = new ArrayList<>();
         try {
             hits.add(mapper.readTree(item.toJSON()));
@@ -98,6 +97,6 @@ public class DynamoDBClient {
             throw new NotFoundException(e, DOCUMENT_WITH_ID_WAS_NOT_FOUND);
         }
         builder.withHits(hits);
-        return new QueryContentsResponse(builder);
+        return new GetContentsResponse(builder);
     }
 }

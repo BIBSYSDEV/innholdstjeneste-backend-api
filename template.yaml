@@ -137,7 +137,7 @@ Resources:
                     type: string
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${QueryContentsApiFunction.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentsApiFunction.Arn}:live/invocations
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
@@ -203,11 +203,11 @@ Resources:
               requestId:
                 type: string
 
-  QueryContentsApiFunction:
+  GetContentsApiFunction:
     Type: AWS::Serverless::Function
     Properties:
       Tracing: Active
-      Handler: no.unit.bibs.elasticsearch.QueryContentsApiHandler::handleRequest
+      Handler: no.unit.bibs.contents.GetContentsApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1024
       AutoPublishAlias: live
@@ -234,7 +234,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tracing: Active
-      Handler: no.unit.bibs.elasticsearch.CreateContentsApiHandler::handleRequest
+      Handler: no.unit.bibs.contents.CreateContentsApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1024
       AutoPublishAlias: live
@@ -257,23 +257,23 @@ Resources:
             Method: post
             RestApiId: !Ref ContentsApi
 
-  QueryContentsApiFunctionScalableTarget:
+  GetContentsApiFunctionScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
       MaxCapacity: !Ref MaxConcurrency
       MinCapacity: !Ref MinConcurrency
-      ResourceId: !Sub function:${QueryContentsApiFunction}:live # You need to specify an alis or version here
+      ResourceId: !Sub function:${GetContentsApiFunction}:live # You need to specify an alis or version here
       RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
       ScalableDimension: lambda:function:ProvisionedConcurrency
       ServiceNamespace: lambda
-    DependsOn: QueryContentsApiFunctionAliaslive # This is your function logical ID + "Alias" + what you use for AutoPublishAlias
+    DependsOn: GetContentsApiFunctionAliaslive # This is your function logical ID + "Alias" + what you use for AutoPublishAlias
 
-  QueryContentsApiFunctionScalingPolicy:
+  GetContentsApiFunctionScalingPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
-      PolicyName: QueryContentsApiFunctionScalingPolicy
+      PolicyName: GetContentsApiFunctionScalingPolicy
       PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref QueryContentsApiFunctionScalableTarget
+      ScalingTargetId: !Ref GetContentsApiFunctionScalableTarget
       TargetTrackingScalingPolicyConfiguration:
         TargetValue: 0.70 # Any value between 0.1 and 0.9 can be used here
         PredefinedMetricSpecification:
