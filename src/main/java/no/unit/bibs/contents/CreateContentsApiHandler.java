@@ -36,7 +36,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
     }
 
     public CreateContentsApiHandler(Environment environment) throws CommunicationException {
-        this(environment, new DynamoDBClient(environment));
+        this(environment, new DynamoDBClient());
     }
 
     public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {

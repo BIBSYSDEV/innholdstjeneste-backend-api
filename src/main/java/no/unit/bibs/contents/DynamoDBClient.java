@@ -7,11 +7,8 @@ import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JsonUtils;
 import nva.commons.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,27 +23,17 @@ public class DynamoDBClient {
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBClient.class);
 
     public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id={} was not found.";
-    private static final ObjectMapper mapper = JsonUtils.objectMapper;
     public static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
 
-    private final String DYNAMODB_TABLE_NAME = "contents";
+    //Todo: is the table name something we could read from Environment? Is it important?
+    private static final String DYNAMODB_TABLE_NAME = "contents";
     private Table contentsTable;
-
 
     /**
      * Creates a new DynamoDBClient.
      *
      */
     public DynamoDBClient() throws CommunicationException {
-        initDynamoDbClient();
-    }
-
-    /**
-     * Creates a new DynamoDBClient.
-     *
-     * @param environment Environment with properties
-     */
-    public DynamoDBClient(Environment environment) throws CommunicationException {
         initDynamoDbClient();
     }
     /**
@@ -64,6 +51,7 @@ public class DynamoDBClient {
             AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient();
             contentsTable = new DynamoDB(dynamoDB).getTable(DYNAMODB_TABLE_NAME);
         } catch (Exception e) {
+            logger.error(CANNOT_CONNECT_TO_DYNAMO_DB, e);
             throw new CommunicationException(CANNOT_CONNECT_TO_DYNAMO_DB, e);
         }
     }
@@ -83,6 +71,7 @@ public class DynamoDBClient {
             PutItemOutcome putItemOutcome = contentsTable.putItem(new PutItemSpec().withItem(item));
             return putItemOutcome.getItem().toJSON();
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             throw new CommunicationException(e.getMessage(), e);
         }
 

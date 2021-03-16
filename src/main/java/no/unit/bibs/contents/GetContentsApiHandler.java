@@ -23,7 +23,7 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, GatewayRespon
     }
 
     public GetContentsApiHandler(Environment environment) throws CommunicationException {
-        this(environment, new DynamoDBClient(environment));
+        this(environment, new DynamoDBClient());
     }
 
     public GetContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
