@@ -7,7 +7,6 @@ import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.utils.IoUtils;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import static nva.commons.utils.JsonUtils.objectMapper;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
