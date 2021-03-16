@@ -1,7 +1,7 @@
-package no.unit.bibs.elasticsearch;
+package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import no.unit.bibs.elasticsearch.exception.CommunicationException;
+import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.RequestInfo;

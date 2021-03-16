@@ -1,4 +1,4 @@
-package no.unit.bibs.elasticsearch;
+package no.unit.bibs.contents;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
@@ -8,8 +8,8 @@ import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.unit.bibs.elasticsearch.exception.CommunicationException;
-import no.unit.bibs.elasticsearch.exception.SearchException;
+import no.unit.bibs.contents.exception.CommunicationException;
+import no.unit.bibs.contents.exception.SearchException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.utils.Environment;
 import nva.commons.utils.JsonUtils;

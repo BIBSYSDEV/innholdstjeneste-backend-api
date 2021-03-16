@@ -1,8 +1,8 @@
-package no.unit.bibs.elasticsearch;
+package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import no.unit.bibs.elasticsearch.exception.CommunicationException;
+import no.unit.bibs.contents.exception.CommunicationException;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.GatewayResponse;

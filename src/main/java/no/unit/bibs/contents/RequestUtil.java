@@ -1,4 +1,4 @@
-package no.unit.bibs.elasticsearch;
+package no.unit.bibs.contents;
 
 import nva.commons.handlers.RequestInfo;
 import nva.commons.utils.JacocoGenerated;

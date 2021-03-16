@@ -1,8 +1,8 @@
-package no.unit.bibs.elasticsearch;
+package no.unit.bibs.contents;
 
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.Table;
-import no.unit.bibs.elasticsearch.exception.SearchException;
+import no.unit.bibs.contents.exception.SearchException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.utils.IoUtils;

@@ -1,4 +1,4 @@
-package no.unit.bibs.elasticsearch;
+package no.unit.bibs.contents;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
