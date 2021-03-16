@@ -26,7 +26,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -57,9 +56,7 @@ public class CreateContentsApiHandlerTest {
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        CreateContentsRequest request = new CreateContentsRequest(contents);
-        CreateContentsResponse response =  new CreateContentsResponse(MESSAGE, request, HttpStatus.SC_OK, TIMESTAMP);
+        var response =  new no.unit.bibs.contents.GatewayResponse(environment, MESSAGE, HttpStatus.SC_OK);
         Integer statusCode = handler.getSuccessStatusCode(null, response);
         assertEquals(statusCode, HttpStatus.SC_OK);
     }
@@ -69,11 +66,10 @@ public class CreateContentsApiHandlerTest {
         var handler = new CreateContentsApiHandler(environment, dynamoDBClient);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
-        doNothing().when(dynamoDBClient).addContents(contentsDocument);
+        when(dynamoDBClient.addContents(contentsDocument)).thenReturn(contents);
         CreateContentsRequest request = new CreateContentsRequest(contents);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
-        assertEquals(contents, actual.getRequest().getContents());
-        assertEquals(CreateContentsApiHandler.CHECK_LOG_FOR_DETAILS_MESSAGE, actual.getMessage());
+        assertEquals(contents, actual.getBody());
     }
 
 

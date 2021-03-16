@@ -4,6 +4,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -73,14 +74,16 @@ public class DynamoDBClient {
      * Adds or insert a document to an elasticsearch index.
      * @param document the document to be inserted
      * @throws CommunicationException when something goes wrong
+     * @return the document added.
      * */
-    public void addContents(ContentsDocument document) throws CommunicationException {
+    public String addContents(ContentsDocument document) throws CommunicationException {
         try {
             Item item = new Item()
                     .withString("isbn", document.getIsbn())
                     .withString("source", document.getSource())
                     .withString("created", Instant.now().toString());
-            contentsTable.putItem(new PutItemSpec().withItem(item));
+            PutItemOutcome putItemOutcome = contentsTable.putItem(new PutItemSpec().withItem(item));
+            return putItemOutcome.getItem().toJSON();
         } catch (Exception e) {
             throw new CommunicationException(e.getMessage(), e);
         }
