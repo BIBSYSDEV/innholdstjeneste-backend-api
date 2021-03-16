@@ -32,10 +32,12 @@ public class DynamoDBClient {
     /**
      * Creates a new DynamoDBClient.
      *
+     * @throws CommunicationException something went wrong by init DynamoDBClient
      */
     public DynamoDBClient() throws CommunicationException {
         initDynamoDbClient();
     }
+
     /**
      * Creates a new DynamoDBClient.
      *
@@ -59,8 +61,8 @@ public class DynamoDBClient {
     /**
      * Adds or insert a document to an elasticsearch index.
      * @param document the document to be inserted
-     * @throws CommunicationException when something goes wrong
      * @return the document added.
+     * @throws CommunicationException when something goes wrong
      * */
     public String addContents(ContentsDocument document) throws CommunicationException {
         try {
@@ -77,6 +79,13 @@ public class DynamoDBClient {
 
     }
 
+    /**
+     * Gets the contentsDocument by given isbn.
+     *
+     * @param isbn identifier
+     * @return contentsDocument as json string
+     * @throws NotFoundException contentsDocument not found
+     */
     public String getContents(String isbn) throws NotFoundException {
         Item item = contentsTable.getItem("isbn", isbn);
         if (Objects.isNull(item) || StringUtils.isEmpty(item.toJSON())) {

@@ -2,7 +2,7 @@ package no.unit.bibs.contents;
 
 import com.amazonaws.util.json.Jackson;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import no.unit.bibs.contents.exception.CommunicationException;
+import nva.commons.exceptions.GatewayResponseSerializingException;
 import nva.commons.utils.Environment;
 import nva.commons.utils.StringUtils;
 import org.apache.http.HttpStatus;
@@ -23,7 +23,6 @@ public class GatewayResponse {
     public static final String CORS_ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
     public static final String EMPTY_JSON = "{}";
     public static final transient String ERROR_KEY = "error";
-    public static final String COULD_NOT_PARSE_ERROR_BODY_INTO_JSON = "Could not parse error body into json";
     private String body;
     private transient Map<String, String> headers;
     private int statusCode;
@@ -41,6 +40,7 @@ public class GatewayResponse {
 
     /**
      * GatewayResponse convenience constructor to set response status and body with payload direct.
+     *
      */
     public GatewayResponse(Environment environment, final String body, final int status) {
         this.statusCode = status;
@@ -72,14 +72,15 @@ public class GatewayResponse {
      * Set error message as a json string to body.
      *
      * @param message message from exception
+     * @throws GatewayResponseSerializingException some parsing went wrong
      */
-    public void setErrorBody(String message) throws CommunicationException {
+    public void setErrorBody(String message) throws GatewayResponseSerializingException {
         Map<String, String> map = new HashMap<>();
         map.put(ERROR_KEY, message);
         try {
             this.body = Jackson.getObjectMapper().writeValueAsString(map);
         } catch (JsonProcessingException e) {
-            throw new CommunicationException(COULD_NOT_PARSE_ERROR_BODY_INTO_JSON, e);
+            throw new GatewayResponseSerializingException(e);
         }
     }
 

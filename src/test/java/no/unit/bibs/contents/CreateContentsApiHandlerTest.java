@@ -40,6 +40,9 @@ public class CreateContentsApiHandlerTest {
     private DynamoDBClient dynamoDBClient;
 
 
+    /**
+     * javadoc for checkstyle.
+     */
     @BeforeEach
     public void init() {
         environment = mock(Environment.class);
