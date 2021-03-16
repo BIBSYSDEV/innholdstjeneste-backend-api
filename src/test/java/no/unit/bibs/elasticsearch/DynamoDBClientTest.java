@@ -71,10 +71,6 @@ public class DynamoDBClientTest {
         assertThrows(SearchException.class, () -> dynamoDBClient.addDocument(contentsDocument));
     }
 
-    private String getElasticSEarchResponseAsString() {
-        return IoUtils.streamToString(IoUtils.inputStreamFromResources(ELASTIC_SAMPLE_RESPONSE_FILE));
-    }
-
 
     @Test
     public void searchSingleTermReturnsErrorResponseWhenExceptionInDoSearch() throws ApiGatewayException, IOException {
@@ -88,8 +84,6 @@ public class DynamoDBClientTest {
     public void addDocumentTest() throws IOException, SearchException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
-        when(contentsDocument.toJsonString()).thenReturn("{}");
-        when(contentsDocument.getIsbn()).thenReturn(SAMPLE_TERM);
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
         dynamoDBClient.addDocument(contentsDocument);
     }
