@@ -31,7 +31,6 @@ public class DynamoDBClientTest {
 
     public static final String SAMPLE_TERM = "SampleSearchTerm";
     private static final String SAMPLE_JSON_RESPONSE = "{}";
-    private static final String ELASTIC_SAMPLE_RESPONSE_FILE = "sample_elasticsearch_response.json";
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     public static final String GET_CONTENTS_JSON = "get_contents.json";
 

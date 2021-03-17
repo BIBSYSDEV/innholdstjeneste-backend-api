@@ -3,7 +3,6 @@ package no.unit.bibs.contents;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.unit.bibs.contents.exception.CommunicationException;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.ApiGatewayHandler;
@@ -22,8 +21,6 @@ import static java.util.Objects.isNull;
 public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRequest, GatewayResponse> {
 
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to CreateContentsApiHandler";
-    public static final String CHECK_LOG_FOR_DETAILS_MESSAGE = "DataImport created, check log for details";
-    public static final String ERROR_ADDING_DOCUMENT_SEARCH_INDEX = "Error adding document with id={} to searchIndex";
     public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not index record provided. ";
 
 
@@ -31,12 +28,12 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
     private final DynamoDBClient dynamoDBClient;
 
     @JacocoGenerated
-    public CreateContentsApiHandler() throws CommunicationException {
+    public CreateContentsApiHandler() {
         this(new Environment());
     }
 
-    public CreateContentsApiHandler(Environment environment) throws CommunicationException {
-        this(environment, new DynamoDBClient());
+    public CreateContentsApiHandler(Environment environment) {
+        this(environment, new DynamoDBClient(environment));
     }
 
     public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {

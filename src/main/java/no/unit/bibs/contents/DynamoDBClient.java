@@ -9,6 +9,7 @@ import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
+import nva.commons.utils.Environment;
 import nva.commons.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,22 +20,20 @@ import java.util.Objects;
 
 public class DynamoDBClient {
 
-
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBClient.class);
 
     public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id={} was not found.";
     public static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
+    public static final String TABLE_NAME = "TABLE_NAME";
 
-    //Todo: is the table name something we could read from Environment? Is it important?
-    private static final String DYNAMODB_TABLE_NAME = "contents";
     private Table contentsTable;
 
     /**
      * Creates a new DynamoDBClient.
      *
      */
-    public DynamoDBClient()  {
-        initDynamoDbClient();
+    public DynamoDBClient(Environment environment)  {
+        initDynamoDbClient(environment);
     }
 
     /**
@@ -47,10 +46,10 @@ public class DynamoDBClient {
     }
 
 
-    private void initDynamoDbClient() {
+    private void initDynamoDbClient(Environment environment) {
         try {
             AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient();
-            contentsTable = new DynamoDB(dynamoDB).getTable(DYNAMODB_TABLE_NAME);
+            contentsTable = new DynamoDB(dynamoDB).getTable(environment.readEnv(TABLE_NAME));
         } catch (Exception e) {
             logger.error(CANNOT_CONNECT_TO_DYNAMO_DB, e);
         }
