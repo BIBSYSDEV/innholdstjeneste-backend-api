@@ -2,7 +2,6 @@ package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import no.unit.bibs.contents.exception.CommunicationException;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.GatewayResponse;
@@ -25,14 +24,12 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class CreateContentsApiHandlerTest {
 
     public static final String MESSAGE = "message";
-    public static final Instant TIMESTAMP = Instant.now();
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     private Environment environment;
     private CreateContentsApiHandler handler;
@@ -50,11 +47,6 @@ public class CreateContentsApiHandlerTest {
         dynamoDBClient = mock(DynamoDBClient.class);
         handler = new CreateContentsApiHandler(environment, dynamoDBClient);
         this.context = mock(Context.class);
-    }
-
-    @Test
-    void defaultConstructorThrowsIllegalStateExceptionWhenEnvironmentNotDefined() {
-        assertThrows(CommunicationException.class, GetContentsApiHandler::new);
     }
 
     @Test

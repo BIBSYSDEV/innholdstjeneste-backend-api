@@ -1,7 +1,6 @@
 package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.handlers.ApiGatewayHandler;
@@ -18,11 +17,11 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, GatewayRespon
     private final DynamoDBClient dynamoDBClient;
 
     @JacocoGenerated
-    public GetContentsApiHandler() throws CommunicationException {
+    public GetContentsApiHandler() {
         this(new Environment());
     }
 
-    public GetContentsApiHandler(Environment environment) throws CommunicationException {
+    public GetContentsApiHandler(Environment environment)  {
         this(environment, new DynamoDBClient());
     }
 

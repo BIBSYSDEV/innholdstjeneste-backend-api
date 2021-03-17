@@ -32,9 +32,8 @@ public class DynamoDBClient {
     /**
      * Creates a new DynamoDBClient.
      *
-     * @throws CommunicationException something went wrong by init DynamoDBClient
      */
-    public DynamoDBClient() throws CommunicationException {
+    public DynamoDBClient()  {
         initDynamoDbClient();
     }
 
@@ -48,13 +47,12 @@ public class DynamoDBClient {
     }
 
 
-    private void initDynamoDbClient() throws CommunicationException {
+    private void initDynamoDbClient() {
         try {
             AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient();
             contentsTable = new DynamoDB(dynamoDB).getTable(DYNAMODB_TABLE_NAME);
         } catch (Exception e) {
             logger.error(CANNOT_CONNECT_TO_DYNAMO_DB, e);
-            throw new CommunicationException(CANNOT_CONNECT_TO_DYNAMO_DB, e);
         }
     }
 

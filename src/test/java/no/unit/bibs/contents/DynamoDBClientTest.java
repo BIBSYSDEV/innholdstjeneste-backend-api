@@ -1,7 +1,10 @@
 package no.unit.bibs.contents;
 
 import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
+import java.time.Instant;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
@@ -18,6 +21,7 @@ import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -84,15 +88,19 @@ public class DynamoDBClientTest {
     }
     
     @Test
-    public void addDocumentTest() throws IOException {
+    public void addDocumentTest() throws IOException, CommunicationException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument document = objectMapper.readValue(contents, ContentsDocument.class);
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
-        try {
-            dynamoDBClient.addContents(contentsDocument);
-        } catch (no.unit.bibs.contents.exception.CommunicationException e) {
-            e.printStackTrace();
-        }
+        PutItemOutcome putItemOutcome = mock(PutItemOutcome.class);
+        Item item = new Item()
+            .withString("isbn", document.getIsbn())
+            .withString("source", document.getSource())
+            .withString("created", Instant.now().toString());
+        when(putItemOutcome.getItem()).thenReturn(item);
+        when(dynamoTable.putItem(any(PutItemSpec.class))).thenReturn(putItemOutcome);
+        final String result = dynamoDBClient.addContents(document);
+        assertNotNull(result);
     }
     
 }

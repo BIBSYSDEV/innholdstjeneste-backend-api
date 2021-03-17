@@ -2,31 +2,24 @@ package no.unit.bibs.contents;
 
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.RequestInfo;
 import nva.commons.utils.Environment;
 import nva.commons.utils.IoUtils;
-import nva.commons.utils.JsonUtils;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class GetContentsApiHandlerTest {
 
     public static final String SAMPLE_SEARCH_TERM = "searchTerm";
-    public static final ObjectMapper mapper = JsonUtils.objectMapper;
-    public static final String ROUNDTRIP_RESPONSE_JSON = "roundtripResponse.json";
     private Environment environment;
     private GetContentsApiHandler getContentsApiHandler;
     private Table dynamoTable;
@@ -43,11 +36,6 @@ public class GetContentsApiHandlerTest {
     }
 
     @Test
-    void defaultConstructorThrowsIllegalStateExceptionWhenEnvironmentNotDefined() {
-        assertThrows(CommunicationException.class, GetContentsApiHandler::new);
-    }
-
-    @Test
     void getSuccessStatusCodeReturnsOK() {
         GatewayResponse response =  new GatewayResponse(environment, SAMPLE_SEARCH_TERM, HttpStatus.SC_OK);
         Integer statusCode = getContentsApiHandler.getSuccessStatusCode(null, response);
@@ -55,7 +43,7 @@ public class GetContentsApiHandlerTest {
     }
 
     @Test
-    void handlerReturnsContentsDocumentByGivenTerm() throws ApiGatewayException, IOException {
+    void handlerReturnsContentsDocumentByGivenTerm() throws ApiGatewayException {
         DynamoDBClient dynamoDBClient = mock(DynamoDBClient.class);
         var handler = new GetContentsApiHandler(environment, dynamoDBClient);
         String contents = IoUtils.stringFromResources(Path.of(DynamoDBClientTest.GET_CONTENTS_JSON));
