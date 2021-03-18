@@ -1,12 +1,12 @@
-package no.unit.bibs.elasticsearch.exception;
+package no.unit.bibs.contents.exception;
 
 import nva.commons.exceptions.ApiGatewayException;
 import org.apache.http.HttpStatus;
 
-public class SearchException extends ApiGatewayException {
+public class ParameterException extends ApiGatewayException {
 
-    public SearchException(String message, Exception exception) {
-        super(exception, message);
+    public ParameterException(String message) {
+        super(message);
     }
 
     @Override

@@ -14,6 +14,10 @@ Parameters:
     Description: (Optional) Base path mapping in CustomDomain
     AllowedPattern: "^[a-zA-Z0-9$\\-_.+!*'(),]*$"
     ConstraintDescription: "May contain only letters, numbers and one of $-_.+!*'(),"
+  DynamoDBTableName:
+    Type: String
+    Default: 'contents'
+    Description: DynamoDB table name
   MaxConcurrency:
     Type: Number
     Default: 20
@@ -41,40 +45,7 @@ Globals:
 
 Resources:
 
-  WriteAccessElasticSearchRole:
-    Type: AWS::IAM::Role
-    Properties:
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: [ lambda.amazonaws.com ]
-            Action: [ 'sts:AssumeRole' ]
-      Path: /
-      Policies:
-        - PolicyName: writeLog
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*"
-        - PolicyName: writetoelasticsearch
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - es:*
-                Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
-
-  ReadOnlyAccessElasticSearchRole:
+  AccessDynamoDBRole:
     Type: AWS::IAM::Role
     Properties:
       ManagedPolicyArns:
@@ -97,47 +68,28 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
-        - PolicyName: writetoelasticsearch
+        - PolicyName: accessToDynamDB
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
                 Action:
-                  - es:ESHttpGet
-                  - es:ESHttpPost
-                Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
+                  - dynamodb:*
+                Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*'
 
-  ContentsElasticSearch:
-    Type: AWS::Elasticsearch::Domain
+  ContentsDynamoDBTable:
+    Type: AWS::DynamoDB::Table
     Properties:
-      AccessPolicies:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: !GetAtt WriteAccessElasticSearchRole.Arn
-            Action: 'es:*'
-            Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
-          - Effect: Allow
-            Principal:
-              AWS: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
-            Action:
-              - es:ESHttpPost
-              - es:ESHttpGet
-              - es:ESHttpHead
-            Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/*'
-      ElasticsearchClusterConfig:
-        DedicatedMasterEnabled: false
-        InstanceCount: 1
-        ZoneAwarenessEnabled: false
-        InstanceType: t2.medium.elasticsearch
-      ElasticsearchVersion: '7.9'
-      EBSOptions:
-        EBSEnabled: true
-        VolumeSize: 10
-        VolumeType: gp2
-      CognitoOptions:
-        Enabled: false
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        -
+          AttributeName: "isbn"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "isbn"
+          KeyType: "HASH"
+      TableName: !Ref DynamoDBTableName
 
   ContentsApi:
     Type: AWS::Serverless::Api
@@ -189,7 +141,7 @@ Resources:
                     type: string
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${QueryContentsApiFunction.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentsApiFunction.Arn}:live/invocations
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
@@ -255,11 +207,11 @@ Resources:
               requestId:
                 type: string
 
-  QueryContentsApiFunction:
+  GetContentsApiFunction:
     Type: AWS::Serverless::Function
     Properties:
       Tracing: Active
-      Handler: no.unit.bibs.elasticsearch.QueryContentsApiHandler::handleRequest
+      Handler: no.unit.bibs.contents.GetContentsApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1024
       AutoPublishAlias: live
@@ -267,13 +219,10 @@ Resources:
         Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: 1
-      Role: !GetAtt ReadOnlyAccessElasticSearchRole.Arn
+      Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
-          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsElasticSearch.DomainEndpoint
-          ELASTICSEARCH_ENDPOINT_INDEX: contents
-          ELASTICSEARCH_REGION: !Ref "AWS::Region"
+          TABLE_NAME: !Ref DynamoDBTableName
       Events:
         GetEvent:
           Type: Api
@@ -286,7 +235,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tracing: Active
-      Handler: no.unit.bibs.elasticsearch.CreateContentsApiHandler::handleRequest
+      Handler: no.unit.bibs.contents.CreateContentsApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1024
       AutoPublishAlias: live
@@ -294,13 +243,10 @@ Resources:
         Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
       ProvisionedConcurrencyConfig:
         ProvisionedConcurrentExecutions: 1
-      Role: !GetAtt WriteAccessElasticSearchRole.Arn
+      Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
-          ALLOWED_ORIGIN: '*'
-          ELASTICSEARCH_ENDPOINT_ADDRESS: !GetAtt ContentsElasticSearch.DomainEndpoint
-          ELASTICSEARCH_ENDPOINT_INDEX: contents
-          ELASTICSEARCH_REGION: !Ref "AWS::Region"
+          TABLE_NAME: !Ref DynamoDBTableName
       Events:
         PostEvent:
           Type: Api
@@ -309,23 +255,23 @@ Resources:
             Method: post
             RestApiId: !Ref ContentsApi
 
-  QueryContentsApiFunctionScalableTarget:
+  GetContentsApiFunctionScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
       MaxCapacity: !Ref MaxConcurrency
       MinCapacity: !Ref MinConcurrency
-      ResourceId: !Sub function:${QueryContentsApiFunction}:live # You need to specify an alis or version here
+      ResourceId: !Sub function:${GetContentsApiFunction}:live # You need to specify an alis or version here
       RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
       ScalableDimension: lambda:function:ProvisionedConcurrency
       ServiceNamespace: lambda
-    DependsOn: QueryContentsApiFunctionAliaslive # This is your function logical ID + "Alias" + what you use for AutoPublishAlias
+    DependsOn: GetContentsApiFunctionAliaslive # This is your function logical ID + "Alias" + what you use for AutoPublishAlias
 
-  QueryContentsApiFunctionScalingPolicy:
+  GetContentsApiFunctionScalingPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
-      PolicyName: QueryContentsApiFunctionScalingPolicy
+      PolicyName: GetContentsApiFunctionScalingPolicy
       PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref QueryContentsApiFunctionScalableTarget
+      ScalingTargetId: !Ref GetContentsApiFunctionScalableTarget
       TargetTrackingScalingPolicyConfiguration:
         TargetValue: 0.70 # Any value between 0.1 and 0.9 can be used here
         PredefinedMetricSpecification:
