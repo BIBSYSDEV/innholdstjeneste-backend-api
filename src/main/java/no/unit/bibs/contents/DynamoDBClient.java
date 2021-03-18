@@ -65,26 +65,51 @@ public class DynamoDBClient {
      * */
     public String addContents(ContentsDocument document) throws CommunicationException {
         try {
-            Item item = new Item()
-                    .withString("isbn", document.getIsbn())
-                    .withString("title", document.getTitle())
-                    .withString("year", document.getYear())
-                    .withString("author", document.getAuthor())
-                    .withString("description_short", document.getDescriptionShort())
-                    .withString("description_long", document.getDescriptionLong())
-                    .withString("table_of_contents", document.getTableOfContents())
-                    .withString("image_small", document.getImageSmall())
-                    .withString("image_large", document.getImageLarge())
-                    .withString("image_original", document.getImageOriginal())
-                    .withString("audio_file", document.getAudioFile())
-                    .withString("source", document.getSource())
-                    .withString("created", Instant.now().toString());
+            Item item = this.generateItem(document);
             PutItemOutcome putItemOutcome = contentsTable.putItem(new PutItemSpec().withItem(item));
             return putItemOutcome.getItem().toJSON();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException(e.getMessage(), e);
         }
+    }
+
+    private Item generateItem(ContentsDocument document) {
+        Item item = new Item();
+        item.withString("isbn", document.getIsbn());
+        if (StringUtils.isNotEmpty(document.getTitle())) {
+            item.withString("title", document.getTitle());
+        }
+        if (StringUtils.isNotEmpty(document.getYear())) {
+            item.withString("year", document.getYear());
+        }
+        if (StringUtils.isNotEmpty(document.getAuthor())) {
+            item.withString("author", document.getAuthor());
+        }
+        if (StringUtils.isNotEmpty(document.getDescriptionShort())) {
+            item.withString("description_short", document.getDescriptionShort());
+        }
+        if (StringUtils.isNotEmpty(document.getDescriptionLong())) {
+            item.withString("description_long", document.getDescriptionLong());
+        }
+        if (StringUtils.isNotEmpty(document.getTableOfContents())) {
+            item.withString("table_of_contents", document.getTableOfContents());
+        }
+        if (StringUtils.isNotEmpty(document.getImageSmall())) {
+            item.withString("image_small", document.getImageSmall());
+        }
+        if (StringUtils.isNotEmpty(document.getImageLarge())) {
+            item.withString("image_large", document.getImageLarge());
+        }
+        if (StringUtils.isNotEmpty(document.getImageOriginal())) {
+            item.withString("image_original", document.getImageOriginal());
+        }
+        if (StringUtils.isNotEmpty(document.getAudioFile())) {
+            item.withString("audio_file", document.getAudioFile());
+        }
+        item.withString("source", document.getSource());
+        item.withString("created", Instant.now().toString());
+        return item;
     }
 
     /**
