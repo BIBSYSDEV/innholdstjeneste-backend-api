@@ -309,7 +309,7 @@ Resources:
           Type: Api
           Properties:
             Path: /
-            Method: post
+            Method: put
             RestApiId: !Ref ContentsApi
 
   GetContentsApiFunctionScalableTarget:
