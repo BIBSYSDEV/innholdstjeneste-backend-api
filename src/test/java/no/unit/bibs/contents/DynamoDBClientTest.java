@@ -67,11 +67,10 @@ public class DynamoDBClientTest {
     }
 
     @Test
-    public void addDocumentToIndexThrowsException() throws IOException {
+    public void addDocumentToIndexThrowsException() {
         ContentsDocument contentsDocument = mock(ContentsDocument.class);
+        when(contentsDocument.getIsbn()).thenReturn(SAMPLE_TERM);
         doThrow(RuntimeException.class).when(contentsDocument).toJsonString();
-        RestHighLevelClient restHighLevelClient = mock(RestHighLevelClient.class);
-        when(restHighLevelClient.update(any(), any())).thenThrow(new RuntimeException());
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
         assertThrows(CommunicationException.class, () -> dynamoDBClient.addContents(contentsDocument));
     }
