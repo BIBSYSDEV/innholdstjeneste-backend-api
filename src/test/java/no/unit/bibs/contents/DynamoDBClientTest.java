@@ -8,8 +8,6 @@ import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.utils.IoUtils;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -55,8 +53,6 @@ public class DynamoDBClientTest {
 
     @Test
     public void searchSingleTermReturnsResponse() throws ApiGatewayException, IOException {
-        SearchResponse searchResponse = mock(SearchResponse.class);
-        when(searchResponse.toString()).thenReturn(SAMPLE_JSON_RESPONSE);
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
         String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
         Item item = new Item();
@@ -77,9 +73,7 @@ public class DynamoDBClientTest {
 
 
     @Test
-    public void searchSingleTermReturnsErrorResponseWhenExceptionInDoSearch() throws IOException {
-        RestHighLevelClient restHighLevelClient = mock(RestHighLevelClient.class);
-        when(restHighLevelClient.search(any(), any())).thenThrow(new IOException());
+    public void searchSingleTermReturnsErrorResponseWhenExceptionInDoSearch() {
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
         assertThrows(NotFoundException.class, () -> dynamoDBClient.getContents(SAMPLE_TERM));
     }
