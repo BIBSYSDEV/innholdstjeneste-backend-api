@@ -190,39 +190,38 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/definitions/Problem'
-
-              put:
-                description: "Update contents"
-                consumes:
-                  - application/json
-                produces:
-                  - application/json
-                parameters:
-                  - in: body
-                    name: contents
-                    description: "contents metadata"
-                    required: true
-                    schema:
-                      type: string
-                x-amazon-apigateway-integration:
-                  uri:
-                    Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateContentsApiFunction.Arn}:live/invocations
-                  responses: { }
-                  httpMethod: PUT
-                  type: AWS_PROXY
-                responses:
-                  '200':
-                    description: "OK"
-                    content:
-                      application/json:
-                        schema:
-                          $ref: '#/definitions/Contents'
-                  '500':
-                    description: "Internal Server Error"
-                    content:
-                      application/json:
-                        schema:
-                          $ref: '#/definitions/Problem'
+            put:
+              description: "Update contents"
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              parameters:
+                - in: body
+                  name: contents
+                  description: "contents metadata"
+                  required: true
+                  schema:
+                    type: string
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateContentsApiFunction.Arn}:live/invocations
+                responses: { }
+                httpMethod: PUT
+                type: AWS_PROXY
+              responses:
+                '200':
+                  description: "OK"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Contents'
+                '500':
+                  description: "Internal Server Error"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Problem'
 
         definitions:
           Contents:
