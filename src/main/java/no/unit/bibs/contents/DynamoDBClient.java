@@ -2,7 +2,11 @@ package no.unit.bibs.contents;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.*;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
@@ -27,6 +31,10 @@ public class DynamoDBClient {
     public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
     public static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
     public static final String TABLE_NAME = "TABLE_NAME";
+    public static final String KEY_PREFIX = ":";
+    public static final String COMMA_ = ", ";
+    public static final String _EQUALS_ = " = ";
+    public static final String SET_ = "set ";
 
     private Table contentsTable;
 
@@ -76,41 +84,22 @@ public class DynamoDBClient {
 
     private Item generateItem(ContentsDocument document) {
         Item item = new Item();
-        item.withString("isbn", document.getIsbn());
-        if (StringUtils.isNotEmpty(document.getTitle())) {
-            item.withString("title", document.getTitle());
-        }
-        if (StringUtils.isNotEmpty(document.getYear())) {
-            item.withString("year", document.getYear());
-        }
-        if (StringUtils.isNotEmpty(document.getAuthor())) {
-            item.withString("author", document.getAuthor());
-        }
-        if (StringUtils.isNotEmpty(document.getDescriptionShort())) {
-            item.withString("description_short", document.getDescriptionShort());
-        }
-        if (StringUtils.isNotEmpty(document.getDescriptionLong())) {
-            item.withString("description_long", document.getDescriptionLong());
-        }
-        if (StringUtils.isNotEmpty(document.getTableOfContents())) {
-            item.withString("table_of_contents", document.getTableOfContents());
-        }
-        if (StringUtils.isNotEmpty(document.getImageSmall())) {
-            item.withString("image_small", document.getImageSmall());
-        }
-        if (StringUtils.isNotEmpty(document.getImageLarge())) {
-            item.withString("image_large", document.getImageLarge());
-        }
-        if (StringUtils.isNotEmpty(document.getImageOriginal())) {
-            item.withString("image_original", document.getImageOriginal());
-        }
-        if (StringUtils.isNotEmpty(document.getAudioFile())) {
-            item.withString("audio_file", document.getAudioFile());
-        }
-        item.withString("source", document.getSource());
-        item.withString("created", Instant.now().toString());
+        item.withString(ContentsDocument.ISBN, document.getIsbn());
+        conditionalAdd(item, document.getTitle(), ContentsDocument.TITLE);
+        conditionalAdd(item, document.getYear(), ContentsDocument.YEAR);
+        conditionalAdd(item, document.getAuthor(), ContentsDocument.AUTHOR);
+        conditionalAdd(item, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT);
+        conditionalAdd(item, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG);
+        conditionalAdd(item, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS);
+        conditionalAdd(item, document.getImageSmall(), ContentsDocument.IMAGE_SMALL);
+        conditionalAdd(item, document.getImageLarge(), ContentsDocument.IMAGE_LARGE);
+        conditionalAdd(item, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL);
+        conditionalAdd(item, document.getAudioFile(), ContentsDocument.AUDIO_FILE);
+        item.withString(ContentsDocument.SOURCE, document.getSource());
+        item.withString(ContentsDocument.CREATED, Instant.now().toString());
         return item;
     }
+
 
     /**
      * Gets the contentsDocument by given isbn.
@@ -120,19 +109,26 @@ public class DynamoDBClient {
      * @throws NotFoundException contentsDocument not found
      */
     public String getContents(String isbn) throws NotFoundException {
-        Item item = contentsTable.getItem("isbn", isbn);
+        Item item = contentsTable.getItem(ContentsDocument.ISBN, isbn);
         if (Objects.isNull(item) || StringUtils.isEmpty(item.toJSON())) {
             throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
         }
         return item.toJSON();
     }
 
+    /**
+     * Updates the contentsDocument identified by it's isbn.
+     * @param document contentsDocument to update
+     * @return json representation of contents.
+     * @throws CommunicationException exception while connecting to database
+     */
     public String updateContents(ContentsDocument document) throws CommunicationException {
         try {
             StringBuilder expression = new StringBuilder();
             ValueMap valueMap = new ValueMap();
             this.generateExpressionAndValueMap(document, expression, valueMap);
-            UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey("isbn", document.getIsbn());
+            UpdateItemSpec updateItemSpec = new UpdateItemSpec()
+                    .withPrimaryKey(ContentsDocument.ISBN, document.getIsbn());
             updateItemSpec = updateItemSpec.withUpdateExpression(expression.toString());
             updateItemSpec = updateItemSpec.withValueMap(valueMap);
             updateItemSpec = updateItemSpec.withReturnValues(ReturnValue.UPDATED_NEW);
@@ -147,48 +143,40 @@ public class DynamoDBClient {
     private void generateExpressionAndValueMap(ContentsDocument document, StringBuilder expression,
                                                ValueMap valueMap) {
         Map<String, String> inputValues = this.findValuesToUpdate(document);
-        expression.append("set ");
+        expression.append(SET_);
         for (String key : inputValues.keySet()) {
-            expression.append(key).append(" = :").append(key).append(",");
-            valueMap.withString(":" + key, inputValues.get(key));
+            expression.append(key).append(_EQUALS_).append(KEY_PREFIX).append(key).append(COMMA_);
+            valueMap.withString(KEY_PREFIX + key, inputValues.get(key));
         }
         // remove last bracket
-        expression.deleteCharAt(expression.length() - 1);
+        expression.deleteCharAt(expression.length() - COMMA_.length());
     }
 
     private Map<String, String> findValuesToUpdate(ContentsDocument document) {
         Map<String, String> updateValueMap = new HashMap<>();
-        if (StringUtils.isNotEmpty(document.getTitle())) {
-            updateValueMap.put("title", document.getTitle());
-        }
-        if (StringUtils.isNotEmpty(document.getAuthor())) {
-            updateValueMap.put("author", document.getAuthor());
-        }
-        if (StringUtils.isNotEmpty(document.getYear())) {
-            updateValueMap.put("year", document.getYear());
-        }
-        if (StringUtils.isNotEmpty(document.getDescriptionShort())) {
-            updateValueMap.put("description_short", document.getDescriptionShort());
-        }
-        if (StringUtils.isNotEmpty(document.getDescriptionLong())) {
-            updateValueMap.put("description_long", document.getDescriptionLong());
-        }
-        if (StringUtils.isNotEmpty(document.getTableOfContents())) {
-            updateValueMap.put("table_of_contents", document.getTableOfContents());
-        }
-        if (StringUtils.isNotEmpty(document.getImageSmall())) {
-            updateValueMap.put("image_small", document.getImageSmall());
-        }
-        if (StringUtils.isNotEmpty(document.getImageLarge())) {
-            updateValueMap.put("image_large", document.getImageLarge());
-        }
-        if (StringUtils.isNotEmpty(document.getImageOriginal())) {
-            updateValueMap.put("image_original", document.getImageOriginal());
-        }
-        if (StringUtils.isNotEmpty(document.getAudioFile())) {
-            updateValueMap.put("audio_file", document.getAudioFile());
-        }
-        updateValueMap.put("modified", Instant.now().toString());
+        conditionalAdd(updateValueMap, document.getTitle(), ContentsDocument.TITLE);
+        conditionalAdd(updateValueMap, document.getAuthor(), ContentsDocument.AUTHOR);
+        conditionalAdd(updateValueMap, document.getYear(), ContentsDocument.YEAR);
+        conditionalAdd(updateValueMap, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT);
+        conditionalAdd(updateValueMap, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG);
+        conditionalAdd(updateValueMap, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS);
+        conditionalAdd(updateValueMap, document.getImageSmall(), ContentsDocument.IMAGE_SMALL);
+        conditionalAdd(updateValueMap, document.getImageLarge(), ContentsDocument.IMAGE_LARGE);
+        conditionalAdd(updateValueMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL);
+        conditionalAdd(updateValueMap, document.getAudioFile(), ContentsDocument.AUDIO_FILE);
+        updateValueMap.put(ContentsDocument.MODIFIED, Instant.now().toString());
         return updateValueMap;
+    }
+
+    private void conditionalAdd(Map<String, String> updateValueMap, String value, String title) {
+        if (StringUtils.isNotEmpty(value)) {
+            updateValueMap.put(title, value);
+        }
+    }
+
+    private void conditionalAdd(Item item, String value, String title) {
+        if (StringUtils.isNotEmpty(value)) {
+            item.withString(title, value);
+        }
     }
 }

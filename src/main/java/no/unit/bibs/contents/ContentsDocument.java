@@ -10,6 +10,20 @@ import java.util.Objects;
 
 public class ContentsDocument implements JsonSerializable {
 
+    public static final String TITLE = "title";
+    public static final String AUTHOR = "author";
+    public static final String YEAR = "year";
+    public static final String ISBN = "isbn";
+    public static final String DESCRIPTION_SHORT = "description_short";
+    public static final String DESCRIPTION_LONG = "description_long";
+    public static final String TABLE_OF_CONTENTS = "table_of_contents";
+    public static final String IMAGE_SMALL = "image_small";
+    public static final String IMAGE_LARGE = "image_large";
+    public static final String IMAGE_ORIGINAL = "image_original";
+    public static final String AUDIO_FILE = "audio_file";
+    public static final String SOURCE = "source";
+    public static final String MODIFIED = "modified";
+    public static final String CREATED = "created";
     private final String author;
     private final String title;
     private final String year;
@@ -31,20 +45,20 @@ public class ContentsDocument implements JsonSerializable {
     @JacocoGenerated
     @JsonCreator
     @SuppressWarnings("PMD.ExcessiveParameterList")
-    public ContentsDocument(@JsonProperty("title") String title,
-                            @JsonProperty("author") String author,
-                            @JsonProperty("year") String year,
-                            @JsonProperty("isbn") String isbn,
-                            @JsonProperty("description_short") String descriptionShort,
-                            @JsonProperty("description_long") String descriptionLong,
-                            @JsonProperty("tableOfContents") String tableOfContents,
-                            @JsonProperty("image_small") String imageSmall,
-                            @JsonProperty("image_large") String imageLarge,
-                            @JsonProperty("image_original") String imageOriginal,
-                            @JsonProperty("audioFile") String audioFile,
-                            @JsonProperty("source") String source,
-                            @JsonProperty("modified") Instant modified,
-                            @JsonProperty("created") Instant created) {
+    public ContentsDocument(@JsonProperty(TITLE) String title,
+                            @JsonProperty(AUTHOR) String author,
+                            @JsonProperty(YEAR) String year,
+                            @JsonProperty(ISBN) String isbn,
+                            @JsonProperty(DESCRIPTION_SHORT) String descriptionShort,
+                            @JsonProperty(DESCRIPTION_LONG) String descriptionLong,
+                            @JsonProperty(TABLE_OF_CONTENTS) String tableOfContents,
+                            @JsonProperty(IMAGE_SMALL) String imageSmall,
+                            @JsonProperty(IMAGE_LARGE) String imageLarge,
+                            @JsonProperty(IMAGE_ORIGINAL) String imageOriginal,
+                            @JsonProperty(AUDIO_FILE) String audioFile,
+                            @JsonProperty(SOURCE) String source,
+                            @JsonProperty(MODIFIED) Instant modified,
+                            @JsonProperty(CREATED) Instant created) {
         this.title = title;
         this.author = author;
         this.year = year;
@@ -59,23 +73,6 @@ public class ContentsDocument implements JsonSerializable {
         this.source = source;
         this.modified = modified;
         this.created = created;
-    }
-
-    protected ContentsDocument(ContentsDocumentBuilder builder) {
-        title = builder.title;
-        author = builder.author;
-        year = builder.year;
-        isbn = builder.isbn;
-        descriptionShort = builder.descriptionShort;
-        descriptionLong = builder.descriptionLong;
-        tableOfContents = builder.tableOfContents;
-        imageSmall = builder.imageSmall;
-        imageLarge = builder.imageLarge;
-        imageOriginal = builder.imageOriginal;
-        audioFile = builder.audioFile;
-        source = builder.source;
-        modified = builder.modified;
-        created = builder.created;
     }
 
     @JacocoGenerated
