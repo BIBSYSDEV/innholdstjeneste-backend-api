@@ -12,7 +12,7 @@ public class ContentsDocument implements JsonSerializable {
 
     private final String author;
     private final String title;
-    private final Instant year;
+    private final String year;
     private final String isbn;
     private final String descriptionShort;
     private final String descriptionLong;
@@ -33,7 +33,7 @@ public class ContentsDocument implements JsonSerializable {
     @SuppressWarnings("PMD.ExcessiveParameterList")
     public ContentsDocument(@JsonProperty("title") String title,
                             @JsonProperty("author") String author,
-                            @JsonProperty("year") Instant year,
+                            @JsonProperty("year") String year,
                             @JsonProperty("isbn") String isbn,
                             @JsonProperty("description_short") String descriptionShort,
                             @JsonProperty("description_long") String descriptionLong,
@@ -108,7 +108,7 @@ public class ContentsDocument implements JsonSerializable {
         return imageSmall;
     }
 
-    public Instant getYear() {
+    public String getYear() {
         return year;
     }
 

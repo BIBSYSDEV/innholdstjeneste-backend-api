@@ -18,9 +18,9 @@ import java.util.Optional;
 
 import static java.util.Objects.isNull;
 
-public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
+public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
 
-    public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to CreateContentsApiHandler";
+    public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to ContentsApiHandler";
     public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not index record provided. ";
 
 
@@ -28,16 +28,16 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     private final DynamoDBClient dynamoDBClient;
 
     @JacocoGenerated
-    public CreateContentsApiHandler() {
+    public UpdateContentsApiHandler() {
         this(new Environment());
     }
 
-    public CreateContentsApiHandler(Environment environment) {
+    public UpdateContentsApiHandler(Environment environment) {
         this(environment, new DynamoDBClient(environment));
     }
 
-    public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
-        super(ContentsRequest.class, environment, LoggerFactory.getLogger(CreateContentsApiHandler.class));
+    public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
+        super(ContentsRequest.class, environment, LoggerFactory.getLogger(UpdateContentsApiHandler.class));
         this.dynamoDBClient = dynamoDBClient;
     }
 
@@ -65,7 +65,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
         if (indexDocument.isPresent()) {
             logger.error("This is my IndexDocument to index: " + indexDocument.toString());
-            gatewayResponse.setBody(dynamoDBClient.addContents(indexDocument.get()));
+            gatewayResponse.setBody(dynamoDBClient.updateContents(indexDocument.get()));
             gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
         } else {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);

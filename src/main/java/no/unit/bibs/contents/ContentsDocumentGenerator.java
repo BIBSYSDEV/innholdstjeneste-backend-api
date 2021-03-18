@@ -102,8 +102,12 @@ public final class ContentsDocumentGenerator extends ContentsDocument {
         return title;
     }
 
-    private static Instant extractYear(JsonNode record, String id) {
-        return getInstant(record, id, YEAR_JSON_POINTER, YEAR);
+    private static String extractYear(JsonNode record, String id) {
+        var year = textFromNode(record, YEAR_JSON_POINTER);
+        if (isNull(year)) {
+            logMissingField(id, YEAR);
+        }
+        return year;
     }
 
     @JacocoGenerated

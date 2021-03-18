@@ -6,7 +6,7 @@ public class ContentsDocumentBuilder {
 
     protected String title;
     protected String author;
-    protected Instant year;
+    protected String year;
     protected String isbn;
     protected String descriptionShort;
     protected String descriptionLong;
@@ -37,7 +37,7 @@ public class ContentsDocumentBuilder {
         return this;
     }
 
-    public ContentsDocumentBuilder withYear(Instant year) {
+    public ContentsDocumentBuilder withYear(String year) {
         this.year = year;
         return this;
     }

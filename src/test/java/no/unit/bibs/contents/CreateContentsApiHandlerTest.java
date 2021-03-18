@@ -16,7 +16,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.time.Instant;
 
 import static nva.commons.handlers.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static nva.commons.utils.JsonUtils.objectMapper;
@@ -62,7 +61,7 @@ public class CreateContentsApiHandlerTest {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         when(dynamoDBClient.addContents(contentsDocument)).thenReturn(contents);
-        CreateContentsRequest request = new CreateContentsRequest(contents);
+        ContentsRequest request = new ContentsRequest(contents);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertEquals(contents, actual.getBody());
     }
@@ -70,12 +69,12 @@ public class CreateContentsApiHandlerTest {
 
     @Test
     public void handleRequestReturnsCreatedIfContentsIsPosted() throws IOException {
-        CreateContentsRequest request = readMockCreateContentsRequestFromJsonFile();
+        ContentsRequest request = readMockCreateContentsRequestFromJsonFile();
         GatewayResponse<Void> response = sendRequest(request);
         assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_CREATED)));
     }
 
-    private <T> GatewayResponse<T> sendRequest(CreateContentsRequest request) throws IOException {
+    private <T> GatewayResponse<T> sendRequest(ContentsRequest request) throws IOException {
         InputStream input = createRequest(request);
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         handler.handleRequest(input, output, context);
@@ -83,14 +82,14 @@ public class CreateContentsApiHandlerTest {
         return GatewayResponse.fromOutputStream(output);
     }
 
-    private InputStream createRequest(CreateContentsRequest request) throws JsonProcessingException {
-        return new HandlerRequestBuilder<CreateContentsRequest>(objectMapper)
+    private InputStream createRequest(ContentsRequest request) throws JsonProcessingException {
+        return new HandlerRequestBuilder<ContentsRequest>(objectMapper)
                 .withBody(request)
                 .build();
     }
 
-    private CreateContentsRequest readMockCreateContentsRequestFromJsonFile() {
+    private ContentsRequest readMockCreateContentsRequestFromJsonFile() {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        return new CreateContentsRequest(contents);
+        return new ContentsRequest(contents);
     }
 }
