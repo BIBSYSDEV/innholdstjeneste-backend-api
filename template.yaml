@@ -254,6 +254,7 @@ Resources:
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
+          ALLOWED_ORIGIN: '*'
           TABLE_NAME: !Ref DynamoDBTableName
       Events:
         GetEvent:
@@ -278,6 +279,7 @@ Resources:
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
+          ALLOWED_ORIGIN: '*'
           TABLE_NAME: !Ref DynamoDBTableName
       Events:
         PostEvent:
@@ -302,6 +304,7 @@ Resources:
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
+          ALLOWED_ORIGIN: '*'
           TABLE_NAME: !Ref DynamoDBTableName
       Events:
         PutEvent:
