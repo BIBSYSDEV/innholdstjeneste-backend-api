@@ -71,7 +71,7 @@ public class DynamoDBClient {
      * @return the document added.
      * @throws CommunicationException when something goes wrong
      * */
-    public String addContents(ContentsDocument document) throws CommunicationException {
+    public String createContents(ContentsDocument document) throws CommunicationException {
         try {
             Item item = this.generateItem(document);
             PutItemOutcome putItemOutcome = contentsTable.putItem(new PutItemSpec().withItem(item));

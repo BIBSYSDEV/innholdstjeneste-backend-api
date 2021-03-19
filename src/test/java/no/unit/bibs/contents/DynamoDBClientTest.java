@@ -68,7 +68,7 @@ public class DynamoDBClientTest {
         when(contentsDocument.getIsbn()).thenReturn(SAMPLE_TERM);
         doThrow(RuntimeException.class).when(contentsDocument).toJsonString();
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
-        assertThrows(CommunicationException.class, () -> dynamoDBClient.addContents(contentsDocument));
+        assertThrows(CommunicationException.class, () -> dynamoDBClient.createContents(contentsDocument));
     }
 
 
@@ -90,7 +90,7 @@ public class DynamoDBClientTest {
             .withString("created", Instant.now().toString());
         when(putItemOutcome.getItem()).thenReturn(item);
         when(dynamoTable.putItem(any(PutItemSpec.class))).thenReturn(putItemOutcome);
-        final String result = dynamoDBClient.addContents(document);
+        final String result = dynamoDBClient.createContents(document);
         assertNotNull(result);
     }
     

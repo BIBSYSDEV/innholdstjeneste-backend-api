@@ -5,12 +5,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.exceptions.ApiGatewayException;
+import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.RequestInfo;
 import nva.commons.handlers.RestRequestHandler;
 import nva.commons.utils.Environment;
 import nva.commons.utils.JacocoGenerated;
 import nva.commons.utils.JsonUtils;
+import nva.commons.utils.StringUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
@@ -61,12 +63,23 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         }
         String json = request.getContents();
         logger.error("json input looks like that :" + json);
-        Optional<ContentsDocument> indexDocument = fromJsonString(json);
+        Optional<ContentsDocument> contentsDocument = fromJsonString(json);
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
-        if (indexDocument.isPresent()) {
-            logger.error("This is my IndexDocument to index: " + indexDocument.toString());
-            gatewayResponse.setBody(dynamoDBClient.updateContents(indexDocument.get()));
-            gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
+        if (contentsDocument.isPresent()) {
+            logger.error("This is my IndexDocument to index: " + contentsDocument.toString());
+            try {
+                String contents = dynamoDBClient.getContents(contentsDocument.get().getIsbn());
+                if (StringUtils.isNotEmpty(contents)) {
+                    gatewayResponse.setBody(dynamoDBClient.createContents(contentsDocument.get()));
+                    gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
+                } else {
+                    gatewayResponse.setBody(dynamoDBClient.updateContents(contentsDocument.get()));
+                    gatewayResponse.setStatusCode(HttpStatus.SC_OK);
+                }
+            } catch (NotFoundException e) {
+                gatewayResponse.setBody(dynamoDBClient.updateContents(contentsDocument.get()));
+                gatewayResponse.setStatusCode(HttpStatus.SC_OK);
+            }
         } else {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);
             gatewayResponse.setErrorBody(COULD_NOT_INDEX_RECORD_PROVIDED + json);

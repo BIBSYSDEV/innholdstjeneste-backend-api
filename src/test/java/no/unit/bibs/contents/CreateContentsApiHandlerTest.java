@@ -60,7 +60,7 @@ public class CreateContentsApiHandlerTest {
         var handler = new CreateContentsApiHandler(environment, dynamoDBClient);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
-        when(dynamoDBClient.addContents(contentsDocument)).thenReturn(contents);
+        when(dynamoDBClient.createContents(contentsDocument)).thenReturn(contents);
         ContentsRequest request = new ContentsRequest(contents);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertEquals(contents, actual.getBody());

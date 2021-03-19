@@ -65,7 +65,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
         if (indexDocument.isPresent()) {
             logger.error("This is my IndexDocument to index: " + indexDocument.toString());
-            gatewayResponse.setBody(dynamoDBClient.addContents(indexDocument.get()));
+            gatewayResponse.setBody(dynamoDBClient.createContents(indexDocument.get()));
             gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
         } else {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);
