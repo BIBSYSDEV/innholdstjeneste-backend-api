@@ -12,7 +12,7 @@ public class ContentsDocument implements JsonSerializable {
 
     public static final String TITLE = "title";
     public static final String AUTHOR = "author";
-    public static final String YEAR = "year";
+    public static final String DATE_OF_PUBLICATION = "date_of_publication";
     public static final String ISBN = "isbn";
     public static final String DESCRIPTION_SHORT = "description_short";
     public static final String DESCRIPTION_LONG = "description_long";
@@ -26,7 +26,7 @@ public class ContentsDocument implements JsonSerializable {
     public static final String CREATED = "created";
     private final String author;
     private final String title;
-    private final String year;
+    private final String dateOfPublication;
     private final String isbn;
     private final String descriptionShort;
     private final String descriptionLong;
@@ -47,7 +47,7 @@ public class ContentsDocument implements JsonSerializable {
     @SuppressWarnings("PMD.ExcessiveParameterList")
     public ContentsDocument(@JsonProperty(TITLE) String title,
                             @JsonProperty(AUTHOR) String author,
-                            @JsonProperty(YEAR) String year,
+                            @JsonProperty(DATE_OF_PUBLICATION) String dateOfPublication,
                             @JsonProperty(ISBN) String isbn,
                             @JsonProperty(DESCRIPTION_SHORT) String descriptionShort,
                             @JsonProperty(DESCRIPTION_LONG) String descriptionLong,
@@ -61,7 +61,7 @@ public class ContentsDocument implements JsonSerializable {
                             @JsonProperty(CREATED) Instant created) {
         this.title = title;
         this.author = author;
-        this.year = year;
+        this.dateOfPublication = dateOfPublication;
         this.isbn = isbn;
         this.descriptionShort = descriptionShort;
         this.descriptionLong = descriptionLong;
@@ -105,8 +105,8 @@ public class ContentsDocument implements JsonSerializable {
         return imageSmall;
     }
 
-    public String getYear() {
-        return year;
+    public String getDateOfPublication() {
+        return dateOfPublication;
     }
 
     public String getImageLarge() {
@@ -147,7 +147,7 @@ public class ContentsDocument implements JsonSerializable {
         ContentsDocument that = (ContentsDocument) o;
         return Objects.equals(author, that.author)
             && Objects.equals(title, that.title)
-            && Objects.equals(year, that.year)
+            && Objects.equals(dateOfPublication, that.dateOfPublication)
             && Objects.equals(modified, that.modified)
             && Objects.equals(created, that.created)
             && Objects.equals(descriptionShort, that.descriptionShort)
@@ -161,7 +161,7 @@ public class ContentsDocument implements JsonSerializable {
     public int hashCode() {
         return Objects.hash(author,
                 title,
-                year,
+                dateOfPublication,
                 isbn,
                 descriptionShort,
                 descriptionLong,

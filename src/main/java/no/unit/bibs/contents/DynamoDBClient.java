@@ -86,7 +86,7 @@ public class DynamoDBClient {
         Item item = new Item();
         item.withString(ContentsDocument.ISBN, document.getIsbn());
         conditionalAdd(item, document.getTitle(), ContentsDocument.TITLE);
-        conditionalAdd(item, document.getYear(), ContentsDocument.YEAR);
+        conditionalAdd(item, document.getDateOfPublication(), ContentsDocument.DATE_OF_PUBLICATION);
         conditionalAdd(item, document.getAuthor(), ContentsDocument.AUTHOR);
         conditionalAdd(item, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT);
         conditionalAdd(item, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG);
@@ -156,7 +156,7 @@ public class DynamoDBClient {
         Map<String, String> updateValueMap = new HashMap<>();
         conditionalAdd(updateValueMap, document.getTitle(), ContentsDocument.TITLE);
         conditionalAdd(updateValueMap, document.getAuthor(), ContentsDocument.AUTHOR);
-        conditionalAdd(updateValueMap, document.getYear(), ContentsDocument.YEAR);
+        conditionalAdd(updateValueMap, document.getDateOfPublication(), ContentsDocument.DATE_OF_PUBLICATION);
         conditionalAdd(updateValueMap, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT);
         conditionalAdd(updateValueMap, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG);
         conditionalAdd(updateValueMap, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS);
