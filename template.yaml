@@ -121,21 +121,9 @@ Resources:
               produces:
                 - application/json
               parameters:
-                - in: query
-                  name: query
-                  description: "term to search for contents."
-                  required: false
-                  schema:
-                    type: string
-                - in: query
-                  name: from
-                  description: "Start position from results, 0-based."
-                  required: false
-                  schema:
-                    type: string
-                - in: query
-                  name: results
-                  description: "Maximum number of hits in response."
+                - in: isbn
+                  name: isbn
+                  description: "isbn to look for i contents."
                   required: false
                   schema:
                     type: string
@@ -148,6 +136,12 @@ Resources:
               responses:
                 '200':
                   description: "OK"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Contents'
+                '404':
+                  description: "Not Found"
                   content:
                     application/json:
                       schema:
@@ -179,7 +173,7 @@ Resources:
                 type: AWS_PROXY
               responses:
                 '201':
-                  description: "OK"
+                  description: "Created"
                   content:
                     application/json:
                       schema:
@@ -191,7 +185,7 @@ Resources:
                       schema:
                         $ref: '#/definitions/Problem'
             put:
-              description: "Update contents"
+              description: "Update or adds contents"
               consumes:
                 - application/json
               produces:
@@ -212,6 +206,12 @@ Resources:
               responses:
                 '200':
                   description: "OK"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Contents'
+                '201':
+                  description: "Created"
                   content:
                     application/json:
                       schema:
