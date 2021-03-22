@@ -107,7 +107,7 @@ Resources:
       StageName: v1
       EndpointConfiguration:
         Type: REGIONAL
-      Policies:
+      Policy:
         Version: 2012-10-17
         Statement:
           - Effect: Allow
