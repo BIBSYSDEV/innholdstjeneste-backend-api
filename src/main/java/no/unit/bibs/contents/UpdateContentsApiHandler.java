@@ -72,15 +72,18 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                     String contents = dynamoDBClient.getContents(contentsDocument.get().getIsbn());
                     if (StringUtils.isEmpty(contents)) {
                         String createContents = dynamoDBClient.createContents(contentsDocument.get());
+                        logger.info("contents created");
                         gatewayResponse.setBody(createContents);
                         gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                     } else {
                         String updateContents = dynamoDBClient.updateContents(contentsDocument.get());
+                        logger.info("contents updated");
                         gatewayResponse.setBody(updateContents);
                         gatewayResponse.setStatusCode(HttpStatus.SC_OK);
                     }
                 } catch (NotFoundException e) {
                     String updateContents = dynamoDBClient.createContents(contentsDocument.get());
+                    logger.info("contents updated");
                     gatewayResponse.setBody(updateContents);
                     gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                 } catch (Exception e) {

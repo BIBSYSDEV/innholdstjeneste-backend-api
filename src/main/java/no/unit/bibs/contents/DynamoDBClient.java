@@ -75,10 +75,11 @@ public class DynamoDBClient {
         try {
             Item item = this.generateItem(document);
             PutItemOutcome putItemOutcome = contentsTable.putItem(new PutItemSpec().withItem(item));
+            logger.info("contents created");
             return putItemOutcome.getItem().toJSON();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw new CommunicationException(e.getMessage(), e);
+            throw new CommunicationException("Creation error: " + e.getMessage(), e);
         }
     }
 
@@ -133,10 +134,11 @@ public class DynamoDBClient {
             updateItemSpec = updateItemSpec.withValueMap(valueMap);
             updateItemSpec = updateItemSpec.withReturnValues(ReturnValue.UPDATED_NEW);
             UpdateItemOutcome updateItemOutcome = contentsTable.updateItem(updateItemSpec);
+            logger.info("contents updated");
             return updateItemOutcome.getItem().toJSON();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw new CommunicationException(e.getMessage(), e);
+            throw new CommunicationException("Update error: " + e.getMessage(), e);
         }
     }
 
