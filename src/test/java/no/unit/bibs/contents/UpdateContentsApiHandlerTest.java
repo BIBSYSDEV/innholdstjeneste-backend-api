@@ -32,7 +32,7 @@ class UpdateContentsApiHandlerTest {
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         when(client.updateContents(contentsDocument)).thenReturn(contents);
         GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
-        assertEquals(HttpStatus.SC_OK, gatewayResponse.getStatusCode());
+        assertEquals(HttpStatus.SC_CREATED, gatewayResponse.getStatusCode());
     }
 
 
