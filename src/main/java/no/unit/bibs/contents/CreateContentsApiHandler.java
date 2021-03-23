@@ -21,7 +21,7 @@ import static java.util.Objects.isNull;
 public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
 
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to CreateContentsApiHandler";
-    public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not index record provided. ";
+    public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not persist provided contents. ";
 
 
     private static final ObjectMapper mapper = JsonUtils.objectMapper;

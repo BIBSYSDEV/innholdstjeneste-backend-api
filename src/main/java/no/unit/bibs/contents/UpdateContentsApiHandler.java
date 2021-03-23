@@ -22,8 +22,8 @@ import static java.util.Objects.isNull;
 
 public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
 
-    public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to ContentsApiHandler";
-    public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not index record provided. ";
+    public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to UpdateContentsApiHandler";
+    public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not update provided contents. ";
 
 
     private static final ObjectMapper mapper = JsonUtils.objectMapper;
