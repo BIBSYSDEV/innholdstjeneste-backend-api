@@ -74,7 +74,7 @@ public class DynamoDBClient {
     public String createContents(ContentsDocument document) throws CommunicationException {
         try {
             Item item = this.generateItem(document);
-            PutItemOutcome putItemOutcome = contentsTable.putItem(new PutItemSpec().withItem(item).withReturnValues(ReturnValue.ALL_NEW));
+            PutItemOutcome putItemOutcome = contentsTable.putItem(new PutItemSpec().withItem(item).withReturnValues(ReturnValue.ALL_OLD));
             logger.info("contents created");
             return putItemOutcome.getItem().toJSON();
         } catch (Exception e) {
