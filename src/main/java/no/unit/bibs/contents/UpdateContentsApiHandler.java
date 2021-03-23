@@ -65,28 +65,40 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         logger.error("json input looks like that :" + json);
         Optional<ContentsDocument> contentsDocument = fromJsonString(json);
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
+        try {
         if (contentsDocument.isPresent()) {
             logger.debug("This is my ContentsDocument to persist: " + contentsDocument.toString());
-            try {
-                String contents = dynamoDBClient.getContents(contentsDocument.get().getIsbn());
-                if (StringUtils.isEmpty(contents)) {
-                    String createContents = dynamoDBClient.createContents(contentsDocument.get());
-                    gatewayResponse.setBody(createContents);
-                    gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
-                } else {
-                    String updateContents = dynamoDBClient.updateContents(contentsDocument.get());
+                try {
+                    String contents = dynamoDBClient.getContents(contentsDocument.get().getIsbn());
+                    if (StringUtils.isEmpty(contents)) {
+                        String createContents = dynamoDBClient.createContents(contentsDocument.get());
+                        gatewayResponse.setBody(createContents);
+                        gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
+                    } else {
+                        String updateContents = dynamoDBClient.updateContents(contentsDocument.get());
+                        gatewayResponse.setBody(updateContents);
+                        gatewayResponse.setStatusCode(HttpStatus.SC_OK);
+                    }
+                } catch (NotFoundException e) {
+                    String updateContents = dynamoDBClient.createContents(contentsDocument.get());
                     gatewayResponse.setBody(updateContents);
-                    gatewayResponse.setStatusCode(HttpStatus.SC_OK);
+                    gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
+                } catch (Exception e) {
+                    String msg = "failed after persisting: " + e.getMessage();
+                    logger.error(msg, e);
+                    gatewayResponse.setBody(msg);
+                    gatewayResponse.setStatusCode(HttpStatus.SC_CONFLICT);
                 }
-            } catch (NotFoundException e) {
-                String updateContents = dynamoDBClient.createContents(contentsDocument.get());
-                gatewayResponse.setBody(updateContents);
-                gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
+            } else{
+                logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);
+                gatewayResponse.setErrorBody(COULD_NOT_INDEX_RECORD_PROVIDED + json);
+                gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
             }
-        } else {
-            logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);
-            gatewayResponse.setErrorBody(COULD_NOT_INDEX_RECORD_PROVIDED + json);
-            gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+        } catch (Exception e) {
+            String msg = "error in update function: " + e.getMessage();
+            logger.error(msg, e);
+            gatewayResponse.setBody(msg);
+            gatewayResponse.setStatusCode(HttpStatus.SC_METHOD_FAILURE);
         }
         return gatewayResponse;
     }
