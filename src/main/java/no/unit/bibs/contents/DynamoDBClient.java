@@ -4,7 +4,6 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
@@ -71,12 +70,11 @@ public class DynamoDBClient {
      * @return the document added.
      * @throws CommunicationException when something goes wrong
      * */
-    public String createContents(ContentsDocument document) throws CommunicationException {
+    public void createContents(ContentsDocument document) throws CommunicationException {
         try {
             Item item = this.generateItem(document);
-            PutItemOutcome putItemOutcome = contentsTable.putItem(new PutItemSpec().withItem(item).withReturnValues(ReturnValue.ALL_OLD));
+            contentsTable.putItem(new PutItemSpec().withItem(item));
             logger.info("contents created");
-            return putItemOutcome.getItem().toJSON();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Creation error: " + e.getMessage(), e);

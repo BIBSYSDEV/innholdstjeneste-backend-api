@@ -71,7 +71,8 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                 try {
                     String contents = dynamoDBClient.getContents(contentsDocument.get().getIsbn());
                     if (StringUtils.isEmpty(contents)) {
-                        String createContents = dynamoDBClient.createContents(contentsDocument.get());
+                        dynamoDBClient.createContents(contentsDocument.get());
+                        String createContents = dynamoDBClient.getContents(contentsDocument.get().getIsbn());
                         logger.info("contents created");
                         gatewayResponse.setBody(createContents);
                         gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
@@ -82,9 +83,10 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                         gatewayResponse.setStatusCode(HttpStatus.SC_OK);
                     }
                 } catch (NotFoundException e) {
-                    String updateContents = dynamoDBClient.createContents(contentsDocument.get());
+                    dynamoDBClient.createContents(contentsDocument.get());
+                    String createdContents = dynamoDBClient.getContents(contentsDocument.get().getIsbn());
                     logger.info("contents updated");
-                    gatewayResponse.setBody(updateContents);
+                    gatewayResponse.setBody(createdContents);
                     gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                 } catch (Exception e) {
                     String msg = "failed after persisting: " + e.getMessage();

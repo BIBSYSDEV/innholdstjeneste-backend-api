@@ -79,7 +79,7 @@ public class DynamoDBClientTest {
     }
     
     @Test
-    public void addDocumentTest() throws IOException, CommunicationException {
+    public void addDocumentTest() throws IOException, CommunicationException, NotFoundException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument document = objectMapper.readValue(contents, ContentsDocument.class);
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
@@ -90,8 +90,7 @@ public class DynamoDBClientTest {
             .withString("created", Instant.now().toString());
         when(putItemOutcome.getItem()).thenReturn(item);
         when(dynamoTable.putItem(any(PutItemSpec.class))).thenReturn(putItemOutcome);
-        final String result = dynamoDBClient.createContents(document);
-        assertNotNull(result);
+        dynamoDBClient.createContents(document);
     }
     
 }

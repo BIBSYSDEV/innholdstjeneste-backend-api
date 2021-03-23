@@ -61,11 +61,13 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         }
         String json = request.getContents();
         logger.error("json input looks like that :" + json);
-        Optional<ContentsDocument> indexDocument = fromJsonString(json);
+        Optional<ContentsDocument> contentsDocument = fromJsonString(json);
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
-        if (indexDocument.isPresent()) {
-            logger.error("This is my IndexDocument to index: " + indexDocument.toString());
-            gatewayResponse.setBody(dynamoDBClient.createContents(indexDocument.get()));
+        if (contentsDocument.isPresent()) {
+            logger.error("This is my IndexDocument to index: " + contentsDocument.toString());
+            dynamoDBClient.createContents(contentsDocument.get());
+            String createContents = dynamoDBClient.getContents(contentsDocument.get().getIsbn());
+            gatewayResponse.setBody(createContents);
             gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
         } else {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);
