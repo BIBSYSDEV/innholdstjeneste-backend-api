@@ -66,19 +66,22 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         Optional<ContentsDocument> contentsDocument = fromJsonString(json);
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
         if (contentsDocument.isPresent()) {
-            logger.error("This is my IndexDocument to index: " + contentsDocument.toString());
+            logger.debug("This is my ContentsDocument to persist: " + contentsDocument.toString());
             try {
                 String contents = dynamoDBClient.getContents(contentsDocument.get().getIsbn());
-                if (StringUtils.isNotEmpty(contents)) {
-                    gatewayResponse.setBody(dynamoDBClient.createContents(contentsDocument.get()));
+                if (StringUtils.isEmpty(contents)) {
+                    String createContents = dynamoDBClient.createContents(contentsDocument.get());
+                    gatewayResponse.setBody(createContents);
                     gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                 } else {
-                    gatewayResponse.setBody(dynamoDBClient.updateContents(contentsDocument.get()));
+                    String updateContents = dynamoDBClient.updateContents(contentsDocument.get());
+                    gatewayResponse.setBody(updateContents);
                     gatewayResponse.setStatusCode(HttpStatus.SC_OK);
                 }
             } catch (NotFoundException e) {
-                gatewayResponse.setBody(dynamoDBClient.updateContents(contentsDocument.get()));
-                gatewayResponse.setStatusCode(HttpStatus.SC_OK);
+                String updateContents = dynamoDBClient.createContents(contentsDocument.get());
+                gatewayResponse.setBody(updateContents);
+                gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
             }
         } else {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);
