@@ -8,8 +8,6 @@ import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.utils.IoUtils;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +19,10 @@ import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DynamoDBClientTest {
 
@@ -52,8 +53,6 @@ public class DynamoDBClientTest {
 
     @Test
     public void searchSingleTermReturnsResponse() throws ApiGatewayException, IOException {
-        SearchResponse searchResponse = mock(SearchResponse.class);
-        when(searchResponse.toString()).thenReturn(SAMPLE_JSON_RESPONSE);
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
         String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
         Item item = new Item();
@@ -64,26 +63,23 @@ public class DynamoDBClientTest {
     }
 
     @Test
-    public void addDocumentToIndexThrowsException() throws IOException {
+    public void addDocumentToIndexThrowsException() {
         ContentsDocument contentsDocument = mock(ContentsDocument.class);
+        when(contentsDocument.getIsbn()).thenReturn(SAMPLE_TERM);
         doThrow(RuntimeException.class).when(contentsDocument).toJsonString();
-        RestHighLevelClient restHighLevelClient = mock(RestHighLevelClient.class);
-        when(restHighLevelClient.update(any(), any())).thenThrow(new RuntimeException());
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
-        assertThrows(CommunicationException.class, () -> dynamoDBClient.addContents(contentsDocument));
+        assertThrows(CommunicationException.class, () -> dynamoDBClient.createContents(contentsDocument));
     }
 
 
     @Test
-    public void searchSingleTermReturnsErrorResponseWhenExceptionInDoSearch() throws IOException {
-        RestHighLevelClient restHighLevelClient = mock(RestHighLevelClient.class);
-        when(restHighLevelClient.search(any(), any())).thenThrow(new IOException());
+    public void searchSingleTermReturnsErrorResponseWhenExceptionInDoSearch() {
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
         assertThrows(NotFoundException.class, () -> dynamoDBClient.getContents(SAMPLE_TERM));
     }
     
     @Test
-    public void addDocumentTest() throws IOException, CommunicationException {
+    public void addDocumentTest() throws IOException, CommunicationException, NotFoundException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument document = objectMapper.readValue(contents, ContentsDocument.class);
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
@@ -94,8 +90,7 @@ public class DynamoDBClientTest {
             .withString("created", Instant.now().toString());
         when(putItemOutcome.getItem()).thenReturn(item);
         when(dynamoTable.putItem(any(PutItemSpec.class))).thenReturn(putItemOutcome);
-        final String result = dynamoDBClient.addContents(document);
-        assertNotNull(result);
+        dynamoDBClient.createContents(document);
     }
     
 }

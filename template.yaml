@@ -39,7 +39,7 @@ Globals:
   Api:
     Cors:
       AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
-      AllowMethods: '''OPTIONS, POST'''
+      AllowMethods: '''OPTIONS, POST, GET, PUT'''
       AllowOrigin: '''*'''
     EndpointConfiguration: REGIONAL
 
@@ -121,21 +121,9 @@ Resources:
               produces:
                 - application/json
               parameters:
-                - in: query
-                  name: query
-                  description: "term to search for contents."
-                  required: false
-                  schema:
-                    type: string
-                - in: query
-                  name: from
-                  description: "Start position from results, 0-based."
-                  required: false
-                  schema:
-                    type: string
-                - in: query
-                  name: results
-                  description: "Maximum number of hits in response."
+                - in: isbn
+                  name: isbn
+                  description: "isbn to look for i contents."
                   required: false
                   schema:
                     type: string
@@ -148,6 +136,12 @@ Resources:
               responses:
                 '200':
                   description: "OK"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Contents'
+                '404':
+                  description: "Not Found"
                   content:
                     application/json:
                       schema:
@@ -178,8 +172,46 @@ Resources:
                 httpMethod: POST
                 type: AWS_PROXY
               responses:
+                '201':
+                  description: "Created"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Contents'
+                '500':
+                  description: "Internal Server Error"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Problem'
+            put:
+              description: "Update or adds contents"
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              parameters:
+                - in: body
+                  name: contents
+                  description: "contents metadata"
+                  required: true
+                  schema:
+                    type: string
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateContentsApiFunction.Arn}:live/invocations
+                responses: { }
+                httpMethod: POST
+                type: AWS_PROXY
+              responses:
                 '200':
                   description: "OK"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Contents'
+                '201':
+                  description: "Created"
                   content:
                     application/json:
                       schema:
@@ -222,6 +254,7 @@ Resources:
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
+          ALLOWED_ORIGIN: '*'
           TABLE_NAME: !Ref DynamoDBTableName
       Events:
         GetEvent:
@@ -246,6 +279,7 @@ Resources:
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
+          ALLOWED_ORIGIN: '*'
           TABLE_NAME: !Ref DynamoDBTableName
       Events:
         PostEvent:
@@ -253,6 +287,31 @@ Resources:
           Properties:
             Path: /
             Method: post
+            RestApiId: !Ref ContentsApi
+
+  UpdateContentsApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Tracing: Active
+      Handler: no.unit.bibs.contents.UpdateContentsApiHandler::handleRequest
+      Runtime: java11
+      MemorySize: 1024
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
+      Role: !GetAtt AccessDynamoDBRole.Arn
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          TABLE_NAME: !Ref DynamoDBTableName
+      Events:
+        PutEvent:
+          Type: Api
+          Properties:
+            Path: /
+            Method: put
             RestApiId: !Ref ContentsApi
 
   GetContentsApiFunctionScalableTarget:
@@ -294,6 +353,28 @@ Resources:
       PolicyName: CreateContentsApiFunctionScalingPolicy
       PolicyType: TargetTrackingScaling
       ScalingTargetId: !Ref CreateContentsApiFunctionScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 0.70 # Any value between 0.1 and 0.9 can be used here
+        PredefinedMetricSpecification:
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+
+  UpdateContentsApiFunctionScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxConcurrency
+      MinCapacity: !Ref MinConcurrency
+      ResourceId: !Sub function:${UpdateContentsApiFunction}:live # You need to specify an alis or version here
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ServiceNamespace: lambda
+    DependsOn: UpdateContentsApiFunctionAliaslive # This is your function logical ID + "Alias" + what you use for AutoPublishAlias
+
+  UpdateContentsApiFunctionScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: UpdateContentsApiFunctionScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref UpdateContentsApiFunctionScalableTarget
       TargetTrackingScalingPolicyConfiguration:
         TargetValue: 0.70 # Any value between 0.1 and 0.9 can be used here
         PredefinedMetricSpecification:

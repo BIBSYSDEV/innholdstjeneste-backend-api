@@ -4,8 +4,8 @@ plugins {
     id 'pmd'
     id 'jacoco'
     id 'com.github.johnrengelman.shadow' version '5.2.0'
-    id 'nebula.lint' version '16.9.1'
-    id 'base'
+    id 'nebula.lint' version '16.17.0'
+    id "org.owasp.dependencycheck" version "6.1.2"
 }
 
 group 'no.unit.bibs'
@@ -20,12 +20,20 @@ repositories {
     maven { url  "https://dl.bintray.com/unit-nva/nva-commons" }
 }
 
+allprojects {
+    apply plugin: 'nebula.lint'
+    gradleLint.rules = ['unused-dependency']
+}
+
+dependencyCheck {
+    failBuildOnCVSS=5
+}
+
 project.ext {
     junit5Version = '5.7.0'
     jacksonVersion = '2.11.2'
     awsSdkVersion = '1.11.946'
     nvaCommonsVersion = '0.7.4'
-    elasticSearchVersion = '7.9.1'
     slf4jVersion = '1.8.0-beta4'
 }
 
@@ -33,31 +41,17 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: jacksonVersion
-    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: jacksonVersion
     implementation group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
-    implementation group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.1.1'
+    compileOnly group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.1.1'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: '1.11.972'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-core', version: awsSdkVersion
     implementation group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.1'
-    implementation group: 'com.amazonaws', name: 'aws-lambda-java-events', version: '3.7.0'
-    implementation group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: awsSdkVersion
-    implementation group: 'com.github.awslabs', name: 'aws-request-signing-apache-interceptor', version: 'deb7941e85'
-    implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.14'
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
-    implementation group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.1.4'
     implementation group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: nvaCommonsVersion
 
-    implementation group: 'org.elasticsearch', name: 'elasticsearch', version: elasticSearchVersion
-    implementation group: 'org.elasticsearch', name: 'elasticsearch-core', version: elasticSearchVersion
-    implementation group: 'org.elasticsearch.client', name: 'elasticsearch-rest-client', version: elasticSearchVersion
-    implementation group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: elasticSearchVersion
-    implementation group: 'org.elasticsearch', name: 'elasticsearch-x-content', version: elasticSearchVersion
     testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: '0.1.16'
     testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.5.7'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junit5Version
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junit5Version
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junit5Version
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junit5Version
 
     shadowJar {
@@ -85,6 +79,7 @@ pmd {
 checkstyle {
     configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
     showViolations = true
+    toolVersion '8.41';    // your choice here
 }
 
 tasks.withType(Checkstyle) {
@@ -116,7 +111,7 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'METHOD'
                 value = 'COVEREDRATIO'
-                minimum = 0.40
+                minimum = 0.4
             }
         }
 
@@ -124,7 +119,7 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'CLASS'
                 value = 'COVEREDRATIO'
-                minimum = 0.7
+                minimum = 0.6
             }
         }
     }

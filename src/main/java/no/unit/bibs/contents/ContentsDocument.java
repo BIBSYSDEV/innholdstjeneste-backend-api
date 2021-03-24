@@ -8,15 +8,36 @@ import nva.commons.utils.JacocoGenerated;
 import java.time.Instant;
 import java.util.Objects;
 
+@SuppressWarnings("PMD.TooManyFields")
 public class ContentsDocument implements JsonSerializable {
 
+    public static final String TITLE = "title";
+    public static final String AUTHOR = "author";
+    public static final String DATE_OF_PUBLICATION = "date_of_publication";
+    public static final String ISBN = "isbn";
+    public static final String DESCRIPTION_SHORT = "description_short";
+    public static final String DESCRIPTION_LONG = "description_long";
+    public static final String TABLE_OF_CONTENTS = "table_of_contents";
+    public static final String PROMOTIONAL = "promotional";
+    public static final String SUMMARY = "summary";
+    public static final String REVIEW = "review";
+    public static final String IMAGE_SMALL = "image_small";
+    public static final String IMAGE_LARGE = "image_large";
+    public static final String IMAGE_ORIGINAL = "image_original";
+    public static final String AUDIO_FILE = "audio_file";
+    public static final String SOURCE = "source";
+    public static final String MODIFIED = "modified";
+    public static final String CREATED = "created";
     private final String author;
     private final String title;
-    private final Instant year;
+    private final String dateOfPublication;
     private final String isbn;
     private final String descriptionShort;
     private final String descriptionLong;
     private final String tableOfContents;
+    private final String promotional;
+    private final String summary;
+    private final String review;
     private final String imageSmall;
     private final String imageLarge;
     private final String imageOriginal;
@@ -31,27 +52,33 @@ public class ContentsDocument implements JsonSerializable {
     @JacocoGenerated
     @JsonCreator
     @SuppressWarnings("PMD.ExcessiveParameterList")
-    public ContentsDocument(@JsonProperty("title") String title,
-                            @JsonProperty("author") String author,
-                            @JsonProperty("year") Instant year,
-                            @JsonProperty("isbn") String isbn,
-                            @JsonProperty("description_short") String descriptionShort,
-                            @JsonProperty("description_long") String descriptionLong,
-                            @JsonProperty("tableOfContents") String tableOfContents,
-                            @JsonProperty("image_small") String imageSmall,
-                            @JsonProperty("image_large") String imageLarge,
-                            @JsonProperty("image_original") String imageOriginal,
-                            @JsonProperty("audioFile") String audioFile,
-                            @JsonProperty("source") String source,
-                            @JsonProperty("modified") Instant modified,
-                            @JsonProperty("created") Instant created) {
+    public ContentsDocument(@JsonProperty(TITLE) String title,
+                            @JsonProperty(AUTHOR) String author,
+                            @JsonProperty(DATE_OF_PUBLICATION) String dateOfPublication,
+                            @JsonProperty(ISBN) String isbn,
+                            @JsonProperty(DESCRIPTION_SHORT) String descriptionShort,
+                            @JsonProperty(DESCRIPTION_LONG) String descriptionLong,
+                            @JsonProperty(TABLE_OF_CONTENTS) String tableOfContents,
+                            @JsonProperty(PROMOTIONAL) String promotional,
+                            @JsonProperty(SUMMARY) String summary,
+                            @JsonProperty(REVIEW) String review,
+                            @JsonProperty(IMAGE_SMALL) String imageSmall,
+                            @JsonProperty(IMAGE_LARGE) String imageLarge,
+                            @JsonProperty(IMAGE_ORIGINAL) String imageOriginal,
+                            @JsonProperty(AUDIO_FILE) String audioFile,
+                            @JsonProperty(SOURCE) String source,
+                            @JsonProperty(MODIFIED) Instant modified,
+                            @JsonProperty(CREATED) Instant created) {
         this.title = title;
         this.author = author;
-        this.year = year;
+        this.dateOfPublication = dateOfPublication;
         this.isbn = isbn;
         this.descriptionShort = descriptionShort;
         this.descriptionLong = descriptionLong;
         this.tableOfContents = tableOfContents;
+        this.promotional = promotional;
+        this.summary = summary;
+        this.review = review;
         this.imageSmall = imageSmall;
         this.imageLarge = imageLarge;
         this.imageOriginal = imageOriginal;
@@ -59,23 +86,6 @@ public class ContentsDocument implements JsonSerializable {
         this.source = source;
         this.modified = modified;
         this.created = created;
-    }
-
-    protected ContentsDocument(ContentsDocumentBuilder builder) {
-        title = builder.title;
-        author = builder.author;
-        year = builder.year;
-        isbn = builder.isbn;
-        descriptionShort = builder.descriptionShort;
-        descriptionLong = builder.descriptionLong;
-        tableOfContents = builder.tableOfContents;
-        imageSmall = builder.imageSmall;
-        imageLarge = builder.imageLarge;
-        imageOriginal = builder.imageOriginal;
-        audioFile = builder.audioFile;
-        source = builder.source;
-        modified = builder.modified;
-        created = builder.created;
     }
 
     @JacocoGenerated
@@ -104,26 +114,47 @@ public class ContentsDocument implements JsonSerializable {
     }
 
     @JacocoGenerated
+
+    public String getPromotional() {
+        return promotional;
+    }
+
+    @JacocoGenerated
+    public String getSummary() {
+        return summary;
+    }
+
+    @JacocoGenerated
+    public String getReview() {
+        return review;
+    }
+
+    @JacocoGenerated
     public String getImageSmall() {
         return imageSmall;
     }
 
-    public Instant getYear() {
-        return year;
+    @JacocoGenerated
+    public String getDateOfPublication() {
+        return dateOfPublication;
     }
 
+    @JacocoGenerated
     public String getImageLarge() {
         return imageLarge;
     }
 
+    @JacocoGenerated
     public String getImageOriginal() {
         return imageOriginal;
     }
 
+    @JacocoGenerated
     public String getAudioFile() {
         return audioFile;
     }
 
+    @JacocoGenerated
     public String getSource() {
         return source;
     }
@@ -150,7 +181,7 @@ public class ContentsDocument implements JsonSerializable {
         ContentsDocument that = (ContentsDocument) o;
         return Objects.equals(author, that.author)
             && Objects.equals(title, that.title)
-            && Objects.equals(year, that.year)
+            && Objects.equals(dateOfPublication, that.dateOfPublication)
             && Objects.equals(modified, that.modified)
             && Objects.equals(created, that.created)
             && Objects.equals(descriptionShort, that.descriptionShort)
@@ -164,7 +195,7 @@ public class ContentsDocument implements JsonSerializable {
     public int hashCode() {
         return Objects.hash(author,
                 title,
-                year,
+                dateOfPublication,
                 isbn,
                 descriptionShort,
                 descriptionLong,

@@ -18,10 +18,10 @@ import java.util.Optional;
 
 import static java.util.Objects.isNull;
 
-public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRequest, GatewayResponse> {
+public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
 
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to CreateContentsApiHandler";
-    public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not index record provided. ";
+    public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not persist provided contents. ";
 
 
     private static final ObjectMapper mapper = JsonUtils.objectMapper;
@@ -37,7 +37,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
     }
 
     public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
-        super(CreateContentsRequest.class, environment, LoggerFactory.getLogger(CreateContentsApiHandler.class));
+        super(ContentsRequest.class, environment, LoggerFactory.getLogger(CreateContentsApiHandler.class));
         this.dynamoDBClient = dynamoDBClient;
     }
 
@@ -54,18 +54,20 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
      *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
-    protected GatewayResponse processInput(CreateContentsRequest request, RequestInfo requestInfo,
-                                                  Context context) throws ApiGatewayException {
+    protected GatewayResponse processInput(ContentsRequest request, RequestInfo requestInfo,
+                                           Context context) throws ApiGatewayException {
         if (isNull(request)) {
             throw new ParameterException(NO_PARAMETERS_GIVEN_TO_HANDLER);
         }
         String json = request.getContents();
         logger.error("json input looks like that :" + json);
-        Optional<ContentsDocument> indexDocument = fromJsonString(json);
+        Optional<ContentsDocument> contentsDocument = fromJsonString(json);
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
-        if (indexDocument.isPresent()) {
-            logger.error("This is my IndexDocument to index: " + indexDocument.toString());
-            gatewayResponse.setBody(dynamoDBClient.addContents(indexDocument.get()));
+        if (contentsDocument.isPresent()) {
+            logger.error("This is my IndexDocument to index: " + contentsDocument.toString());
+            dynamoDBClient.createContents(contentsDocument.get());
+            String createContents = dynamoDBClient.getContents(contentsDocument.get().getIsbn());
+            gatewayResponse.setBody(createContents);
             gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
         } else {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);
@@ -93,7 +95,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<CreateContentsRe
      * @return the success status code.
      */
     @Override
-    protected Integer getSuccessStatusCode(CreateContentsRequest input, GatewayResponse output) {
+    protected Integer getSuccessStatusCode(ContentsRequest input, GatewayResponse output) {
         return output.getStatusCode();
     }
 }
