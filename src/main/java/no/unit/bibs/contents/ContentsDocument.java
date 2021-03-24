@@ -8,6 +8,7 @@ import nva.commons.utils.JacocoGenerated;
 import java.time.Instant;
 import java.util.Objects;
 
+@SuppressWarnings("PMD.TooManyFields")
 public class ContentsDocument implements JsonSerializable {
 
     public static final String TITLE = "title";
