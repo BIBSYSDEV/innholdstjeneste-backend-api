@@ -67,7 +67,6 @@ public class DynamoDBClient {
     /**
      * Adds or insert a document to dynamoDB.
      * @param document the document to be inserted
-     * @return the document added.
      * @throws CommunicationException when something goes wrong
      * */
     public void createContents(ContentsDocument document) throws CommunicationException {

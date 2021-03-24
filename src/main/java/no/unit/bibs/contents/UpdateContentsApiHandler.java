@@ -48,7 +48,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      * Implements the main logic of the handler. Any exception thrown by this method will be handled by {@link
      * RestRequestHandler#handleExpectedException} method.
      *
-     * @param request       The input object to the method. Usually a deserialized json.
+     * @param request     The input object to the method. Usually a deserialized json.
      * @param requestInfo Request headers and path.
      * @param context     the ApiGateway context.ucket
      * @return the Response body that is going to be serialized in json
@@ -66,8 +66,8 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         Optional<ContentsDocument> contentsDocument = fromJsonString(json);
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
         try {
-        if (contentsDocument.isPresent()) {
-            logger.debug("This is my ContentsDocument to persist: " + contentsDocument.toString());
+            if (contentsDocument.isPresent()) {
+                logger.debug("This is my ContentsDocument to persist: " + contentsDocument.toString());
                 try {
                     String contents = dynamoDBClient.getContents(contentsDocument.get().getIsbn());
                     if (StringUtils.isEmpty(contents)) {
@@ -94,7 +94,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                     gatewayResponse.setBody(msg);
                     gatewayResponse.setStatusCode(HttpStatus.SC_CONFLICT);
                 }
-            } else{
+            } else {
                 logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + json);
                 gatewayResponse.setErrorBody(COULD_NOT_INDEX_RECORD_PROVIDED + json);
                 gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
