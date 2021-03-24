@@ -17,6 +17,9 @@ public class ContentsDocument implements JsonSerializable {
     public static final String DESCRIPTION_SHORT = "description_short";
     public static final String DESCRIPTION_LONG = "description_long";
     public static final String TABLE_OF_CONTENTS = "table_of_contents";
+    public static final String PROMOTIONAL = "promotional";
+    public static final String SUMMARY = "summary";
+    public static final String REVIEW = "review";
     public static final String IMAGE_SMALL = "image_small";
     public static final String IMAGE_LARGE = "image_large";
     public static final String IMAGE_ORIGINAL = "image_original";
@@ -31,6 +34,9 @@ public class ContentsDocument implements JsonSerializable {
     private final String descriptionShort;
     private final String descriptionLong;
     private final String tableOfContents;
+    private final String promotional;
+    private final String summary;
+    private final String review;
     private final String imageSmall;
     private final String imageLarge;
     private final String imageOriginal;
@@ -52,6 +58,9 @@ public class ContentsDocument implements JsonSerializable {
                             @JsonProperty(DESCRIPTION_SHORT) String descriptionShort,
                             @JsonProperty(DESCRIPTION_LONG) String descriptionLong,
                             @JsonProperty(TABLE_OF_CONTENTS) String tableOfContents,
+                            @JsonProperty(PROMOTIONAL) String promotional,
+                            @JsonProperty(SUMMARY) String summary,
+                            @JsonProperty(REVIEW) String review,
                             @JsonProperty(IMAGE_SMALL) String imageSmall,
                             @JsonProperty(IMAGE_LARGE) String imageLarge,
                             @JsonProperty(IMAGE_ORIGINAL) String imageOriginal,
@@ -66,6 +75,9 @@ public class ContentsDocument implements JsonSerializable {
         this.descriptionShort = descriptionShort;
         this.descriptionLong = descriptionLong;
         this.tableOfContents = tableOfContents;
+        this.promotional = promotional;
+        this.summary = summary;
+        this.review = review;
         this.imageSmall = imageSmall;
         this.imageLarge = imageLarge;
         this.imageOriginal = imageOriginal;
@@ -101,26 +113,47 @@ public class ContentsDocument implements JsonSerializable {
     }
 
     @JacocoGenerated
+
+    public String getPromotional() {
+        return promotional;
+    }
+
+    @JacocoGenerated
+    public String getSummary() {
+        return summary;
+    }
+
+    @JacocoGenerated
+    public String getReview() {
+        return review;
+    }
+
+    @JacocoGenerated
     public String getImageSmall() {
         return imageSmall;
     }
 
+    @JacocoGenerated
     public String getDateOfPublication() {
         return dateOfPublication;
     }
 
+    @JacocoGenerated
     public String getImageLarge() {
         return imageLarge;
     }
 
+    @JacocoGenerated
     public String getImageOriginal() {
         return imageOriginal;
     }
 
+    @JacocoGenerated
     public String getAudioFile() {
         return audioFile;
     }
 
+    @JacocoGenerated
     public String getSource() {
         return source;
     }

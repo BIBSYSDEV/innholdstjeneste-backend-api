@@ -159,6 +159,9 @@ public class DynamoDBClient {
         conditionalAdd(updateValueMap, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT);
         conditionalAdd(updateValueMap, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG);
         conditionalAdd(updateValueMap, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS);
+        conditionalAdd(updateValueMap, document.getPromotional(), ContentsDocument.PROMOTIONAL);
+        conditionalAdd(updateValueMap, document.getSummary(), ContentsDocument.SUMMARY);
+        conditionalAdd(updateValueMap, document.getReview(), ContentsDocument.REVIEW);
         conditionalAdd(updateValueMap, document.getImageSmall(), ContentsDocument.IMAGE_SMALL);
         conditionalAdd(updateValueMap, document.getImageLarge(), ContentsDocument.IMAGE_LARGE);
         conditionalAdd(updateValueMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL);
