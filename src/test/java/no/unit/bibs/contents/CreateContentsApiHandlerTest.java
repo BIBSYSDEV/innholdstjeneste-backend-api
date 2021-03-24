@@ -64,7 +64,7 @@ public class CreateContentsApiHandlerTest {
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         doNothing().when(dynamoDBClient).createContents(contentsDocument);
         when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
-        ContentsRequest request = new ContentsRequest(contents);
+        ContentsRequest request = new ContentsRequest(contentsDocument);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertEquals(contents, actual.getBody());
     }
@@ -91,8 +91,9 @@ public class CreateContentsApiHandlerTest {
                 .build();
     }
 
-    private ContentsRequest readMockCreateContentsRequestFromJsonFile() {
+    private ContentsRequest readMockCreateContentsRequestFromJsonFile() throws JsonProcessingException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        return new ContentsRequest(contents);
+        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        return new ContentsRequest(contentsDocument);
     }
 }
