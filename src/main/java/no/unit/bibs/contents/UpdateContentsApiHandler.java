@@ -25,6 +25,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     public static final String ERROR_IN_UPDATE_FUNCTION = "error in update function: ";
     public static final String THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST = "This is my ContentsDocument to persist: ";
     public static final String JSON_INPUT_LOOKS_LIKE_THAT = "json input looks like that :";
+    public static final int HALV_A_SECOND = 500;
 
     private final DynamoDBClient dynamoDBClient;
 
@@ -70,18 +71,20 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                     String contents = dynamoDBClient.getContents(contentsDocument.getIsbn());
                     if (StringUtils.isEmpty(contents)) {
                         dynamoDBClient.createContents(contentsDocument);
-                        String createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+                        this.waitAMoment(HALV_A_SECOND);
+                        String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
                         logger.info(CONTENTS_CREATED);
-                        gatewayResponse.setBody(createContents);
+                        gatewayResponse.setBody(createdContents);
                         gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                     } else {
-                        String updateContents = dynamoDBClient.updateContents(contentsDocument);
+                        String updatedContents = dynamoDBClient.updateContents(contentsDocument);
                         logger.info(CONTENTS_UPDATED);
-                        gatewayResponse.setBody(updateContents);
+                        gatewayResponse.setBody(updatedContents);
                         gatewayResponse.setStatusCode(HttpStatus.SC_OK);
                     }
                 } catch (NotFoundException e) {
                     dynamoDBClient.createContents(contentsDocument);
+                    this.waitAMoment(HALV_A_SECOND);
                     String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
                     logger.info(CONTENTS_UPDATED);
                     gatewayResponse.setBody(createdContents);
@@ -104,6 +107,14 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
         return gatewayResponse;
+    }
+
+    private void waitAMoment(int millisec) {
+        try {
+            Thread.sleep(millisec);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**
