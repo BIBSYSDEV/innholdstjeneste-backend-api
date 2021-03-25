@@ -1,7 +1,5 @@
 package no.unit.bibs.contents;
 
-import static java.util.Objects.isNull;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.exceptions.ApiGatewayException;
@@ -15,10 +13,18 @@ import nva.commons.utils.StringUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
+import static java.util.Objects.isNull;
+
 public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
 
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to UpdateContentsApiHandler";
-    public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not update provided contents. ";
+    public static final String COULD_NOT_UPDATE_PROVIDED_CONTENTS = "Could not update provided contents. ";
+    public static final String CONTENTS_CREATED = "contents created";
+    public static final String CONTENTS_UPDATED = "contents updated";
+    public static final String FAILED_AFTER_PERSISTING = "failed after persisting: ";
+    public static final String ERROR_IN_UPDATE_FUNCTION = "error in update function: ";
+    public static final String THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST = "This is my ContentsDocument to persist: ";
+    public static final String JSON_INPUT_LOOKS_LIKE_THAT = "json input looks like that :";
 
     private final DynamoDBClient dynamoDBClient;
 
@@ -55,47 +61,47 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             throw new ParameterException(NO_PARAMETERS_GIVEN_TO_HANDLER);
         }
         ContentsDocument contentsDocument = request.getContents();
-        logger.error("json input looks like that :" + contentsDocument.toString());
+        logger.error(JSON_INPUT_LOOKS_LIKE_THAT + contentsDocument.toString());
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
         try {
             if (StringUtils.isNotEmpty(contentsDocument.getIsbn())) {
-                logger.debug("This is my ContentsDocument to persist: " + contentsDocument.toString());
+                logger.debug(THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST + contentsDocument.toString());
                 try {
                     String contents = dynamoDBClient.getContents(contentsDocument.getIsbn());
                     if (StringUtils.isEmpty(contents)) {
                         dynamoDBClient.createContents(contentsDocument);
                         String createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-                        logger.info("contents created");
+                        logger.info(CONTENTS_CREATED);
                         gatewayResponse.setBody(createContents);
                         gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                     } else {
                         String updateContents = dynamoDBClient.updateContents(contentsDocument);
-                        logger.info("contents updated");
+                        logger.info(CONTENTS_UPDATED);
                         gatewayResponse.setBody(updateContents);
                         gatewayResponse.setStatusCode(HttpStatus.SC_OK);
                     }
                 } catch (NotFoundException e) {
                     dynamoDBClient.createContents(contentsDocument);
                     String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-                    logger.info("contents updated");
+                    logger.info(CONTENTS_UPDATED);
                     gatewayResponse.setBody(createdContents);
                     gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                 } catch (Exception e) {
-                    String msg = "failed after persisting: " + e.getMessage();
+                    String msg = FAILED_AFTER_PERSISTING + e.getMessage();
                     logger.error(msg, e);
-                    gatewayResponse.setBody(msg);
+                    gatewayResponse.setErrorBody(msg);
                     gatewayResponse.setStatusCode(HttpStatus.SC_CONFLICT);
                 }
             } else {
-                logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + contentsDocument.toString());
-                gatewayResponse.setErrorBody(COULD_NOT_INDEX_RECORD_PROVIDED + contentsDocument.toString());
+                logger.error(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument.toString());
+                gatewayResponse.setErrorBody(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument.toString());
                 gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
             }
         } catch (Exception e) {
-            String msg = "error in update function: " + e.getMessage();
+            String msg = ERROR_IN_UPDATE_FUNCTION + e.getMessage();
             logger.error(msg, e);
-            gatewayResponse.setBody(msg);
-            gatewayResponse.setStatusCode(HttpStatus.SC_METHOD_FAILURE);
+            gatewayResponse.setErrorBody(msg);
+            gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
         return gatewayResponse;
     }
