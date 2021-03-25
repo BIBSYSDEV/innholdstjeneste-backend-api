@@ -61,7 +61,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             throw new ParameterException(NO_PARAMETERS_GIVEN_TO_HANDLER);
         }
         ContentsDocument contentsDocument = request.getContents();
-        logger.error(JSON_INPUT_LOOKS_LIKE_THAT + contentsDocument.toString());
+        logger.info(JSON_INPUT_LOOKS_LIKE_THAT + contentsDocument.toString());
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
         try {
             if (StringUtils.isNotEmpty(contentsDocument.getIsbn())) {
