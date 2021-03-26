@@ -14,6 +14,9 @@ Parameters:
     Description: (Optional) Base path mapping in CustomDomain
     AllowedPattern: "^[a-zA-Z0-9$\\-_.+!*'(),]*$"
     ConstraintDescription: "May contain only letters, numbers and one of $-_.+!*'(),"
+  S3BucketName:
+    Type: String
+    Description: The name for the S3 bucket - must be unique across all of AWS (3-63 lowercase letters or numbers)
   DynamoDBTableName:
     Type: String
     Default: 'contents'
@@ -76,6 +79,41 @@ Resources:
                 Action:
                   - dynamodb:*
                 Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*'
+        - PolicyName: accessToS3Bucket
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource:
+                  - !Sub 'arn:aws:s3:::${S3BucketName}'
+                  - !Sub 'arn:aws:s3:::${S3BucketName}/*'
+
+  ContentsS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName
+      AccessControl: PublicRead
+      DeletionPolicy: Retain
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: BucketPolicy
+          Version: 2012-10-17
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: '*'
+              Action: 's3:GetObject'
+              Resource: !Join
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref S3BucketName
+                  - /*
+        Bucket: !Ref S3BucketName
 
   ContentsDynamoDBTable:
     Type: AWS::DynamoDB::Table
@@ -256,6 +294,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           TABLE_NAME: !Ref DynamoDBTableName
+          BUCKET_NAME: !Ref S3BucketName
       Events:
         GetEvent:
           Type: Api
@@ -281,6 +320,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           TABLE_NAME: !Ref DynamoDBTableName
+          BUCKET_NAME: !Ref S3BucketName
       Events:
         PostEvent:
           Type: Api
@@ -306,6 +346,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           TABLE_NAME: !Ref DynamoDBTableName
+          BUCKET_NAME: !Ref S3BucketName
       Events:
         PutEvent:
           Type: Api
