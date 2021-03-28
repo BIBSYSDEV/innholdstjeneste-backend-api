@@ -23,14 +23,15 @@ class UpdateContentsApiHandlerTest {
 
     @Test
     public void processInputTest() throws ApiGatewayException, JsonProcessingException {
-        DynamoDBClient client = mock(DynamoDBClient.class);
+        DynamoDBClient dynamoDbclient = mock(DynamoDBClient.class);
+        S3Client s3Client = mock(S3Client.class);
         Environment environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, dynamoDbclient, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
-        when(client.updateContents(contentsDocument)).thenReturn(contents);
+        when(dynamoDbclient.updateContents(contentsDocument)).thenReturn(contents);
         GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertEquals(HttpStatus.SC_CREATED, gatewayResponse.getStatusCode());
     }
