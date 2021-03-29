@@ -14,10 +14,15 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 
+import static no.unit.bibs.contents.CreateContentsApiHandlerTest.TEST_ISBN;
 import static no.unit.bibs.contents.DynamoDBClientTest.SAMPLE_TERM;
 import static nva.commons.handlers.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static nva.commons.utils.JsonUtils.objectMapper;
-import static org.junit.jupiter.api.Assertions.*;
+import static nva.commons.utils.StringUtils.EMPTY_STRING;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,6 +59,35 @@ class UpdateContentsApiHandlerTest {
         when(client.updateContents(contentsDocument)).thenReturn(contents);
         GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertEquals(HttpStatus.SC_CREATED, gatewayResponse.getStatusCode());
+    }
+
+    @Test
+    public void testEmptyIsbnInContentsDocument() throws ApiGatewayException, JsonProcessingException {
+        DynamoDBClient client = mock(DynamoDBClient.class);
+        Environment environment = mock(Environment.class);
+        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
+        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        contents = contents.replace(TEST_ISBN, EMPTY_STRING);
+        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsRequest request = new ContentsRequest(contentsDocument);
+        when(client.updateContents(contentsDocument)).thenReturn(contents);
+        GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
+        assertEquals(HttpStatus.SC_BAD_REQUEST, gatewayResponse.getStatusCode());
+    }
+
+    @Test
+    public void testEmptyContentsDocumentRequest() throws ApiGatewayException, JsonProcessingException {
+        DynamoDBClient client = mock(DynamoDBClient.class);
+        Environment environment = mock(Environment.class);
+        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
+        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsRequest request = new ContentsRequest(contentsDocument);
+        when(client.getContents(anyString())).thenReturn(contents);
+        GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
+        assertEquals(HttpStatus.SC_OK, gatewayResponse.getStatusCode());
     }
 
 
