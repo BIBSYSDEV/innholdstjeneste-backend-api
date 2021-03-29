@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.exceptions.ApiGatewayException;
+import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.handlers.RequestInfo;
 import nva.commons.utils.Environment;
 import nva.commons.utils.IoUtils;
@@ -88,6 +89,48 @@ class UpdateContentsApiHandlerTest {
         when(client.getContents(anyString())).thenReturn(contents);
         GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertEquals(HttpStatus.SC_OK, gatewayResponse.getStatusCode());
+    }
+
+    @Test
+    public void testGetContentsNotFoundWithFinalCrashing() throws ApiGatewayException, JsonProcessingException {
+        DynamoDBClient client = mock(DynamoDBClient.class);
+        Environment environment = mock(Environment.class);
+        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
+        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsRequest request = new ContentsRequest(contentsDocument);
+        when(client.getContents(anyString())).thenThrow(NotFoundException.class);
+        GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
+        assertEquals(HttpStatus.SC_BAD_REQUEST, gatewayResponse.getStatusCode());
+    }
+
+    @Test
+    public void testGetContentsNotFound() throws ApiGatewayException, JsonProcessingException {
+        DynamoDBClient client = mock(DynamoDBClient.class);
+        Environment environment = mock(Environment.class);
+        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
+        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsRequest request = new ContentsRequest(contentsDocument);
+        when(client.getContents(anyString())).thenThrow(NotFoundException.class).thenReturn(contents);
+        GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
+        assertEquals(HttpStatus.SC_CREATED, gatewayResponse.getStatusCode());
+    }
+
+    @Test
+    public void testGetContentsNotFoundThenCrashing() throws ApiGatewayException, JsonProcessingException {
+        DynamoDBClient client = mock(DynamoDBClient.class);
+        Environment environment = mock(Environment.class);
+        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
+        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsRequest request = new ContentsRequest(contentsDocument);
+        when(client.getContents(anyString())).thenThrow(IllegalArgumentException.class);
+        GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
+        assertEquals(HttpStatus.SC_CONFLICT, gatewayResponse.getStatusCode());
     }
 
 
