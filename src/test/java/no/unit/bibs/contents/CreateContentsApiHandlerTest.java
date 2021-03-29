@@ -2,6 +2,7 @@ package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import no.unit.bibs.contents.exception.ParameterException;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.GatewayResponse;
@@ -22,7 +23,7 @@ import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -52,6 +53,7 @@ public class CreateContentsApiHandlerTest {
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
+        CreateContentsApiHandler handler = new CreateContentsApiHandler(environment);
         var response =  new no.unit.bibs.contents.GatewayResponse(environment, MESSAGE, HttpStatus.SC_OK);
         Integer statusCode = handler.getSuccessStatusCode(null, response);
         assertEquals(statusCode, HttpStatus.SC_OK);
@@ -67,6 +69,28 @@ public class CreateContentsApiHandlerTest {
         ContentsRequest request = new ContentsRequest(contentsDocument);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertEquals(contents, actual.getBody());
+    }
+
+    @Test
+    void handlerReturnsErrorWhithEmptyContentsDocument() throws ApiGatewayException, JsonProcessingException {
+        var handler = new CreateContentsApiHandler(environment, dynamoDBClient);
+        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        contents = contents.replace("9788205377547", "");
+        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        doNothing().when(dynamoDBClient).createContents(contentsDocument);
+        when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
+        ContentsRequest request = new ContentsRequest(contentsDocument);
+        var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
+        assertTrue(actual.getBody().contains(CreateContentsApiHandler.COULD_NOT_INDEX_RECORD_PROVIDED));
+    }
+
+    @Test
+    void handlerThrowsExceptionWithEmptyRequest()  {
+        Exception exception = assertThrows(ParameterException.class, () -> {
+            handler.processInput(null, new RequestInfo(), mock(Context.class));
+        });
+
+        assertTrue(exception.getMessage().contains(CreateContentsApiHandler.NO_PARAMETERS_GIVEN_TO_HANDLER));
     }
 
 
