@@ -122,7 +122,7 @@ public class DynamoDBClient {
      * @return json representation of contents.
      * @throws CommunicationException exception while connecting to database
      */
-    public String updateContents(ContentsDocument document) throws CommunicationException {
+    protected String updateContents(ContentsDocument document) throws CommunicationException {
         try {
             StringBuilder expression = new StringBuilder();
             ValueMap valueMap = new ValueMap();

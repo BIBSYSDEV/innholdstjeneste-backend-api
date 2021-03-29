@@ -3,7 +3,10 @@ package no.unit.bibs.contents;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
@@ -16,10 +19,12 @@ import java.nio.file.Path;
 import java.time.Instant;
 
 import static no.unit.bibs.contents.DynamoDBClient.DOCUMENT_WITH_ID_WAS_NOT_FOUND;
+import static no.unit.bibs.contents.GatewayResponse.EMPTY_JSON;
 import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -29,7 +34,6 @@ import static org.mockito.Mockito.when;
 public class DynamoDBClientTest {
 
     public static final String SAMPLE_TERM = "SampleSearchTerm";
-    private static final String SAMPLE_JSON_RESPONSE = "{}";
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     public static final String GET_CONTENTS_JSON = "get_contents.json";
 
@@ -119,5 +123,39 @@ public class DynamoDBClientTest {
         when(dynamoTable.putItem(any(PutItemSpec.class))).thenReturn(putItemOutcome);
         dynamoDBClient.createContents(document);
     }
-    
+
+    @Test
+    public void testUpdateContents() throws CommunicationException, JsonProcessingException {
+        Table table = mock(Table.class);
+        DynamoDBClient client = new DynamoDBClient(table);
+        UpdateItemOutcome outcome = mock(UpdateItemOutcome.class);
+        when(table.updateItem(any(UpdateItemSpec.class))).thenReturn(outcome);
+        Item item = mock(Item.class);
+        when(outcome.getItem()).thenReturn(item);
+        when(item.toJSON()).thenReturn(EMPTY_JSON);
+        String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
+        ContentsDocument document = objectMapper.readValue(contents, ContentsDocument.class);
+        String updateContents = client.updateContents(document);
+        assertEquals(EMPTY_JSON, updateContents);
+    }
+
+    @Test
+    public void testUpdateContentsThrowsException() throws CommunicationException, JsonProcessingException {
+        Table table = mock(Table.class);
+        UpdateItemOutcome outcome = mock(UpdateItemOutcome.class);
+        DynamoDBClient client = new DynamoDBClient(table);
+        when(table.updateItem(any(UpdateItemSpec.class))).thenReturn(null);
+        String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
+        ContentsDocument document = objectMapper.readValue(contents, ContentsDocument.class);
+        when(table.getItem(ContentsDocument.ISBN, SAMPLE_TERM)).thenReturn(new Item());
+        Exception exception = assertThrows(CommunicationException.class, () -> {
+            client.updateContents(document);
+        });
+
+        String expectedMessage = "Update error:";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
 }
