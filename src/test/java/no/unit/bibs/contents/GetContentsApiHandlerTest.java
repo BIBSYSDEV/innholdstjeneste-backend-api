@@ -58,7 +58,7 @@ public class GetContentsApiHandlerTest {
     }
 
     @Test
-    void handlerReturnsNotFoundExceptionWhenGivenMissingISBN() throws ApiGatewayException {
+    void handlerReturnsNotFoundExceptionWhenGivenMissingIsbn() throws ApiGatewayException {
         DynamoDBClient dynamoDBClient = mock(DynamoDBClient.class);
         var handler = new GetContentsApiHandler(environment, dynamoDBClient);
         String contents = IoUtils.stringFromResources(Path.of(DynamoDBClientTest.GET_CONTENTS_JSON));

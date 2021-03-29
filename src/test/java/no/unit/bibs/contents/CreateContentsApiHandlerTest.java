@@ -20,10 +20,13 @@ import java.nio.file.Path;
 
 import static nva.commons.handlers.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static nva.commons.utils.JsonUtils.objectMapper;
+import static nva.commons.utils.StringUtils.EMPTY_STRING;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -33,6 +36,7 @@ public class CreateContentsApiHandlerTest {
 
     public static final String MESSAGE = "message";
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
+    public static final String TEST_ISBN = "9788205377547";
     private Environment environment;
     private CreateContentsApiHandler handler;
     private Context context;
@@ -73,13 +77,13 @@ public class CreateContentsApiHandlerTest {
 
     @Test
     void handlerReturnsErrorWhithEmptyContentsDocument() throws ApiGatewayException, JsonProcessingException {
-        var handler = new CreateContentsApiHandler(environment, dynamoDBClient);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        contents = contents.replace("9788205377547", "");
+        contents = contents.replace(TEST_ISBN, EMPTY_STRING);
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         doNothing().when(dynamoDBClient).createContents(contentsDocument);
         when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
         ContentsRequest request = new ContentsRequest(contentsDocument);
+        var handler = new CreateContentsApiHandler(environment, dynamoDBClient);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertTrue(actual.getBody().contains(CreateContentsApiHandler.COULD_NOT_INDEX_RECORD_PROVIDED));
     }

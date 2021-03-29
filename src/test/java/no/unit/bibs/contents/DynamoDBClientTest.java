@@ -15,7 +15,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 
+import static no.unit.bibs.contents.DynamoDBClient.DOCUMENT_WITH_ID_WAS_NOT_FOUND;
 import static nva.commons.utils.JsonUtils.objectMapper;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,6 +50,31 @@ public class DynamoDBClientTest {
     public void constructorWithEnvironmentDefinedShouldCreateInstance() {
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
         assertNotNull(dynamoDBClient);
+    }
+
+
+    @Test
+    void handlerReturnsNotFoundExceptionWhenShittyResponseFromDynamoDB()  {
+        Table table = mock(Table.class);
+        DynamoDBClient dbClient = new DynamoDBClient(table);
+        when(table.getItem(ContentsDocument.ISBN, SAMPLE_TERM)).thenReturn(null);
+        Exception exception = assertThrows(NotFoundException.class, () -> {
+            dbClient.getContents(SAMPLE_TERM);
+        });
+
+        String expectedMessage = String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, SAMPLE_TERM);
+        String actualMessage = exception.getMessage();
+
+        assertEquals(actualMessage, (expectedMessage));
+
+        when(table.getItem(ContentsDocument.ISBN, SAMPLE_TERM)).thenReturn(new Item());
+        exception = assertThrows(NotFoundException.class, () -> {
+            dbClient.getContents(SAMPLE_TERM);
+        });
+
+        actualMessage = exception.getMessage();
+
+        assertEquals(actualMessage, (expectedMessage));
     }
 
 
