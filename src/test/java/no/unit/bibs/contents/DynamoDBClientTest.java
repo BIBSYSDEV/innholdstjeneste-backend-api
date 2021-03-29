@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 import static no.unit.bibs.contents.DynamoDBClient.DOCUMENT_WITH_ID_WAS_NOT_FOUND;
 import static no.unit.bibs.contents.GatewayResponse.EMPTY_JSON;
@@ -36,6 +38,7 @@ public class DynamoDBClientTest {
     public static final String SAMPLE_TERM = "SampleSearchTerm";
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     public static final String GET_CONTENTS_JSON = "get_contents.json";
+    public static final String KEY = "key";
 
     DynamoDBClient dynamoDBClient;
     private Table dynamoTable;
@@ -156,6 +159,13 @@ public class DynamoDBClientTest {
         String actualMessage = exception.getMessage();
 
         assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    public void testConditionalAdd() {
+        Map<String, String> map = new HashMap<>();
+        dynamoDBClient.conditionalAdd(map, SAMPLE_TERM, KEY);
+        assertEquals(SAMPLE_TERM, map.get(KEY));
     }
 
 }

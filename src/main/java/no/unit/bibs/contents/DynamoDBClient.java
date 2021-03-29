@@ -172,15 +172,15 @@ public class DynamoDBClient {
         return updateValueMap;
     }
 
-    private void conditionalAdd(Map<String, String> updateValueMap, String value, String title) {
+    protected void conditionalAdd(Map<String, String> updateValueMap, String value, String key) {
         if (StringUtils.isNotEmpty(value)) {
-            updateValueMap.put(title, value);
+            updateValueMap.put(key, value);
         }
     }
 
-    private void conditionalAdd(Item item, String value, String title) {
+    private void conditionalAdd(Item item, String value, String key) {
         if (StringUtils.isNotEmpty(value)) {
-            item.withString(title, value);
+            item.withString(key, value);
         }
     }
 }

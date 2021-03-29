@@ -109,6 +109,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         return gatewayResponse;
     }
 
+    @JacocoGenerated
     private void waitAMoment(int millisec) {
         try {
             Thread.sleep(millisec);
