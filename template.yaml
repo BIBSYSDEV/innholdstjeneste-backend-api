@@ -90,6 +90,8 @@ Resources:
           AttributeName: "isbn"
           KeyType: "HASH"
       TableName: !Ref DynamoDBTableName
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
 
   ContentsApi:
     Type: AWS::Serverless::Api
