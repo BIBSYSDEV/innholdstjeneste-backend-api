@@ -28,11 +28,11 @@ class UpdateContentsApiHandlerTest {
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
         UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsRequest request = new ContentsRequest(contents);
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsRequest request = new ContentsRequest(contentsDocument);
         when(client.updateContents(contentsDocument)).thenReturn(contents);
         GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
-        assertEquals(HttpStatus.SC_OK, gatewayResponse.getStatusCode());
+        assertEquals(HttpStatus.SC_CREATED, gatewayResponse.getStatusCode());
     }
 
 

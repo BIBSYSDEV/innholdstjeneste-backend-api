@@ -23,6 +23,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,8 +62,9 @@ public class CreateContentsApiHandlerTest {
         var handler = new CreateContentsApiHandler(environment, dynamoDBClient);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
-        when(dynamoDBClient.createContents(contentsDocument)).thenReturn(contents);
-        ContentsRequest request = new ContentsRequest(contents);
+        doNothing().when(dynamoDBClient).createContents(contentsDocument);
+        when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
+        ContentsRequest request = new ContentsRequest(contentsDocument);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertEquals(contents, actual.getBody());
     }
@@ -88,8 +91,9 @@ public class CreateContentsApiHandlerTest {
                 .build();
     }
 
-    private ContentsRequest readMockCreateContentsRequestFromJsonFile() {
+    private ContentsRequest readMockCreateContentsRequestFromJsonFile() throws JsonProcessingException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        return new ContentsRequest(contents);
+        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        return new ContentsRequest(contentsDocument);
     }
 }

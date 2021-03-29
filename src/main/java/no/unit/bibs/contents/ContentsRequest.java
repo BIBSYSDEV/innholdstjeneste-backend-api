@@ -8,10 +8,10 @@ import java.util.Objects;
 
 public class ContentsRequest {
 
-    private final String contents;
+    private final ContentsDocument contents;
 
     @JsonCreator
-    public ContentsRequest(@JsonProperty("contents") String contents) {
+    public ContentsRequest(@JsonProperty("contents") ContentsDocument contents) {
         this.contents = contents;
     }
 
@@ -19,7 +19,7 @@ public class ContentsRequest {
         this.contents = builder.contents;
     }
 
-    public String getContents() {
+    public ContentsDocument getContents() {
         return contents;
     }
 
@@ -46,12 +46,12 @@ public class ContentsRequest {
     @JacocoGenerated
     public static final class Builder {
 
-        private String contents;
+        private ContentsDocument contents;
 
         public Builder() {
         }
 
-        public ContentsRequest.Builder withContents(String contents) {
+        public ContentsRequest.Builder withContents(ContentsDocument contents) {
             this.contents = contents;
             return this;
         }

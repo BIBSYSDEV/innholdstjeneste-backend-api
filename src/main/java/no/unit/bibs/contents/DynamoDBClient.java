@@ -4,7 +4,6 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
@@ -68,17 +67,16 @@ public class DynamoDBClient {
     /**
      * Adds or insert a document to dynamoDB.
      * @param document the document to be inserted
-     * @return the document added.
      * @throws CommunicationException when something goes wrong
      * */
-    public String createContents(ContentsDocument document) throws CommunicationException {
+    public void createContents(ContentsDocument document) throws CommunicationException {
         try {
             Item item = this.generateItem(document);
-            PutItemOutcome putItemOutcome = contentsTable.putItem(new PutItemSpec().withItem(item));
-            return putItemOutcome.getItem().toJSON();
+            contentsTable.putItem(new PutItemSpec().withItem(item));
+            logger.info("contents created");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw new CommunicationException(e.getMessage(), e);
+            throw new CommunicationException("Creation error: " + e.getMessage(), e);
         }
     }
 
@@ -133,10 +131,11 @@ public class DynamoDBClient {
             updateItemSpec = updateItemSpec.withValueMap(valueMap);
             updateItemSpec = updateItemSpec.withReturnValues(ReturnValue.UPDATED_NEW);
             UpdateItemOutcome updateItemOutcome = contentsTable.updateItem(updateItemSpec);
+            logger.info("contents updated");
             return updateItemOutcome.getItem().toJSON();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw new CommunicationException(e.getMessage(), e);
+            throw new CommunicationException("Update error: " + e.getMessage(), e);
         }
     }
 
@@ -160,6 +159,9 @@ public class DynamoDBClient {
         conditionalAdd(updateValueMap, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT);
         conditionalAdd(updateValueMap, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG);
         conditionalAdd(updateValueMap, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS);
+        conditionalAdd(updateValueMap, document.getPromotional(), ContentsDocument.PROMOTIONAL);
+        conditionalAdd(updateValueMap, document.getSummary(), ContentsDocument.SUMMARY);
+        conditionalAdd(updateValueMap, document.getReview(), ContentsDocument.REVIEW);
         conditionalAdd(updateValueMap, document.getImageSmall(), ContentsDocument.IMAGE_SMALL);
         conditionalAdd(updateValueMap, document.getImageLarge(), ContentsDocument.IMAGE_LARGE);
         conditionalAdd(updateValueMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL);
