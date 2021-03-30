@@ -34,6 +34,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         this(new Environment());
     }
 
+    @JacocoGenerated
     public UpdateContentsApiHandler(Environment environment) {
         this(environment, new DynamoDBClient(environment));
     }
@@ -109,6 +110,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         return gatewayResponse;
     }
 
+    @JacocoGenerated
     private void waitAMoment(int millisec) {
         try {
             Thread.sleep(millisec);
