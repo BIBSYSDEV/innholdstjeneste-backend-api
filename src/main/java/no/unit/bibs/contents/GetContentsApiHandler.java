@@ -21,6 +21,7 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, GatewayRespon
         this(new Environment());
     }
 
+    @JacocoGenerated
     public GetContentsApiHandler(Environment environment)  {
         this(environment, new DynamoDBClient(environment));
     }

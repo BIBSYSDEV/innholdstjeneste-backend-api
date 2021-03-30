@@ -136,7 +136,7 @@ class UpdateContentsApiHandlerTest {
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment);
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, dynamoDBClient);
         GatewayResponse response =  new GatewayResponse(environment, SAMPLE_TERM, HttpStatus.SC_OK);
         Integer statusCode = handler.getSuccessStatusCode(null, response);
         assertEquals(statusCode, HttpStatus.SC_OK);

@@ -98,11 +98,12 @@ public class DynamoDBClientTest {
 
     @Test
     public void addDocumentToIndexThrowsException() {
-        ContentsDocument contentsDocument = mock(ContentsDocument.class);
-        when(contentsDocument.getIsbn()).thenReturn(SAMPLE_TERM);
-        doThrow(RuntimeException.class).when(contentsDocument).toJsonString();
+        ContentsDocument document = mock(ContentsDocument.class);
+        when(document.getIsbn()).thenReturn(SAMPLE_TERM);
+        when(document.getSource()).thenReturn(SAMPLE_TERM);
+        doThrow(IllegalArgumentException.class).when(dynamoTable).putItem(any(PutItemSpec.class));
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
-        assertThrows(CommunicationException.class, () -> dynamoDBClient.createContents(contentsDocument));
+        assertThrows(CommunicationException.class, () -> dynamoDBClient.createContents(document));
     }
 
 
@@ -113,7 +114,7 @@ public class DynamoDBClientTest {
     }
     
     @Test
-    public void addDocumentTest() throws IOException, CommunicationException, NotFoundException {
+    public void addDocumentTest() throws IOException, CommunicationException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument document = objectMapper.readValue(contents, ContentsDocument.class);
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
@@ -143,14 +144,15 @@ public class DynamoDBClientTest {
     }
 
     @Test
-    public void testUpdateContentsThrowsException() throws CommunicationException, JsonProcessingException {
+    public void testUpdateContentsThrowsException() throws JsonProcessingException {
         Table table = mock(Table.class);
-        UpdateItemOutcome outcome = mock(UpdateItemOutcome.class);
         DynamoDBClient client = new DynamoDBClient(table);
-        when(table.updateItem(any(UpdateItemSpec.class))).thenReturn(null);
+        UpdateItemOutcome outcome = mock(UpdateItemOutcome.class);
+        when(table.updateItem(any(UpdateItemSpec.class))).thenReturn(outcome);
         String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
         ContentsDocument document = objectMapper.readValue(contents, ContentsDocument.class);
         when(table.getItem(ContentsDocument.ISBN, SAMPLE_TERM)).thenReturn(new Item());
+        when(outcome.getItem()).thenThrow(IllegalArgumentException.class);
         Exception exception = assertThrows(CommunicationException.class, () -> {
             client.updateContents(document);
         });

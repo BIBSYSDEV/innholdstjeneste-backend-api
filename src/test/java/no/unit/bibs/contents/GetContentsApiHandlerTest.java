@@ -40,7 +40,8 @@ public class GetContentsApiHandlerTest {
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        GetContentsApiHandler getContentsApiHandler = new GetContentsApiHandler(environment);
+        GetContentsApiHandler getContentsApiHandler =
+                new GetContentsApiHandler(environment, new DynamoDBClient(dynamoTable));
         GatewayResponse response =  new GatewayResponse(environment, SAMPLE_SEARCH_TERM, HttpStatus.SC_OK);
         Integer statusCode = getContentsApiHandler.getSuccessStatusCode(null, response);
         assertEquals(statusCode, HttpStatus.SC_OK);

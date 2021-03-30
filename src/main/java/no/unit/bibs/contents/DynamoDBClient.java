@@ -43,6 +43,7 @@ public class DynamoDBClient {
      * Creates a new DynamoDBClient.
      *
      */
+    @JacocoGenerated
     public DynamoDBClient(Environment environment)  {
         initDynamoDbClient(environment);
     }

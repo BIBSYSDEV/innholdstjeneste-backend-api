@@ -57,7 +57,7 @@ public class CreateContentsApiHandlerTest {
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        CreateContentsApiHandler handler = new CreateContentsApiHandler(environment);
+        CreateContentsApiHandler handler = new CreateContentsApiHandler(environment, dynamoDBClient);
         var response =  new no.unit.bibs.contents.GatewayResponse(environment, MESSAGE, HttpStatus.SC_OK);
         Integer statusCode = handler.getSuccessStatusCode(null, response);
         assertEquals(statusCode, HttpStatus.SC_OK);
