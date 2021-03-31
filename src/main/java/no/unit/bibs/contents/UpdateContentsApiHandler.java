@@ -22,7 +22,7 @@ import static java.util.Objects.isNull;
 
 public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
 
-    public static final String OBJECT_KEY_TEMPLATE = "/%s/%s/%s";
+    public static final String OBJECT_KEY_TEMPLATE = "/%s/%s/%s/%s";
     public static final String FILE_NAME_TEMPLATE = "%s.%s";
     public static final String FILE_EXTENSION_JPG = "jpg";
     public static final String FILE_EXTENSION_WAV = "wav";
@@ -43,7 +43,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     public static final String AUDIO = "audio";
     public static final String MIME_TYPE_IMAGE_JPG = "image/jpg";
     public static final String MIME_TYPE_AUDIO_WAV = "audio/wav";
-    public static final String CHARACTER_SLASH = "/";
+    public static final String HTTP_PREFIX = "http";
 
     private final DynamoDBClient dynamoDBClient;
     private final S3Client s3Client;
@@ -88,7 +88,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             if (StringUtils.isNotEmpty(contentsDocument.getIsbn())) {
 
                 if (StringUtils.isNotEmpty(contentsDocument.getImageSmall())
-                        && !contentsDocument.getImageSmall().startsWith(CHARACTER_SLASH)) {
+                        && contentsDocument.getImageSmall().startsWith(HTTP_PREFIX)) {
                     String objectKey = putFileS3(
                             contentsDocument.getIsbn(),
                             contentsDocument.getImageSmall(),
@@ -100,7 +100,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                 }
 
                 if (StringUtils.isNotEmpty(contentsDocument.getImageLarge())
-                        && !contentsDocument.getImageLarge().startsWith(CHARACTER_SLASH)) {
+                        && contentsDocument.getImageLarge().startsWith(HTTP_PREFIX)) {
                     String objectKey = putFileS3(
                             contentsDocument.getIsbn(),
                             contentsDocument.getImageLarge(),
@@ -112,7 +112,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                 }
 
                 if (StringUtils.isNotEmpty(contentsDocument.getImageOriginal())
-                        && !contentsDocument.getImageOriginal().startsWith(CHARACTER_SLASH)) {
+                        && contentsDocument.getImageOriginal().startsWith(HTTP_PREFIX)) {
                     String objectKey = putFileS3(
                             contentsDocument.getIsbn(),
                             contentsDocument.getImageOriginal(),
@@ -124,7 +124,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                 }
 
                 if (StringUtils.isNotEmpty(contentsDocument.getAudioFile())
-                        && !contentsDocument.getAudioFile().startsWith(CHARACTER_SLASH)) {
+                        && contentsDocument.getAudioFile().startsWith(HTTP_PREFIX)) {
                     String objectKey = putFileS3(
                             contentsDocument.getIsbn(),
                             contentsDocument.getAudioFile(),
@@ -196,8 +196,10 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             throw e;
         }
 
+        String secondLinkPart = isbn.substring(isbn.length() - 2, isbn.length() - 1);
+        String firstLinkPart = isbn.substring(isbn.length() - 1);
 
-        String objectKey = String.format(OBJECT_KEY_TEMPLATE, isbn, type, fileName);
+        String objectKey = String.format(OBJECT_KEY_TEMPLATE, type, firstLinkPart, secondLinkPart, fileName);
         try (InputStream inputStream = downloadUrl.openStream()) {
             s3Client.uploadFile(
                     inputStream,
