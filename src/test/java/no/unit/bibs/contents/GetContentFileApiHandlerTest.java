@@ -48,7 +48,7 @@ public class GetContentFileApiHandlerTest {
 
     @Test
     void getSuccessStatusCodeReturnsMovedPermanently() {
-        GatewayResponse response =  new GatewayResponse(environment, null, HttpStatus.SC_OK);
+        GatewayResponse response =  new GatewayResponse(environment, null, HttpStatus.SC_MOVED_PERMANENTLY);
         Integer statusCode = getContentFileApiHandler.getSuccessStatusCode(null, response);
         assertEquals(statusCode, HttpStatus.SC_MOVED_PERMANENTLY);
     }

@@ -59,13 +59,11 @@ public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayRes
         String secondLinkPart = pathParameters.get(PATH_PARAMETER_SECOND_LINK_PART);
         String filename = pathParameters.get(PATH_PARAMETER_FILENAME);
 
-        GatewayResponse gatewayResponse = new GatewayResponse(environment);
 
         String contentFileUrl = String.format(BUCKET_URL_TEMPLATE, environment.readEnv(BUCKET_NAME),
                 environment.readEnv(AWS_REGION), type, firstLinkPart, secondLinkPart, filename);
+        GatewayResponse gatewayResponse = new GatewayResponse(environment, contentFileUrl);
         gatewayResponse.setStatusCode(HttpStatus.SC_MOVED_PERMANENTLY);
-        Map<String, String> headers = gatewayResponse.getHeaders();
-        headers.put(HttpHeaders.LOCATION, contentFileUrl);
 
         return gatewayResponse;
     }
