@@ -1,24 +1,17 @@
 package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.ApiGatewayHandler;
 import nva.commons.handlers.RequestInfo;
 import nva.commons.handlers.RestRequestHandler;
 import nva.commons.utils.Environment;
 import nva.commons.utils.JacocoGenerated;
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.core.HttpHeaders;
 import java.util.Map;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 
 public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayResponse> {
 
