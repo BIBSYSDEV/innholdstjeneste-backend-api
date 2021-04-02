@@ -48,6 +48,7 @@ public class GatewayResponse {
      *
      */
     public GatewayResponse(Environment environment, final String body, final int status) {
+        this.statusCode = status;
         this.body = body;
         this.generateDefaultHeaders(environment);
     }
