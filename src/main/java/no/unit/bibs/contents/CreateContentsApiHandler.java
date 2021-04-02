@@ -1,7 +1,5 @@
 package no.unit.bibs.contents;
 
-import static java.util.Objects.isNull;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.exceptions.ApiGatewayException;
@@ -13,6 +11,8 @@ import nva.commons.utils.JacocoGenerated;
 import nva.commons.utils.StringUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
+
+import static java.util.Objects.isNull;
 
 public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
 
@@ -26,6 +26,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         this(new Environment());
     }
 
+    @JacocoGenerated
     public CreateContentsApiHandler(Environment environment) {
         this(environment, new DynamoDBClient(environment));
     }

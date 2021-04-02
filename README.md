@@ -7,21 +7,19 @@ Dataformat for utveksling med API. https://api.sandbox.bibs.aws.unit.no/contents
 
 ```
 {"contents": {
-"isbn": "9788215027227",
-"title": "Skriv så det selger! : en bok for deg som vil overtale og overbevise",
-"author": "Calvert, Christine",
-"date_of_publication": "2018",
-"description_short": "",
-"description_long": "",
-"table_of_contents": "",
-"image_small": "/9788215027227/small/9788215027227.jpg",
-"image_large": "",
-"image_original": "",
-"audio_file": "",
-"source": "NIELSEN",
-"modified": "";
-"created":"someTimestamp"
-}
+    "isbn": "9788215027227",
+    "title": "Skriv så det selger! : en bok for deg som vil overtale og overbevise",
+    "author": "Calvert, Christine",
+    "date_of_publication": "2018",
+    "description_short": "",
+    "description_long": "",
+    "table_of_contents": "",
+    "image_small": "/small/7/2/9788215027227.jpg",
+    "image_large": "",
+    "image_original": "",
+    "audio_file": "",
+    "source": "NIELSEN"
+    }
 }
 ```
 

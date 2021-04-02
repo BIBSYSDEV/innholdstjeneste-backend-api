@@ -4,6 +4,7 @@ import com.amazonaws.util.json.Jackson;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import nva.commons.exceptions.GatewayResponseSerializingException;
 import nva.commons.utils.Environment;
+import nva.commons.utils.JacocoGenerated;
 import nva.commons.utils.StringUtils;
 import org.apache.http.HttpStatus;
 
@@ -30,6 +31,7 @@ public class GatewayResponse {
     /**
      * GatewayResponse contains response status, response headers and body with payload resp. error messages.
      */
+    @JacocoGenerated
     public GatewayResponse() {
         this(new Environment(), EMPTY_JSON, HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }

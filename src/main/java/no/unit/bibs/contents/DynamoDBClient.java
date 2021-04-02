@@ -13,6 +13,7 @@ import com.amazonaws.services.dynamodbv2.model.ReturnValue;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.utils.Environment;
+import nva.commons.utils.JacocoGenerated;
 import nva.commons.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public class DynamoDBClient {
     public static final String COMMA_ = ", ";
     public static final String _EQUALS_ = " = ";
     public static final String SET_ = "set ";
+    private static final String EMPTY_JSON_OBJECT = "{}";
 
     private Table contentsTable;
 
@@ -41,6 +43,7 @@ public class DynamoDBClient {
      * Creates a new DynamoDBClient.
      *
      */
+    @JacocoGenerated
     public DynamoDBClient(Environment environment)  {
         initDynamoDbClient(environment);
     }
@@ -54,7 +57,7 @@ public class DynamoDBClient {
         contentsTable = dynamoTable;
     }
 
-
+    @JacocoGenerated
     private void initDynamoDbClient(Environment environment) {
         try {
             AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient();
@@ -108,7 +111,7 @@ public class DynamoDBClient {
      */
     public String getContents(String isbn) throws NotFoundException {
         Item item = contentsTable.getItem(ContentsDocument.ISBN, isbn);
-        if (Objects.isNull(item) || StringUtils.isEmpty(item.toJSON())) {
+        if (Objects.isNull(item) || EMPTY_JSON_OBJECT.equals(item.toJSON())) {
             throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
         }
         return item.toJSON();
@@ -120,7 +123,7 @@ public class DynamoDBClient {
      * @return json representation of contents.
      * @throws CommunicationException exception while connecting to database
      */
-    public String updateContents(ContentsDocument document) throws CommunicationException {
+    protected String updateContents(ContentsDocument document) throws CommunicationException {
         try {
             StringBuilder expression = new StringBuilder();
             ValueMap valueMap = new ValueMap();
@@ -170,15 +173,15 @@ public class DynamoDBClient {
         return updateValueMap;
     }
 
-    private void conditionalAdd(Map<String, String> updateValueMap, String value, String title) {
+    protected void conditionalAdd(Map<String, String> updateValueMap, String value, String key) {
         if (StringUtils.isNotEmpty(value)) {
-            updateValueMap.put(title, value);
+            updateValueMap.put(key, value);
         }
     }
 
-    private void conditionalAdd(Item item, String value, String title) {
+    private void conditionalAdd(Item item, String value, String key) {
         if (StringUtils.isNotEmpty(value)) {
-            item.withString(title, value);
+            item.withString(key, value);
         }
     }
 }

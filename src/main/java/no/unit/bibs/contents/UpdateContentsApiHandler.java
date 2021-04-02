@@ -53,6 +53,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         this(new Environment());
     }
 
+    @JacocoGenerated
     public UpdateContentsApiHandler(Environment environment) {
         this(environment, new DynamoDBClient(environment), new S3Client(environment));
     }
@@ -155,7 +156,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                     dynamoDBClient.createContents(contentsDocument);
                     this.waitAMoment(HALF_A_SECOND);
                     String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-                    logger.info(CONTENTS_UPDATED);
+                    logger.info(CONTENTS_CREATED);
                     gatewayResponse.setBody(createdContents);
                     gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                 } catch (Exception e) {
@@ -212,6 +213,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         return objectKey;
     }
 
+    @JacocoGenerated
     private void waitAMoment(int millisec) {
         try {
             Thread.sleep(millisec);
