@@ -88,53 +88,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         try {
             if (StringUtils.isNotEmpty(contentsDocument.getIsbn())) {
 
-                if (StringUtils.isNotEmpty(contentsDocument.getImageSmall())
-                        && contentsDocument.getImageSmall().startsWith(HTTP_PREFIX)) {
-                    String objectKey = putFileS3(
-                            contentsDocument.getIsbn(),
-                            contentsDocument.getImageSmall(),
-                            SMALL,
-                            FILE_EXTENSION_JPG,
-                            MIME_TYPE_IMAGE_JPG
-                    );
-                    contentsDocument.setImageSmall(objectKey);
-                }
-
-                if (StringUtils.isNotEmpty(contentsDocument.getImageLarge())
-                        && contentsDocument.getImageLarge().startsWith(HTTP_PREFIX)) {
-                    String objectKey = putFileS3(
-                            contentsDocument.getIsbn(),
-                            contentsDocument.getImageLarge(),
-                            LARGE,
-                            FILE_EXTENSION_JPG,
-                            MIME_TYPE_IMAGE_JPG
-                    );
-                    contentsDocument.setImageLarge(objectKey);
-                }
-
-                if (StringUtils.isNotEmpty(contentsDocument.getImageOriginal())
-                        && contentsDocument.getImageOriginal().startsWith(HTTP_PREFIX)) {
-                    String objectKey = putFileS3(
-                            contentsDocument.getIsbn(),
-                            contentsDocument.getImageOriginal(),
-                            ORIGINAL,
-                            FILE_EXTENSION_JPG,
-                            MIME_TYPE_IMAGE_JPG
-                    );
-                    contentsDocument.setImageOriginal(objectKey);
-                }
-
-                if (StringUtils.isNotEmpty(contentsDocument.getAudioFile())
-                        && contentsDocument.getAudioFile().startsWith(HTTP_PREFIX)) {
-                    String objectKey = putFileS3(
-                            contentsDocument.getIsbn(),
-                            contentsDocument.getAudioFile(),
-                            AUDIO,
-                            FILE_EXTENSION_WAV,
-                            MIME_TYPE_AUDIO_WAV
-                    );
-                    contentsDocument.setAudioFile(objectKey);
-                }
+                handleFiles(contentsDocument);
 
                 logger.debug(THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST + contentsDocument.toString());
                 try {
@@ -182,6 +136,56 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
         return gatewayResponse;
+    }
+
+    private void handleFiles(ContentsDocument contentsDocument) throws IOException {
+        if (StringUtils.isNotEmpty(contentsDocument.getImageSmall())
+                && contentsDocument.getImageSmall().startsWith(HTTP_PREFIX)) {
+            String objectKey = putFileS3(
+                    contentsDocument.getIsbn(),
+                    contentsDocument.getImageSmall(),
+                    SMALL,
+                    FILE_EXTENSION_JPG,
+                    MIME_TYPE_IMAGE_JPG
+            );
+            contentsDocument.setImageSmall(objectKey);
+        }
+
+        if (StringUtils.isNotEmpty(contentsDocument.getImageLarge())
+                && contentsDocument.getImageLarge().startsWith(HTTP_PREFIX)) {
+            String objectKey = putFileS3(
+                    contentsDocument.getIsbn(),
+                    contentsDocument.getImageLarge(),
+                    LARGE,
+                    FILE_EXTENSION_JPG,
+                    MIME_TYPE_IMAGE_JPG
+            );
+            contentsDocument.setImageLarge(objectKey);
+        }
+
+        if (StringUtils.isNotEmpty(contentsDocument.getImageOriginal())
+                && contentsDocument.getImageOriginal().startsWith(HTTP_PREFIX)) {
+            String objectKey = putFileS3(
+                    contentsDocument.getIsbn(),
+                    contentsDocument.getImageOriginal(),
+                    ORIGINAL,
+                    FILE_EXTENSION_JPG,
+                    MIME_TYPE_IMAGE_JPG
+            );
+            contentsDocument.setImageOriginal(objectKey);
+        }
+
+        if (StringUtils.isNotEmpty(contentsDocument.getAudioFile())
+                && contentsDocument.getAudioFile().startsWith(HTTP_PREFIX)) {
+            String objectKey = putFileS3(
+                    contentsDocument.getIsbn(),
+                    contentsDocument.getAudioFile(),
+                    AUDIO,
+                    FILE_EXTENSION_WAV,
+                    MIME_TYPE_AUDIO_WAV
+            );
+            contentsDocument.setAudioFile(objectKey);
+        }
     }
 
     private String putFileS3(String isbn, String url, String type, String fileExtension, String mimeType)

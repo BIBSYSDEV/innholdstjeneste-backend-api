@@ -4,18 +4,17 @@ import com.amazonaws.services.lambda.runtime.Context;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.handlers.RequestInfo;
 import nva.commons.utils.Environment;
-import nva.commons.utils.IoUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import static no.unit.bibs.contents.GetContentFileApiHandler.*;
-import static nva.commons.handlers.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
+import static no.unit.bibs.contents.GetContentFileApiHandler.AWS_REGION;
+import static no.unit.bibs.contents.GetContentFileApiHandler.BUCKET_NAME;
+import static no.unit.bibs.contents.GetContentFileApiHandler.BUCKET_URL_TEMPLATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -66,12 +65,12 @@ public class GetContentFileApiHandlerTest {
     }
 
     private RequestInfo getRequestInfo() {
-        var requestInfo = new RequestInfo();
         Map<String, String> pathParameters = new HashMap<>();
         pathParameters.put(GetContentFileApiHandler.PATH_PARAMETER_FILENAME, SAMPLE_FILENAME);
         pathParameters.put(GetContentFileApiHandler.PATH_PARAMETER_FIRST_LINK_PART, SAMPLE_FIRST_LINK_PART);
         pathParameters.put(GetContentFileApiHandler.PATH_PARAMETER_SECOND_LINK_PART, SAMPLE_SECOND_LINK_PART);
         pathParameters.put(GetContentFileApiHandler.PATH_PARAMETER_TYPE, SAMPLE_TYPE);
+        var requestInfo = new RequestInfo();
         requestInfo.setPathParameters(pathParameters);
         return requestInfo;
     }

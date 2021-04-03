@@ -64,6 +64,7 @@ public class S3Client {
         }
     }
 
+    @SuppressWarnings("PMD.AssignmentInOperand")
     public void uploadFile(InputStream inputStream, String objectName, String filename, String mimeType)
             throws IOException {
         try {

@@ -32,6 +32,7 @@ class UpdateContentsApiHandlerTest {
     private Environment environment;
     private Table dynamoTable;
     private DynamoDBClient dynamoDBClient;
+    private S3Client s3Client;
     private UpdateContentsApiHandler handler;
 
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
@@ -45,7 +46,8 @@ class UpdateContentsApiHandlerTest {
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
         dynamoTable = mock(Table.class);
         dynamoDBClient = mock(DynamoDBClient.class);
-        handler = new UpdateContentsApiHandler(environment, dynamoDBClient);
+        s3Client = mock(S3Client.class);
+        handler = new UpdateContentsApiHandler(environment, dynamoDBClient, s3Client);
     }
 
     @Test
@@ -66,9 +68,10 @@ class UpdateContentsApiHandlerTest {
     @Test
     public void testEmptyIsbnInContentsDocument() throws ApiGatewayException, JsonProcessingException {
         DynamoDBClient client = mock(DynamoDBClient.class);
+        S3Client s3Client = mock(S3Client.class);
         Environment environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         contents = contents.replace(TEST_ISBN, EMPTY_STRING);
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
@@ -81,9 +84,10 @@ class UpdateContentsApiHandlerTest {
     @Test
     public void testEmptyContentsDocumentRequest() throws ApiGatewayException, JsonProcessingException {
         DynamoDBClient client = mock(DynamoDBClient.class);
+        S3Client s3Client = mock(S3Client.class);
         Environment environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
@@ -95,9 +99,10 @@ class UpdateContentsApiHandlerTest {
     @Test
     public void testGetContentsNotFoundWithFinalCrashing() throws ApiGatewayException, JsonProcessingException {
         DynamoDBClient client = mock(DynamoDBClient.class);
+        S3Client s3Client = mock(S3Client.class);
         Environment environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
@@ -109,9 +114,10 @@ class UpdateContentsApiHandlerTest {
     @Test
     public void testGetContentsNotFound() throws ApiGatewayException, JsonProcessingException {
         DynamoDBClient client = mock(DynamoDBClient.class);
+        S3Client s3Client = mock(S3Client.class);
         Environment environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
@@ -123,9 +129,10 @@ class UpdateContentsApiHandlerTest {
     @Test
     public void testGetContentsNotFoundThenCrashing() throws ApiGatewayException, JsonProcessingException {
         DynamoDBClient client = mock(DynamoDBClient.class);
+        S3Client s3Client = mock(S3Client.class);
         Environment environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client);
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
@@ -137,7 +144,7 @@ class UpdateContentsApiHandlerTest {
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, dynamoDBClient);
+        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, dynamoDBClient, s3Client);
         GatewayResponse response =  new GatewayResponse(environment, SAMPLE_TERM, HttpStatus.SC_OK);
         Integer statusCode = handler.getSuccessStatusCode(null, response);
         assertEquals(statusCode, HttpStatus.SC_OK);
