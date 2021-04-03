@@ -58,6 +58,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         this(environment, new DynamoDBClient(environment), new S3Client(environment));
     }
 
+
     public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient, S3Client s3Client) {
         super(ContentsRequest.class, environment, LoggerFactory.getLogger(UpdateContentsApiHandler.class));
         this.dynamoDBClient = dynamoDBClient;

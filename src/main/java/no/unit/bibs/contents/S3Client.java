@@ -6,7 +6,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import nva.commons.utils.Environment;
-import nva.commons.utils.StringUtils;
+import nva.commons.utils.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public class S3Client {
         this.bucketName = bucketName;
     }
 
-
+    @JacocoGenerated
     private void initS3Client(Environment environment) {
         try {
             this.amazonS3Client = AmazonS3ClientBuilder.standard()
@@ -64,6 +64,16 @@ public class S3Client {
         }
     }
 
+    /**
+     * Uploads inputstream to S3 using a presigned upload url.
+     *
+     * @param inputStream inputStream
+     * @param objectName objectName
+     * @param filename filename
+     * @param mimeType mimeType
+     * @throws IOException IOException
+     */
+    @JacocoGenerated
     @SuppressWarnings("PMD.AssignmentInOperand")
     public void uploadFile(InputStream inputStream, String objectName, String filename, String mimeType)
             throws IOException {
@@ -92,33 +102,6 @@ public class S3Client {
             logger.error(ERROR_UPLOADING_FILE, e);
             throw e;
         }
-
-    }
-
-    /**
-     * Generate a pre-signed READ URL for an object.
-     *
-     * @param objectName String
-     * @param mimeType   String
-     * @return URL
-     */
-    public URL generatePresignedReadUrl(String objectName, String mimeType) {
-        Date expiration = new Date();
-        long msec = expiration.getTime();
-        msec += 1000 * PRESIGNED_URL_EXPIRY_SECONDS;
-        expiration.setTime(msec);
-
-        GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName,
-                objectName, HttpMethod.GET);
-        generatePresignedUrlRequest.setExpiration(expiration);
-
-        if (StringUtils.isNotEmpty(mimeType)) {
-            generatePresignedUrlRequest.addRequestParameter(HttpHeaders.CONTENT_TYPE, mimeType);
-        }
-
-        return amazonS3Client.generatePresignedUrl(generatePresignedUrlRequest);
-
-
     }
 
     /**
@@ -129,7 +112,7 @@ public class S3Client {
      * @param mimeType   String
      * @return URL
      */
-    private URL generatePresignedWriteUrl(String objectName, String filename, String mimeType) {
+    public URL generatePresignedWriteUrl(String objectName, String filename, String mimeType) {
         Date expiration = new Date();
         long msec = expiration.getTime();
         msec += 1000 * PRESIGNED_URL_EXPIRY_SECONDS;
