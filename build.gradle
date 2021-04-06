@@ -45,6 +45,7 @@ dependencies {
     compileOnly group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.1.1'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: '1.11.972'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-core', version: awsSdkVersion
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: awsSdkVersion
     implementation group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.1'
     implementation group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: nvaCommonsVersion
 
