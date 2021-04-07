@@ -28,8 +28,10 @@ public class S3Client {
 
     public static final String CONTENT_DISPOSITION_FILENAME_TEMPLATE = "filename=\"%s\"";
 
+    private static final String AWS_REGION = "AWS_REGION";
     private static final String BUCKET_NAME = "BUCKET_NAME";
-    private static final int PRESIGNED_URL_EXPIRY_SECONDS = 10;
+
+    private static final int PRESIGNED_URL_EXPIRY_MILLISECONDS = 10000;
 
     private String bucketName;
     private AmazonS3 amazonS3Client;
@@ -55,7 +57,7 @@ public class S3Client {
     private void initS3Client(Environment environment) {
         try {
             this.amazonS3Client = AmazonS3ClientBuilder.standard()
-                    .withRegion(Regions.EU_WEST_1)
+                    .withRegion(environment.readEnv(AWS_REGION))
                     .withPathStyleAccessEnabled(true)
                     .build();
             this.bucketName = environment.readEnv(BUCKET_NAME);
@@ -65,7 +67,7 @@ public class S3Client {
     }
 
     /**
-     * Uploads inputstream to S3 using a presigned upload url.
+     * Uploads inputstream to S3 using a presigned upload write url.
      *
      * @param inputStream inputStream
      * @param objectName objectName
@@ -115,7 +117,7 @@ public class S3Client {
     public URL generatePresignedWriteUrl(String objectName, String filename, String mimeType) {
         Date expiration = new Date();
         long msec = expiration.getTime();
-        msec += 1000 * PRESIGNED_URL_EXPIRY_SECONDS;
+        msec += PRESIGNED_URL_EXPIRY_MILLISECONDS;
         expiration.setTime(msec);
 
         GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName,
