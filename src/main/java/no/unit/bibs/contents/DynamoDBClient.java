@@ -97,8 +97,11 @@ public class DynamoDBClient {
         conditionalAdd(item, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL);
         conditionalAdd(item, document.getAudioFile(), ContentsDocument.AUDIO_FILE);
         item.withString(ContentsDocument.SOURCE, document.getSource());
-        // we might like to set created date for import jobs.
-        conditionalAdd(item, document.getCreated().toString(), ContentsDocument.CREATED);
+        if (Objects.isNull(document.getCreated())) {
+            item.withString(ContentsDocument.CREATED, Instant.now().toString());
+        } else {
+            item.withString(ContentsDocument.CREATED, document.getCreated().toString());
+        }
         return item;
     }
 
