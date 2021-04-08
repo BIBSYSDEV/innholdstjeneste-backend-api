@@ -165,6 +165,11 @@ public class ContentsDocument implements JsonSerializable {
     }
 
     @JacocoGenerated
+    public Instant getCreated() {
+        return created;
+    }
+
+    @JacocoGenerated
     public Instant getModified() {
         return modified;
     }
