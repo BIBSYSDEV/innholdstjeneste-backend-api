@@ -1,7 +1,6 @@
 package no.unit.bibs.contents;
 
 import com.amazonaws.HttpMethod;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
@@ -31,6 +30,7 @@ public class S3Client {
     private static final String AWS_REGION = "AWS_REGION";
     private static final String BUCKET_NAME = "BUCKET_NAME";
 
+    @SuppressWarnings("PMD.UseUnderscoresInNumericLiterals")
     private static final int PRESIGNED_URL_EXPIRY_MILLISECONDS = 10000;
 
     private String bucketName;

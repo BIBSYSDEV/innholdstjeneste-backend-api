@@ -1,6 +1,7 @@
 package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import no.unit.bibs.contents.exception.CommunicationException;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
@@ -95,10 +96,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                 try {
                     String contents = dynamoDBClient.getContents(contentsDocument.getIsbn());
                     if (StringUtils.isEmpty(contents)) {
-                        dynamoDBClient.createContents(contentsDocument);
-                        this.waitAMoment(HALF_A_SECOND);
-                        String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-                        logger.info(CONTENTS_CREATED);
+                        String createdContents = createContents(contentsDocument);
                         gatewayResponse.setBody(createdContents);
                         gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                     } else {
@@ -108,10 +106,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                         gatewayResponse.setStatusCode(HttpStatus.SC_OK);
                     }
                 } catch (NotFoundException e) {
-                    dynamoDBClient.createContents(contentsDocument);
-                    this.waitAMoment(HALF_A_SECOND);
-                    String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-                    logger.info(CONTENTS_CREATED);
+                    String createdContents = createContents(contentsDocument);
                     gatewayResponse.setBody(createdContents);
                     gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                 } catch (Exception e) {
@@ -137,6 +132,14 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
         return gatewayResponse;
+    }
+
+    private String createContents(ContentsDocument contentsDocument) throws CommunicationException, NotFoundException {
+        dynamoDBClient.createContents(contentsDocument);
+        this.waitAMoment(HALF_A_SECOND);
+        String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+        logger.info(CONTENTS_CREATED);
+        return createdContents;
     }
 
     private void handleFiles(ContentsDocument contentsDocument) throws IOException {
