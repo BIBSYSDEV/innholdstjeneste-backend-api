@@ -119,7 +119,9 @@ Resources:
             - Effect: Deny
               Principal: '*'
               Action: 'execute-api:Invoke'
-              Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*'
+              Resource:
+                - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/PUT/'
+                - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/POST/'
               Condition:
                 NotIpAddress:
                   'aws:SourceIp':
