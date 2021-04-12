@@ -20,6 +20,7 @@ Parameters:
     Description: DynamoDB table name
   BucketName:
     Type: String
+    Default: 'contentsinnholdsinfo'
     Description: Contents S3 bucket name
   MaxConcurrency:
     Type: Number
