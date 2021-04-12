@@ -97,24 +97,24 @@ Resources:
     Properties:
       BucketName: !Ref BucketName
       AccessControl: PublicRead
-      #DeletionPolicy: Retain
-    BucketPolicy:
-      Type: AWS::S3::BucketPolicy
-      Properties:
-        PolicyDocument:
-          Id: BucketPolicy
-          Version: 2012-10-17
-          Statement:
-            - Sid: PublicReadForGetBucketObjects
-              Effect: Allow
-              Principal: '*'
-              Action: 's3:GetObject'
-              Resource: !Join
-                - ''
-                - - 'arn:aws:s3:::'
-                  - !Ref BucketName
-                  - /*
-        Bucket: !Ref BucketName
+    DeletionPolicy: Retain
+  ContentsS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: BucketPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref BucketName
+                - /*
+      Bucket: !Ref BucketName
 
   ContentsDynamoDBTable:
     Type: AWS::DynamoDB::Table
