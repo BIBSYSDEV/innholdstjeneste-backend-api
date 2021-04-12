@@ -297,23 +297,23 @@ Resources:
                   schema:
                     type: string
                 - in: path
-                    name: firstLinkPart
-                    description: "Second last number of isbn"
-                    required: true
-                    schema:
-                      type: string
+                  name: firstLinkPart
+                  description: "Second last number of isbn"
+                  required: true
+                  schema:
+                    type: string
                 - in: path
-                    name: secondLinkPart
-                    description: "Last number of isbn"
-                    required: true
-                    schema:
-                      type: string
+                  name: secondLinkPart
+                  description: "Last number of isbn"
+                  required: true
+                  schema:
+                    type: string
                 - in: path
-                    name: filename
-                    description: "Filename on format [isbn].[fileextension]. Eg. 9788205377547.jpg"
-                    required: true
-                    schema:
-                      type: string
+                  name: filename
+                  description: "Filename on format [isbn].[fileextension]. Eg. 9788205377547.jpg"
+                  required: true
+                  schema:
+                    type: string
               x-amazon-apigateway-integration:
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentFileApiFunction.Arn}:live/invocations
