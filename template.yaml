@@ -98,6 +98,7 @@ Resources:
       BucketName: !Ref BucketName
       AccessControl: PublicRead
     DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
   ContentsS3BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
