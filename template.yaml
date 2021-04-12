@@ -18,6 +18,9 @@ Parameters:
     Type: String
     Default: 'contents'
     Description: DynamoDB table name
+  BucketName:
+    Type: String
+    Description: Contents S3 bucket name
   MaxConcurrency:
     Type: Number
     Default: 20
@@ -76,6 +79,41 @@ Resources:
                 Action:
                   - dynamodb:*
                 Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*'
+        - PolicyName: accessToS3Bucket
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource:
+                  - !Sub 'arn:aws:s3:::${S3BucketName}'
+                  - !Sub 'arn:aws:s3:::${S3BucketName}/*'
+
+  ContentsS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      AccessControl: PublicRead
+      DeletionPolicy: Retain
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: BucketPolicy
+          Version: 2012-10-17
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: '*'
+              Action: 's3:GetObject'
+              Resource: !Join
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref BucketName
+                  - /*
+        Bucket: !Ref BucketName
 
   ContentsDynamoDBTable:
     Type: AWS::DynamoDB::Table
@@ -143,7 +181,7 @@ Resources:
               produces:
                 - application/json
               parameters:
-                - in: isbn
+                - in: query
                   name: isbn
                   description: "isbn to look for i contents."
                   required: false
@@ -244,7 +282,59 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/definitions/Problem'
-
+          /{type}/{firstLinkPart}/{secondLinkPart}/{filename}:
+            get:
+              description: "Redirects to object in contents S3 bucket"
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              parameters:
+                - in: path
+                  name: type
+                  description: "File type ('small', 'large' or 'original' if image, 'audio' if audio file)"
+                  required: true
+                  schema:
+                    type: string
+                - in: path
+                    name: firstLinkPart
+                    description: "Second last number of isbn"
+                    required: true
+                    schema:
+                      type: string
+                - in: path
+                    name: secondLinkPart
+                    description: "Last number of isbn"
+                    required: true
+                    schema:
+                      type: string
+                - in: path
+                    name: filename
+                    description: "Filename on format [isbn].[fileextension]. Eg. 9788205377547.jpg"
+                    required: true
+                    schema:
+                      type: string
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentFileApiFunction.Arn}:live/invocations
+                responses: {}
+                httpMethod: POST
+                type: AWS_PROXY
+              responses:
+                '301':
+                  description: ""
+                '404':
+                  description: "Not Found"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Contents'
+                '500':
+                  description: "Internal Server Error"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/definitions/Problem'
         definitions:
           Contents:
             type: object
@@ -278,6 +368,32 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           TABLE_NAME: !Ref DynamoDBTableName
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+            RestApiId: !Ref ContentsApi
+
+  GetContentFileApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Tracing: Active
+      Handler: no.unit.bibs.contents.GetContentFileApiHandler::handleRequest
+      Runtime: java11
+      MemorySize: 1024
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 1
+      Role: !GetAtt AccessDynamoDBRole.Arn
+      Environment:
+        Variables:
+          ALLOWED_ORIGIN: '*'
+          TABLE_NAME: !Ref DynamoDBTableName
+          BUCKET_NAME: !Ref BucketName
       Events:
         GetEvent:
           Type: Api

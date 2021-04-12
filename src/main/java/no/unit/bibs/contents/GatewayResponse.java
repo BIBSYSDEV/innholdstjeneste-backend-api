@@ -40,6 +40,11 @@ public class GatewayResponse {
         this(environment, EMPTY_JSON, HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
+    public GatewayResponse(Environment environment, String location) {
+        this.body = EMPTY_JSON;
+        this.generateDefaultHeadersWithLocation(environment, location);
+    }
+
     /**
      * GatewayResponse convenience constructor to set response status and body with payload direct.
      *
@@ -96,6 +101,20 @@ public class GatewayResponse {
         headers.put("Access-Control-Allow-Methods", "OPTIONS,GET");
         headers.put("Access-Control-Allow-Credentials", "true");
         headers.put("Access-Control-Allow-Headers", HttpHeaders.CONTENT_TYPE);
+        this.headers = Map.copyOf(headers);
+    }
+
+    private void generateDefaultHeadersWithLocation(Environment environment, String location) {
+        Map<String, String> headers = new ConcurrentHashMap<>();
+        headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        final String corsAllowDomain = environment.readEnv(ALLOWED_ORIGIN_ENV);
+        if (StringUtils.isNotEmpty(corsAllowDomain)) {
+            headers.put(CORS_ALLOW_ORIGIN_HEADER, corsAllowDomain);
+        }
+        headers.put("Access-Control-Allow-Methods", "OPTIONS,GET");
+        headers.put("Access-Control-Allow-Credentials", "true");
+        headers.put("Access-Control-Allow-Headers", HttpHeaders.CONTENT_TYPE);
+        headers.put(HttpHeaders.LOCATION, location);
         this.headers = Map.copyOf(headers);
     }
 

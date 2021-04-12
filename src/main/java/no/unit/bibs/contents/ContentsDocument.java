@@ -38,10 +38,10 @@ public class ContentsDocument implements JsonSerializable {
     private final String promotional;
     private final String summary;
     private final String review;
-    private final String imageSmall;
-    private final String imageLarge;
-    private final String imageOriginal;
-    private final String audioFile;
+    private String imageSmall;
+    private String imageLarge;
+    private String imageOriginal;
+    private String audioFile;
     private final String source;
     private final Instant modified;
     private final Instant created;
@@ -174,6 +174,22 @@ public class ContentsDocument implements JsonSerializable {
         return modified;
     }
 
+    public void setImageSmall(String imageSmall) {
+        this.imageSmall = imageSmall;
+    }
+
+    public void setImageLarge(String imageLarge) {
+        this.imageLarge = imageLarge;
+    }
+
+    public void setImageOriginal(String imageOriginal) {
+        this.imageOriginal = imageOriginal;
+    }
+
+    public void setAudioFile(String audioFile) {
+        this.audioFile = audioFile;
+    }
+
     @JacocoGenerated
     @Override
     public boolean equals(Object o) {
@@ -185,14 +201,14 @@ public class ContentsDocument implements JsonSerializable {
         }
         ContentsDocument that = (ContentsDocument) o;
         return Objects.equals(author, that.author)
-            && Objects.equals(title, that.title)
-            && Objects.equals(dateOfPublication, that.dateOfPublication)
-            && Objects.equals(modified, that.modified)
-            && Objects.equals(created, that.created)
-            && Objects.equals(descriptionShort, that.descriptionShort)
-            && Objects.equals(descriptionLong, that.descriptionLong)
-            && Objects.equals(source, that.source)
-            && Objects.equals(isbn, that.isbn);
+                && Objects.equals(title, that.title)
+                && Objects.equals(dateOfPublication, that.dateOfPublication)
+                && Objects.equals(modified, that.modified)
+                && Objects.equals(created, that.created)
+                && Objects.equals(descriptionShort, that.descriptionShort)
+                && Objects.equals(descriptionLong, that.descriptionLong)
+                && Objects.equals(source, that.source)
+                && Objects.equals(isbn, that.isbn);
     }
 
     @JacocoGenerated
