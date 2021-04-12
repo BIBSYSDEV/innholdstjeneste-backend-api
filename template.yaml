@@ -398,7 +398,7 @@ Resources:
         GetEvent:
           Type: Api
           Properties:
-            Path: /
+            Path: /{type}/{firstLinkPart}/{secondLinkPart}/{filename}
             Method: get
             RestApiId: !Ref ContentsApi
 
