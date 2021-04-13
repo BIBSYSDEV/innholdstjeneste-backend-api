@@ -132,6 +132,25 @@ Resources:
       TableName: !Ref DynamoDBTableName
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+  DynamoDBTableNameContentsParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: dynamoDBTableNameContents
+      Type: String
+      Value: !Ref DynamoDBTableName
+      Description: Name of the contents table in DynamoDB
+      AllowedPattern: "^[a-zA-Z]{1,10}$"
+
+  DynamoDBStreamArnContentsParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: dynamoDBStreamArnContents
+      Type: String
+      Value: !GetAtt ContentsDynamoDBTable.StreamArn
+      Description: Arn to contents table DynamoDB stream
 
   ContentsApi:
     Type: AWS::Serverless::Api
