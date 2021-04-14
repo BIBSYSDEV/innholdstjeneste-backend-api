@@ -41,6 +41,7 @@ public class CreateContentsApiHandlerTest {
     private CreateContentsApiHandler handler;
     private Context context;
     private DynamoDBClient dynamoDBClient;
+    private S3Client s3Client;
 
 
     /**
@@ -51,13 +52,14 @@ public class CreateContentsApiHandlerTest {
         environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
         dynamoDBClient = mock(DynamoDBClient.class);
-        handler = new CreateContentsApiHandler(environment, dynamoDBClient);
+        s3Client = mock(S3Client.class);
+        handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
         this.context = mock(Context.class);
     }
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        CreateContentsApiHandler handler = new CreateContentsApiHandler(environment, dynamoDBClient);
+        CreateContentsApiHandler handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
         var response =  new no.unit.bibs.contents.GatewayResponse(environment, MESSAGE, HttpStatus.SC_OK);
         Integer statusCode = handler.getSuccessStatusCode(null, response);
         assertEquals(statusCode, HttpStatus.SC_OK);
@@ -65,7 +67,7 @@ public class CreateContentsApiHandlerTest {
 
     @Test
     void handlerReturnsSearchResultsWhenQueryIsSingleTerm() throws ApiGatewayException, JsonProcessingException {
-        var handler = new CreateContentsApiHandler(environment, dynamoDBClient);
+        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         doNothing().when(dynamoDBClient).createContents(contentsDocument);
@@ -83,7 +85,7 @@ public class CreateContentsApiHandlerTest {
         doNothing().when(dynamoDBClient).createContents(contentsDocument);
         when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
         ContentsRequest request = new ContentsRequest(contentsDocument);
-        var handler = new CreateContentsApiHandler(environment, dynamoDBClient);
+        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertTrue(actual.getBody().contains(CreateContentsApiHandler.COULD_NOT_INDEX_RECORD_PROVIDED));
     }
