@@ -12,15 +12,12 @@ import nva.commons.utils.StringUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 import static java.util.Objects.isNull;
 
 public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
 
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to CreateContentsApiHandler";
     public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not persist provided contents. ";
-    public static final String ERROR_STORING_FILE = "error storing file: ";
 
     private final DynamoDBClient dynamoDBClient;
     private final S3Client s3Client;
@@ -63,21 +60,11 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         logger.error("json input looks like that :" + contentsDocument.toString());
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
         if (StringUtils.isNotEmpty(contentsDocument.getIsbn())) {
-
-            try {
-                s3Client.handleFiles(contentsDocument);
-                logger.error("This is my IndexDocument to index: " + contentsDocument.toString());
-                dynamoDBClient.createContents(contentsDocument);
-                String createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-                gatewayResponse.setBody(createContents);
-                gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
-            } catch (IOException e) {
-                String msg = ERROR_STORING_FILE + e.getMessage();
-                logger.error(msg, e);
-                gatewayResponse.setErrorBody(msg);
-                gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
-            }
-
+            s3Client.handleFiles(contentsDocument);
+            dynamoDBClient.createContents(contentsDocument);
+            String createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+            gatewayResponse.setBody(createContents);
+            gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
         } else {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + contentsDocument.toString());
             gatewayResponse.setErrorBody(COULD_NOT_INDEX_RECORD_PROVIDED + contentsDocument.toString());

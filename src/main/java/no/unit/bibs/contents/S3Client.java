@@ -25,6 +25,7 @@ public class S3Client {
     private static final Logger logger = LoggerFactory.getLogger(S3Client.class);
 
     public static final String ERROR_UPLOADING_FILE = "Error uploading file";
+    public static final String ERROR_STORING_FILE = "error storing file: ";
     public static final String CANNOT_CONNECT_TO_S3 = "Cannot connect to S3";
 
     public static final String CONTENT_DISPOSITION_FILENAME_TEMPLATE = "filename=\"%s\"";
@@ -88,53 +89,71 @@ public class S3Client {
      * @throws IOException IOException
      */
     @JacocoGenerated
-    public void handleFiles(ContentsDocument contentsDocument) throws IOException {
-        if (StringUtils.isNotEmpty(contentsDocument.getImageSmall())
-                && contentsDocument.getImageSmall().startsWith(HTTP_PREFIX)) {
-            String objectKey = putFileS3(
-                    contentsDocument.getIsbn(),
-                    contentsDocument.getImageSmall(),
-                    SMALL,
-                    FILE_EXTENSION_JPG,
-                    MIME_TYPE_IMAGE_JPG
-            );
-            contentsDocument.setImageSmall(objectKey);
+    @SuppressWarnings("PMD.NPathComplexity")
+    public void handleFiles(ContentsDocument contentsDocument) {
+
+        try {
+            if (StringUtils.isNotEmpty(contentsDocument.getImageSmall())
+                    && contentsDocument.getImageSmall().startsWith(HTTP_PREFIX)) {
+                String objectKey = putFileS3(
+                        contentsDocument.getIsbn(),
+                        contentsDocument.getImageSmall(),
+                        SMALL,
+                        FILE_EXTENSION_JPG,
+                        MIME_TYPE_IMAGE_JPG
+                );
+                contentsDocument.setImageSmall(objectKey);
+            }
+        } catch (IOException e) {
+            logger.error(ERROR_STORING_FILE + e.getMessage(), e);
         }
 
-        if (StringUtils.isNotEmpty(contentsDocument.getImageLarge())
-                && contentsDocument.getImageLarge().startsWith(HTTP_PREFIX)) {
-            String objectKey = putFileS3(
-                    contentsDocument.getIsbn(),
-                    contentsDocument.getImageLarge(),
-                    LARGE,
-                    FILE_EXTENSION_JPG,
-                    MIME_TYPE_IMAGE_JPG
-            );
-            contentsDocument.setImageLarge(objectKey);
+        try {
+            if (StringUtils.isNotEmpty(contentsDocument.getImageLarge())
+                    && contentsDocument.getImageLarge().startsWith(HTTP_PREFIX)) {
+                String objectKey = putFileS3(
+                        contentsDocument.getIsbn(),
+                        contentsDocument.getImageLarge(),
+                        LARGE,
+                        FILE_EXTENSION_JPG,
+                        MIME_TYPE_IMAGE_JPG
+                );
+                contentsDocument.setImageLarge(objectKey);
+            }
+        } catch (IOException e) {
+            logger.error(ERROR_STORING_FILE + e.getMessage(), e);
         }
 
-        if (StringUtils.isNotEmpty(contentsDocument.getImageOriginal())
-                && contentsDocument.getImageOriginal().startsWith(HTTP_PREFIX)) {
-            String objectKey = putFileS3(
-                    contentsDocument.getIsbn(),
-                    contentsDocument.getImageOriginal(),
-                    ORIGINAL,
-                    FILE_EXTENSION_JPG,
-                    MIME_TYPE_IMAGE_JPG
-            );
-            contentsDocument.setImageOriginal(objectKey);
+        try {
+            if (StringUtils.isNotEmpty(contentsDocument.getImageOriginal())
+                    && contentsDocument.getImageOriginal().startsWith(HTTP_PREFIX)) {
+                String objectKey = putFileS3(
+                        contentsDocument.getIsbn(),
+                        contentsDocument.getImageOriginal(),
+                        ORIGINAL,
+                        FILE_EXTENSION_JPG,
+                        MIME_TYPE_IMAGE_JPG
+                );
+                contentsDocument.setImageOriginal(objectKey);
+            }
+        } catch (IOException e) {
+            logger.error(ERROR_STORING_FILE + e.getMessage(), e);
         }
 
-        if (StringUtils.isNotEmpty(contentsDocument.getAudioFile())
-                && contentsDocument.getAudioFile().startsWith(HTTP_PREFIX)) {
-            String objectKey = putFileS3(
-                    contentsDocument.getIsbn(),
-                    contentsDocument.getAudioFile(),
-                    AUDIO,
-                    FILE_EXTENSION_WAV,
-                    MIME_TYPE_AUDIO_WAV
-            );
-            contentsDocument.setAudioFile(objectKey);
+        try {
+            if (StringUtils.isNotEmpty(contentsDocument.getAudioFile())
+                    && contentsDocument.getAudioFile().startsWith(HTTP_PREFIX)) {
+                String objectKey = putFileS3(
+                        contentsDocument.getIsbn(),
+                        contentsDocument.getAudioFile(),
+                        AUDIO,
+                        FILE_EXTENSION_WAV,
+                        MIME_TYPE_AUDIO_WAV
+                );
+                contentsDocument.setAudioFile(objectKey);
+            }
+        } catch (IOException e) {
+            logger.error(ERROR_STORING_FILE + e.getMessage(), e);
         }
     }
 
@@ -170,9 +189,9 @@ public class S3Client {
      * Uploads inputstream to S3 using a presigned upload write url.
      *
      * @param inputStream inputStream
-     * @param objectName objectName
-     * @param filename filename
-     * @param mimeType mimeType
+     * @param objectName  objectName
+     * @param filename    filename
+     * @param mimeType    mimeType
      * @throws IOException IOException
      */
     @JacocoGenerated
