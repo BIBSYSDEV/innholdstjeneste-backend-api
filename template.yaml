@@ -440,6 +440,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           TABLE_NAME: !Ref DynamoDBTableName
+          BUCKET_NAME: !Ref BucketName
       Events:
         PostEvent:
           Type: Api
