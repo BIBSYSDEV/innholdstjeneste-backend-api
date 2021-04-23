@@ -14,8 +14,6 @@ import nva.commons.utils.StringUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 import static java.util.Objects.isNull;
 
 public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
@@ -26,7 +24,6 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     public static final String CONTENTS_UPDATED = "contents updated";
     public static final String FAILED_AFTER_PERSISTING = "failed after persisting: ";
     public static final String ERROR_IN_UPDATE_FUNCTION = "error in update function: ";
-    public static final String ERROR_STORING_FILE = "error storing file: ";
     public static final String THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST = "This is my ContentsDocument to persist: ";
     public static final String JSON_INPUT_LOOKS_LIKE_THAT = "json input looks like that :";
     public static final int HALF_A_SECOND = 500;
@@ -105,11 +102,6 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                 gatewayResponse.setErrorBody(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument.toString());
                 gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
             }
-        } catch (IOException e) {
-            String msg = ERROR_STORING_FILE + e.getMessage();
-            logger.error(msg, e);
-            gatewayResponse.setErrorBody(msg);
-            gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         } catch (Exception e) {
             String msg = ERROR_IN_UPDATE_FUNCTION + e.getMessage();
             logger.error(msg, e);

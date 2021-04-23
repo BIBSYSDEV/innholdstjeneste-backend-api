@@ -303,7 +303,7 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/definitions/Problem'
-          /{type}/{firstLinkPart}/{secondLinkPart}/{filename}:
+          /{type}/{firstLinkPart}/{secondLinkPart}/{filename}: # TODO: Change as needed
             get:
               description: "Redirects to object in contents S3 bucket"
               consumes:
@@ -419,7 +419,7 @@ Resources:
         GetEvent:
           Type: Api
           Properties:
-            Path: /{type}/{firstLinkPart}/{secondLinkPart}/{filename}
+            Path: /{type}/{firstLinkPart}/{secondLinkPart}/{filename} # TODO: Change as needed
             Method: get
             RestApiId: !Ref ContentsApi
 
@@ -440,6 +440,7 @@ Resources:
         Variables:
           ALLOWED_ORIGIN: '*'
           TABLE_NAME: !Ref DynamoDBTableName
+          BUCKET_NAME: !Ref BucketName
       Events:
         PostEvent:
           Type: Api
