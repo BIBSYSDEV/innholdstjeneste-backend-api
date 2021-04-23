@@ -89,12 +89,10 @@ public class S3Client {
      * @throws IOException IOException
      */
     @JacocoGenerated
-    @SuppressWarnings("PMD.NPathComplexity")
     public void handleFiles(ContentsDocument contentsDocument) {
 
         try {
-            if (StringUtils.isNotEmpty(contentsDocument.getImageSmall())
-                    && contentsDocument.getImageSmall().startsWith(HTTP_PREFIX)) {
+            if (isDownloadableFile(contentsDocument.getImageSmall())) {
                 String objectKey = putFileS3(
                         contentsDocument.getIsbn(),
                         contentsDocument.getImageSmall(),
@@ -109,8 +107,7 @@ public class S3Client {
         }
 
         try {
-            if (StringUtils.isNotEmpty(contentsDocument.getImageLarge())
-                    && contentsDocument.getImageLarge().startsWith(HTTP_PREFIX)) {
+            if (isDownloadableFile(contentsDocument.getImageLarge())) {
                 String objectKey = putFileS3(
                         contentsDocument.getIsbn(),
                         contentsDocument.getImageLarge(),
@@ -125,8 +122,7 @@ public class S3Client {
         }
 
         try {
-            if (StringUtils.isNotEmpty(contentsDocument.getImageOriginal())
-                    && contentsDocument.getImageOriginal().startsWith(HTTP_PREFIX)) {
+            if (isDownloadableFile(contentsDocument.getImageOriginal())) {
                 String objectKey = putFileS3(
                         contentsDocument.getIsbn(),
                         contentsDocument.getImageOriginal(),
@@ -141,8 +137,7 @@ public class S3Client {
         }
 
         try {
-            if (StringUtils.isNotEmpty(contentsDocument.getAudioFile())
-                    && contentsDocument.getAudioFile().startsWith(HTTP_PREFIX)) {
+            if (isDownloadableFile(contentsDocument.getAudioFile())) {
                 String objectKey = putFileS3(
                         contentsDocument.getIsbn(),
                         contentsDocument.getAudioFile(),
@@ -155,6 +150,18 @@ public class S3Client {
         } catch (IOException e) {
             logger.error(ERROR_STORING_FILE + e.getMessage(), e);
         }
+    }
+
+    private boolean isDownloadableFile(String fileUrl) throws IOException {
+        if (StringUtils.isNotEmpty(fileUrl) && fileUrl.startsWith(HTTP_PREFIX)) {
+            URL url = new URL(fileUrl);
+            HttpURLConnection.setFollowRedirects(true);
+            HttpURLConnection huc = (HttpURLConnection) url.openConnection();
+            huc.setRequestMethod(HttpMethod.HEAD.name());
+            int responseCode = huc.getResponseCode();
+            return responseCode < 300;
+        }
+        return false;
     }
 
     @JacocoGenerated
