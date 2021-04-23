@@ -303,7 +303,7 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/definitions/Problem'
-          /{type}/{firstLinkPart}/{secondLinkPart}/{filename}:
+          /{type}/{firstLinkPart}/{secondLinkPart}/{filename}: # TODO: Change as needed
             get:
               description: "Redirects to object in contents S3 bucket"
               consumes:
