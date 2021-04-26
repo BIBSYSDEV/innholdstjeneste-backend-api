@@ -4,6 +4,7 @@ import com.amazonaws.util.json.Jackson;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import nva.commons.exceptions.GatewayResponseSerializingException;
 import nva.commons.utils.Environment;
+import nva.commons.utils.JacocoGenerated;
 import nva.commons.utils.StringUtils;
 import org.apache.http.HttpStatus;
 
@@ -30,12 +31,18 @@ public class GatewayResponse {
     /**
      * GatewayResponse contains response status, response headers and body with payload resp. error messages.
      */
+    @JacocoGenerated
     public GatewayResponse() {
         this(new Environment(), EMPTY_JSON, HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
     public GatewayResponse(Environment environment) {
         this(environment, EMPTY_JSON, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    }
+
+    public GatewayResponse(Environment environment, String location) {
+        this.body = EMPTY_JSON;
+        this.generateDefaultHeadersWithLocation(environment, location);
     }
 
     /**
@@ -94,6 +101,20 @@ public class GatewayResponse {
         headers.put("Access-Control-Allow-Methods", "OPTIONS,GET");
         headers.put("Access-Control-Allow-Credentials", "true");
         headers.put("Access-Control-Allow-Headers", HttpHeaders.CONTENT_TYPE);
+        this.headers = Map.copyOf(headers);
+    }
+
+    private void generateDefaultHeadersWithLocation(Environment environment, String location) {
+        Map<String, String> headers = new ConcurrentHashMap<>();
+        headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        final String corsAllowDomain = environment.readEnv(ALLOWED_ORIGIN_ENV);
+        if (StringUtils.isNotEmpty(corsAllowDomain)) {
+            headers.put(CORS_ALLOW_ORIGIN_HEADER, corsAllowDomain);
+        }
+        headers.put("Access-Control-Allow-Methods", "OPTIONS,GET");
+        headers.put("Access-Control-Allow-Credentials", "true");
+        headers.put("Access-Control-Allow-Headers", HttpHeaders.CONTENT_TYPE);
+        headers.put(HttpHeaders.LOCATION, location);
         this.headers = Map.copyOf(headers);
     }
 

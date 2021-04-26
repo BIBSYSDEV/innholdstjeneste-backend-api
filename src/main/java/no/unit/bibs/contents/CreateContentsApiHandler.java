@@ -1,7 +1,5 @@
 package no.unit.bibs.contents;
 
-import static java.util.Objects.isNull;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.exceptions.ApiGatewayException;
@@ -14,25 +12,30 @@ import nva.commons.utils.StringUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
+import static java.util.Objects.isNull;
+
 public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
 
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to CreateContentsApiHandler";
     public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not persist provided contents. ";
 
     private final DynamoDBClient dynamoDBClient;
+    private final S3Client s3Client;
 
     @JacocoGenerated
     public CreateContentsApiHandler() {
         this(new Environment());
     }
 
+    @JacocoGenerated
     public CreateContentsApiHandler(Environment environment) {
-        this(environment, new DynamoDBClient(environment));
+        this(environment, new DynamoDBClient(environment), new S3Client(environment));
     }
 
-    public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
+    public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient, S3Client s3Client) {
         super(ContentsRequest.class, environment, LoggerFactory.getLogger(CreateContentsApiHandler.class));
         this.dynamoDBClient = dynamoDBClient;
+        this.s3Client = s3Client;
     }
 
 
@@ -40,9 +43,9 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      * Implements the main logic of the handler. Any exception thrown by this method will be handled by {@link
      * RestRequestHandler#handleExpectedException} method.
      *
-     * @param request       The input object to the method. Usually a deserialized json.
+     * @param request     The input object to the method. Usually a deserialized json.
      * @param requestInfo Request headers and path.
-     * @param context     the ApiGateway context.ucket
+     * @param context     the ApiGateway context.
      * @return the Response body that is going to be serialized in json
      * @throws ApiGatewayException all exceptions are caught by writeFailure and mapped to error codes through the
      *                             method {@link RestRequestHandler#getFailureStatusCode}
@@ -57,7 +60,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         logger.error("json input looks like that :" + contentsDocument.toString());
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
         if (StringUtils.isNotEmpty(contentsDocument.getIsbn())) {
-            logger.error("This is my IndexDocument to index: " + contentsDocument.toString());
+            s3Client.handleFiles(contentsDocument);
             dynamoDBClient.createContents(contentsDocument);
             String createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
             gatewayResponse.setBody(createContents);

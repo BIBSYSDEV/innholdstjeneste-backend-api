@@ -1,6 +1,7 @@
 package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import no.unit.bibs.contents.exception.CommunicationException;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
@@ -25,22 +26,26 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     public static final String ERROR_IN_UPDATE_FUNCTION = "error in update function: ";
     public static final String THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST = "This is my ContentsDocument to persist: ";
     public static final String JSON_INPUT_LOOKS_LIKE_THAT = "json input looks like that :";
-    public static final int HALV_A_SECOND = 500;
+    public static final int HALF_A_SECOND = 500;
 
     private final DynamoDBClient dynamoDBClient;
+    private final S3Client s3Client;
 
     @JacocoGenerated
     public UpdateContentsApiHandler() {
         this(new Environment());
     }
 
+    @JacocoGenerated
     public UpdateContentsApiHandler(Environment environment) {
-        this(environment, new DynamoDBClient(environment));
+        this(environment, new DynamoDBClient(environment), new S3Client(environment));
     }
 
-    public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
+
+    public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient, S3Client s3Client) {
         super(ContentsRequest.class, environment, LoggerFactory.getLogger(UpdateContentsApiHandler.class));
         this.dynamoDBClient = dynamoDBClient;
+        this.s3Client = s3Client;
     }
 
 
@@ -50,7 +55,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      *
      * @param request     The input object to the method. Usually a deserialized json.
      * @param requestInfo Request headers and path.
-     * @param context     the ApiGateway context.ucket
+     * @param context     the ApiGateway context.
      * @return the Response body that is going to be serialized in json
      * @throws ApiGatewayException all exceptions are caught by writeFailure and mapped to error codes through the
      *                             method {@link RestRequestHandler#getFailureStatusCode}
@@ -66,14 +71,14 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
         try {
             if (StringUtils.isNotEmpty(contentsDocument.getIsbn())) {
+
+                s3Client.handleFiles(contentsDocument);
+
                 logger.debug(THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST + contentsDocument.toString());
                 try {
                     String contents = dynamoDBClient.getContents(contentsDocument.getIsbn());
                     if (StringUtils.isEmpty(contents)) {
-                        dynamoDBClient.createContents(contentsDocument);
-                        this.waitAMoment(HALV_A_SECOND);
-                        String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-                        logger.info(CONTENTS_CREATED);
+                        String createdContents = createContents(contentsDocument);
                         gatewayResponse.setBody(createdContents);
                         gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                     } else {
@@ -83,10 +88,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                         gatewayResponse.setStatusCode(HttpStatus.SC_OK);
                     }
                 } catch (NotFoundException e) {
-                    dynamoDBClient.createContents(contentsDocument);
-                    this.waitAMoment(HALV_A_SECOND);
-                    String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-                    logger.info(CONTENTS_CREATED);
+                    String createdContents = createContents(contentsDocument);
                     gatewayResponse.setBody(createdContents);
                     gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
                 } catch (Exception e) {
@@ -109,6 +111,15 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         return gatewayResponse;
     }
 
+    private String createContents(ContentsDocument contentsDocument) throws CommunicationException, NotFoundException {
+        dynamoDBClient.createContents(contentsDocument);
+        this.waitAMoment(HALF_A_SECOND);
+        String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+        logger.info(CONTENTS_CREATED);
+        return createdContents;
+    }
+
+    @JacocoGenerated
     private void waitAMoment(int millisec) {
         try {
             Thread.sleep(millisec);
