@@ -34,13 +34,13 @@ public class S3Client {
     public static final String OBJECT_KEY_TEMPLATE = "/%s/%s/%s/%s";
     public static final String FILE_NAME_TEMPLATE = "%s.%s";
     public static final String FILE_EXTENSION_JPG = "jpg";
-    public static final String FILE_EXTENSION_WAV = "wav";
+    public static final String FILE_EXTENSION_MP3 = "mp3";
     public static final String SMALL = "small";
     public static final String LARGE = "large";
     public static final String ORIGINAL = "original";
     public static final String AUDIO = "audio";
     public static final String MIME_TYPE_IMAGE_JPG = "image/jpg";
-    public static final String MIME_TYPE_AUDIO_WAV = "audio/wav";
+    public static final String MIME_TYPE_AUDIO_MP3 = "audio/mpeg";
     public static final String HTTP_PREFIX = "http";
 
     private static final String AWS_REGION = "AWS_REGION";
@@ -142,8 +142,8 @@ public class S3Client {
                         contentsDocument.getIsbn(),
                         contentsDocument.getAudioFile(),
                         AUDIO,
-                        FILE_EXTENSION_WAV,
-                        MIME_TYPE_AUDIO_WAV
+                        FILE_EXTENSION_MP3,
+                        MIME_TYPE_AUDIO_MP3
                 );
                 contentsDocument.setAudioFile(objectKey);
             }
