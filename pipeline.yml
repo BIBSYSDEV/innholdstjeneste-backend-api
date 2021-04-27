@@ -108,8 +108,7 @@ Resources:
       Name: /contents/s3-storage-name
       Type: String
       Value: !Ref ContentsS3StorageName
-      Description: Name of the contents table in DynamoDB
-      AllowedPattern: "^[a-zA-Z]{1,10}$"
+      Description: Name of the S3-bucket to store images and audio files
 
   ArtifactsBucket:
     Type: 'AWS::S3::Bucket'
