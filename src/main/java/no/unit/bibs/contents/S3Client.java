@@ -38,7 +38,7 @@ public class S3Client {
     public static final String SMALL = "small";
     public static final String LARGE = "large";
     public static final String ORIGINAL = "original";
-    public static final String AUDIO = "audio";
+    public static final String MP3 = "mp3";
     public static final String MIME_TYPE_IMAGE_JPG = "image/jpg";
     public static final String MIME_TYPE_AUDIO_MP3 = "audio/mpeg";
     public static final String HTTP_PREFIX = "http";
@@ -141,7 +141,7 @@ public class S3Client {
                 String objectKey = putFileS3(
                         contentsDocument.getIsbn(),
                         contentsDocument.getAudioFile(),
-                        AUDIO,
+                        MP3,
                         FILE_EXTENSION_MP3,
                         MIME_TYPE_AUDIO_MP3
                 );
