@@ -20,7 +20,7 @@ Parameters:
     Description: DynamoDB table name
   BucketName:
     Type: String
-    Default: 'contentsinnholdsinfo'
+    Default: 'contents-storage-{{resolve:ssm:environment:1}}'
     Description: Contents S3 bucket name
   MaxConcurrency:
     Type: Number
@@ -138,7 +138,7 @@ Resources:
   DynamoDBTableNameContentsParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: dynamoDBTableNameContents
+      Name: /contents/dynamoDBTableNameContents
       Type: String
       Value: !Ref DynamoDBTableName
       Description: Name of the contents table in DynamoDB
@@ -147,7 +147,7 @@ Resources:
   DynamoDBStreamArnContentsParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: dynamoDBStreamArnContents
+      Name: /contents/dynamoDBStreamArnContents
       Type: String
       Value: !GetAtt ContentsDynamoDBTable.StreamArn
       Description: Arn to contents table DynamoDB stream
