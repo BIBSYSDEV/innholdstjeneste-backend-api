@@ -20,7 +20,6 @@ Parameters:
     Description: DynamoDB table name
   BucketName:
     Type: String
-    Default: 'contents-storage-{{resolve:ssm:environment:1}}'
     Description: Contents S3 bucket name
   MaxConcurrency:
     Type: Number
