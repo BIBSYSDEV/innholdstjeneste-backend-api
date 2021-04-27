@@ -57,7 +57,7 @@ Parameters:
     Description: CloudFormation stack template configuration filename in the Git repo
   ContentsS3StorageName:
       Type: String
-      Default: 'contents-backend-s3-storage'
+      Default: ''
       Description: Contents S3 bucket name
   DeployStackName:
     Type: String
@@ -428,6 +428,7 @@ Resources:
                 "StackTemplatePath": "${StackTemplatePath}",
                 "StackTemplateConfigurationPath": "${StackTemplateConfigurationPath}",
                 "DeployStackName": "${DeployStackName}",
+                "ContentsS3StorageName": "${ContentsS3StorageName}",
                 "CodeStarConnectionArn": "/github-connection",
                 "GitRepo": "${GitRepo}",
                 "GitBranch": "${GitBranch}",
