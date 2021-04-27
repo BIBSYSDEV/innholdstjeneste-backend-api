@@ -56,7 +56,7 @@ Parameters:
     Default: template-configuration.json
     Description: CloudFormation stack template configuration filename in the Git repo
   ContentsS3StorageName:
-      Type: AWS::SSM::Parameter::Value<String>
+      Type: String
       Default: 'contents-storage'
       Description: Contents S3 bucket name
   DeployStackName:
