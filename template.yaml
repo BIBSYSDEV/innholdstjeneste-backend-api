@@ -19,7 +19,8 @@ Parameters:
     Default: 'contents'
     Description: DynamoDB table name
   BucketName:
-    Type: String
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: '/contents/s3-storage-name'
     Description: Contents S3 bucket name
   MaxConcurrency:
     Type: Number
