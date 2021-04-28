@@ -31,7 +31,7 @@ public class S3Client {
     public static final String CONTENT_DISPOSITION_FILENAME_TEMPLATE = "filename=\"%s\"";
 
     public static final String ERROR_DOWNLOADING_FILE = "ISBN '%s' has invalid URL '%s' for file '%s' (%s): %s";
-    public static final String OBJECT_KEY_TEMPLATE = "/%s/%s/%s/%s";
+    public static final String OBJECT_KEY_TEMPLATE = "%s/%s/%s/%s/%s";
     public static final String FILE_NAME_TEMPLATE = "%s.%s";
     public static final String FILE_EXTENSION_JPG = "jpg";
     public static final String FILE_EXTENSION_MP3 = "mp3";
@@ -39,6 +39,8 @@ public class S3Client {
     public static final String LARGE = "large";
     public static final String ORIGINAL = "original";
     public static final String MP3 = "mp3";
+    public static final String AUDIO = "audio";
+    public static final String IMAGES = "images";
     public static final String MIME_TYPE_IMAGE_JPG = "image/jpg";
     public static final String MIME_TYPE_AUDIO_MP3 = "audio/mpeg";
     public static final String HTTP_PREFIX = "http";
@@ -96,6 +98,7 @@ public class S3Client {
                 String objectKey = putFileS3(
                         contentsDocument.getIsbn(),
                         contentsDocument.getImageSmall(),
+                        IMAGES,
                         SMALL,
                         FILE_EXTENSION_JPG,
                         MIME_TYPE_IMAGE_JPG
@@ -111,6 +114,7 @@ public class S3Client {
                 String objectKey = putFileS3(
                         contentsDocument.getIsbn(),
                         contentsDocument.getImageLarge(),
+                        IMAGES,
                         LARGE,
                         FILE_EXTENSION_JPG,
                         MIME_TYPE_IMAGE_JPG
@@ -126,6 +130,7 @@ public class S3Client {
                 String objectKey = putFileS3(
                         contentsDocument.getIsbn(),
                         contentsDocument.getImageOriginal(),
+                        IMAGES,
                         ORIGINAL,
                         FILE_EXTENSION_JPG,
                         MIME_TYPE_IMAGE_JPG
@@ -141,6 +146,7 @@ public class S3Client {
                 String objectKey = putFileS3(
                         contentsDocument.getIsbn(),
                         contentsDocument.getAudioFile(),
+                        AUDIO,
                         MP3,
                         FILE_EXTENSION_MP3,
                         MIME_TYPE_AUDIO_MP3
@@ -165,7 +171,7 @@ public class S3Client {
     }
 
     @JacocoGenerated
-    private String putFileS3(String isbn, String url, String type, String fileExtension, String mimeType)
+    private String putFileS3(String isbn, String url, String type, String subtype, String fileExtension, String mimeType)
             throws IOException {
 
         String fileName = String.format(FILE_NAME_TEMPLATE, isbn, fileExtension);
@@ -180,7 +186,7 @@ public class S3Client {
         String secondLinkPart = isbn.substring(isbn.length() - 2, isbn.length() - 1);
         String firstLinkPart = isbn.substring(isbn.length() - 1);
 
-        String objectKey = String.format(OBJECT_KEY_TEMPLATE, type, firstLinkPart, secondLinkPart, fileName);
+        String objectKey = String.format(OBJECT_KEY_TEMPLATE, type, subtype, firstLinkPart, secondLinkPart, fileName);
         try (InputStream inputStream = downloadUrl.openStream()) {
             uploadFile(
                     inputStream,
