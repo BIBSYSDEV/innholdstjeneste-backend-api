@@ -166,7 +166,7 @@ public class DynamoDBClientTest {
     @Test
     public void testConditionalAdd() {
         Map<String, String> map = new HashMap<>();
-        dynamoDBClient.conditionalAdd(map, SAMPLE_TERM, KEY);
+        dynamoDBClient.conditionalAdd(map, SAMPLE_TERM, KEY, false);
         assertEquals(SAMPLE_TERM, map.get(KEY));
     }
 
