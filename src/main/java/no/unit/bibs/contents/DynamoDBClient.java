@@ -184,7 +184,7 @@ public class DynamoDBClient {
     protected void conditionalAdd(Map<String, String> updateValueMap, String value, String key, boolean unescapeHtml) {
         if (StringUtils.isNotEmpty(value)) {
             String escaped = value;
-            if (unescapeHtml) {
+            if (unescapeHtml && StringHelper.isValidHtmlEscapeCode(value)) {
                 escaped = StringEscapeUtils.unescapeHtml4(value);
             }
             updateValueMap.put(key, escaped);
@@ -194,10 +194,11 @@ public class DynamoDBClient {
     private void conditionalAdd(Item item, String value, String key, boolean unescapeHtml) {
         if (StringUtils.isNotEmpty(value)) {
             String escaped = value;
-            if (unescapeHtml) {
+            if (unescapeHtml && StringHelper.isValidHtmlEscapeCode(value)) {
                 escaped = StringEscapeUtils.unescapeHtml4(value);
             }
             item.withString(key, escaped);
         }
     }
+
 }
