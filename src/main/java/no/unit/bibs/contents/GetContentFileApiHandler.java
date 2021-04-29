@@ -15,8 +15,9 @@ import java.util.Map;
 
 public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayResponse> {
 
-    public static final String BUCKET_URL_TEMPLATE = "https://%s.s3.%s.amazonaws.com/%s/%s/%s/%s";
+    public static final String BUCKET_URL_TEMPLATE = "https://%s.s3.%s.amazonaws.com/files/%s/%s/%s/%s/%s";
     public static final String PATH_PARAMETER_TYPE = "type";
+    public static final String PATH_PARAMETER_SUBTYPE = "subtype";
     public static final String PATH_PARAMETER_FIRST_LINK_PART = "firstLinkPart";
     public static final String PATH_PARAMETER_SECOND_LINK_PART = "secondLinkPart";
     public static final String PATH_PARAMETER_FILENAME = "filename";
@@ -48,13 +49,14 @@ public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayRes
 
         Map<String, String> pathParameters = requestInfo.getPathParameters();
         String type = pathParameters.get(PATH_PARAMETER_TYPE);
+        String subtype = pathParameters.get(PATH_PARAMETER_SUBTYPE);
         String firstLinkPart = pathParameters.get(PATH_PARAMETER_FIRST_LINK_PART);
         String secondLinkPart = pathParameters.get(PATH_PARAMETER_SECOND_LINK_PART);
         String filename = pathParameters.get(PATH_PARAMETER_FILENAME);
 
 
         String contentFileUrl = String.format(BUCKET_URL_TEMPLATE, environment.readEnv(BUCKET_NAME),
-                environment.readEnv(AWS_REGION), type, firstLinkPart, secondLinkPart, filename);
+        environment.readEnv(AWS_REGION), type, subtype, firstLinkPart, secondLinkPart, filename);
         GatewayResponse gatewayResponse = new GatewayResponse(environment, contentFileUrl);
         gatewayResponse.setStatusCode(HttpStatus.SC_MOVED_PERMANENTLY);
 

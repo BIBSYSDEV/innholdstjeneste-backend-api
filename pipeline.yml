@@ -57,7 +57,7 @@ Parameters:
     Description: CloudFormation stack template configuration filename in the Git repo
   DeployStackName:
     Type: String
-    Default: contents-dynamoDB
+    Default: contents-backend
     Description: The name to use for the CloudFormation stack managed by this pipeline. (The stack created with the template in StackTemplatePath).
   CodeStarConnectionArn:
     Type: AWS::SSM::Parameter::Value<String>
@@ -95,7 +95,9 @@ Conditions:
   HasApprovalEmailAddress: !Not [!Equals [!Ref PipelineApprovalEmail, '']]
   HasAlertTopic: !Not [!Equals [!Ref AlertTopicArn, '']]
 
+
 Resources:
+
   ArtifactsBucket:
     Type: 'AWS::S3::Bucket'
     Metadata:

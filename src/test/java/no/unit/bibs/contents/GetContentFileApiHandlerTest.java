@@ -28,6 +28,7 @@ public class GetContentFileApiHandlerTest {
     public static final String SAMPLE_SECOND_LINK_PART = "2";
     public static final String SAMPLE_FILENAME = "filename.extension";
     public static final String SAMPLE_TYPE = "type";
+    public static final String SAMPLE_SUBTYPE = "subtype";
 
     private static final String MOCK_BUCKET_NAME = "test-bucket";
     private static final String MOCK_AWS_REGION = "eu-west-1";
@@ -59,7 +60,7 @@ public class GetContentFileApiHandlerTest {
         int actualStatusCode = gatewayResponse.getStatusCode();
         String actuaLocation = gatewayResponse.getHeaders().get(HttpHeaders.LOCATION);
         String expectedLocation = String.format(BUCKET_URL_TEMPLATE, MOCK_BUCKET_NAME, MOCK_AWS_REGION, SAMPLE_TYPE,
-                SAMPLE_FIRST_LINK_PART, SAMPLE_SECOND_LINK_PART, SAMPLE_FILENAME);
+                SAMPLE_SUBTYPE, SAMPLE_FIRST_LINK_PART, SAMPLE_SECOND_LINK_PART, SAMPLE_FILENAME);
         assertEquals(HttpStatus.SC_MOVED_PERMANENTLY, actualStatusCode);
         assertEquals(expectedLocation, actuaLocation);
     }
@@ -69,6 +70,7 @@ public class GetContentFileApiHandlerTest {
         pathParameters.put(GetContentFileApiHandler.PATH_PARAMETER_FILENAME, SAMPLE_FILENAME);
         pathParameters.put(GetContentFileApiHandler.PATH_PARAMETER_FIRST_LINK_PART, SAMPLE_FIRST_LINK_PART);
         pathParameters.put(GetContentFileApiHandler.PATH_PARAMETER_SECOND_LINK_PART, SAMPLE_SECOND_LINK_PART);
+        pathParameters.put(GetContentFileApiHandler.PATH_PARAMETER_SUBTYPE, SAMPLE_SUBTYPE);
         pathParameters.put(GetContentFileApiHandler.PATH_PARAMETER_TYPE, SAMPLE_TYPE);
         var requestInfo = new RequestInfo();
         requestInfo.setPathParameters(pathParameters);

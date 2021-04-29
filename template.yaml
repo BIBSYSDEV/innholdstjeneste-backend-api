@@ -19,8 +19,8 @@ Parameters:
     Default: 'contents'
     Description: DynamoDB table name
   BucketName:
-    Type: String
-    Default: 'contentsinnholdsinfo'
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: '/contents/s3-storage-name'
     Description: Contents S3 bucket name
   MaxConcurrency:
     Type: Number
@@ -92,31 +92,6 @@ Resources:
                   - !Sub 'arn:aws:s3:::${BucketName}'
                   - !Sub 'arn:aws:s3:::${BucketName}/*'
 
-  ContentsS3Bucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Ref BucketName
-      AccessControl: PublicRead
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-  ContentsS3BucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      PolicyDocument:
-        Id: BucketPolicy
-        Version: 2012-10-17
-        Statement:
-          - Sid: PublicReadForGetBucketObjects
-            Effect: Allow
-            Principal: '*'
-            Action: 's3:GetObject'
-            Resource: !Join
-              - ''
-              - - 'arn:aws:s3:::'
-                - !Ref BucketName
-                - /*
-      Bucket: !Ref BucketName
-
   ContentsDynamoDBTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -138,7 +113,7 @@ Resources:
   DynamoDBTableNameContentsParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: dynamoDBTableNameContents
+      Name: /contents/dynamoDBTableNameContents
       Type: String
       Value: !Ref DynamoDBTableName
       Description: Name of the contents table in DynamoDB
@@ -147,7 +122,7 @@ Resources:
   DynamoDBStreamArnContentsParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: dynamoDBStreamArnContents
+      Name: /contents/dynamoDBStreamArnContents
       Type: String
       Value: !GetAtt ContentsDynamoDBTable.StreamArn
       Description: Arn to contents table DynamoDB stream
@@ -303,7 +278,7 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/definitions/Problem'
-          /{type}/{firstLinkPart}/{secondLinkPart}/{filename}: # TODO: Change as needed
+          /{type}/{subtype}/{firstLinkPart}/{secondLinkPart}/{filename}:
             get:
               description: "Redirects to object in contents S3 bucket"
               consumes:
@@ -313,7 +288,13 @@ Resources:
               parameters:
                 - in: path
                   name: type
-                  description: "File type ('small', 'large' or 'original' if image, 'audio' if audio file)"
+                  description: "File type ('images' if image, 'audio' if audio file)"
+                  required: true
+                  schema:
+                    type: string
+                - in: path
+                  name: subtype
+                  description: "File subtype ('small', 'large' or 'original' if image, 'mp3' if audio file)"
                   required: true
                   schema:
                     type: string
@@ -419,7 +400,7 @@ Resources:
         GetEvent:
           Type: Api
           Properties:
-            Path: /{type}/{firstLinkPart}/{secondLinkPart}/{filename} # TODO: Change as needed
+            Path: /{type}/{subtype}/{firstLinkPart}/{secondLinkPart}/{filename}
             Method: get
             RestApiId: !Ref ContentsApi
 

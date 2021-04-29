@@ -32,6 +32,13 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         this(environment, new DynamoDBClient(environment), new S3Client(environment));
     }
 
+
+    /**
+     * Constructor for injecting used in testing.
+     * @param environment environment
+     * @param dynamoDBClient dynamoDBclient
+     * @param s3Client s3Client
+     */
     public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient, S3Client s3Client) {
         super(ContentsRequest.class, environment, LoggerFactory.getLogger(CreateContentsApiHandler.class));
         this.dynamoDBClient = dynamoDBClient;

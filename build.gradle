@@ -48,6 +48,8 @@ dependencies {
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: awsSdkVersion
     implementation group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.1'
     implementation group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: nvaCommonsVersion
+    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.9'
+
 
     testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: '0.1.16'
     testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'

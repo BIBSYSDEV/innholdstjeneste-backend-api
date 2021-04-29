@@ -15,6 +15,7 @@ import nva.commons.exceptions.commonexceptions.NotFoundException;
 import nva.commons.utils.Environment;
 import nva.commons.utils.JacocoGenerated;
 import nva.commons.utils.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,16 +87,19 @@ public class DynamoDBClient {
     private Item generateItem(ContentsDocument document) {
         Item item = new Item();
         item.withString(ContentsDocument.ISBN, document.getIsbn());
-        conditionalAdd(item, document.getTitle(), ContentsDocument.TITLE);
-        conditionalAdd(item, document.getDateOfPublication(), ContentsDocument.DATE_OF_PUBLICATION);
-        conditionalAdd(item, document.getAuthor(), ContentsDocument.AUTHOR);
-        conditionalAdd(item, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT);
-        conditionalAdd(item, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG);
-        conditionalAdd(item, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS);
-        conditionalAdd(item, document.getImageSmall(), ContentsDocument.IMAGE_SMALL);
-        conditionalAdd(item, document.getImageLarge(), ContentsDocument.IMAGE_LARGE);
-        conditionalAdd(item, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL);
-        conditionalAdd(item, document.getAudioFile(), ContentsDocument.AUDIO_FILE);
+        conditionalAdd(item, document.getTitle(), ContentsDocument.TITLE, true);
+        conditionalAdd(item, document.getDateOfPublication(), ContentsDocument.DATE_OF_PUBLICATION, false);
+        conditionalAdd(item, document.getAuthor(), ContentsDocument.AUTHOR, true);
+        conditionalAdd(item, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT, true);
+        conditionalAdd(item, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG, true);
+        conditionalAdd(item, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS, true);
+        conditionalAdd(item, document.getPromotional(), ContentsDocument.PROMOTIONAL, true);
+        conditionalAdd(item, document.getSummary(), ContentsDocument.SUMMARY, true);
+        conditionalAdd(item, document.getReview(), ContentsDocument.REVIEW, true);
+        conditionalAdd(item, document.getImageSmall(), ContentsDocument.IMAGE_SMALL, false);
+        conditionalAdd(item, document.getImageLarge(), ContentsDocument.IMAGE_LARGE, false);
+        conditionalAdd(item, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL, false);
+        conditionalAdd(item, document.getAudioFile(), ContentsDocument.AUDIO_FILE, false);
         item.withString(ContentsDocument.SOURCE, document.getSource());
         if (Objects.isNull(document.getCreated())) {
             item.withString(ContentsDocument.CREATED, Instant.now().toString());
@@ -160,32 +164,41 @@ public class DynamoDBClient {
 
     private Map<String, String> findValuesToUpdate(ContentsDocument document) {
         Map<String, String> updateValueMap = new HashMap<>();
-        conditionalAdd(updateValueMap, document.getTitle(), ContentsDocument.TITLE);
-        conditionalAdd(updateValueMap, document.getAuthor(), ContentsDocument.AUTHOR);
-        conditionalAdd(updateValueMap, document.getDateOfPublication(), ContentsDocument.DATE_OF_PUBLICATION);
-        conditionalAdd(updateValueMap, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT);
-        conditionalAdd(updateValueMap, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG);
-        conditionalAdd(updateValueMap, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS);
-        conditionalAdd(updateValueMap, document.getPromotional(), ContentsDocument.PROMOTIONAL);
-        conditionalAdd(updateValueMap, document.getSummary(), ContentsDocument.SUMMARY);
-        conditionalAdd(updateValueMap, document.getReview(), ContentsDocument.REVIEW);
-        conditionalAdd(updateValueMap, document.getImageSmall(), ContentsDocument.IMAGE_SMALL);
-        conditionalAdd(updateValueMap, document.getImageLarge(), ContentsDocument.IMAGE_LARGE);
-        conditionalAdd(updateValueMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL);
-        conditionalAdd(updateValueMap, document.getAudioFile(), ContentsDocument.AUDIO_FILE);
+        conditionalAdd(updateValueMap, document.getTitle(), ContentsDocument.TITLE, true);
+        conditionalAdd(updateValueMap, document.getAuthor(), ContentsDocument.AUTHOR, true);
+        conditionalAdd(updateValueMap, document.getDateOfPublication(), ContentsDocument.DATE_OF_PUBLICATION, false);
+        conditionalAdd(updateValueMap, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT, true);
+        conditionalAdd(updateValueMap, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG, true);
+        conditionalAdd(updateValueMap, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS, true);
+        conditionalAdd(updateValueMap, document.getPromotional(), ContentsDocument.PROMOTIONAL, true);
+        conditionalAdd(updateValueMap, document.getSummary(), ContentsDocument.SUMMARY, true);
+        conditionalAdd(updateValueMap, document.getReview(), ContentsDocument.REVIEW, true);
+        conditionalAdd(updateValueMap, document.getImageSmall(), ContentsDocument.IMAGE_SMALL, false);
+        conditionalAdd(updateValueMap, document.getImageLarge(), ContentsDocument.IMAGE_LARGE, false);
+        conditionalAdd(updateValueMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL, false);
+        conditionalAdd(updateValueMap, document.getAudioFile(), ContentsDocument.AUDIO_FILE, false);
         updateValueMap.put(ContentsDocument.MODIFIED, Instant.now().toString());
         return updateValueMap;
     }
 
-    protected void conditionalAdd(Map<String, String> updateValueMap, String value, String key) {
+    protected void conditionalAdd(Map<String, String> updateValueMap, String value, String key, boolean unescapeHtml) {
         if (StringUtils.isNotEmpty(value)) {
-            updateValueMap.put(key, value);
+            String escaped = value;
+            if (unescapeHtml && StringHelper.isValidHtmlEscapeCode(value)) {
+                escaped = StringEscapeUtils.unescapeHtml4(value);
+            }
+            updateValueMap.put(key, escaped);
         }
     }
 
-    private void conditionalAdd(Item item, String value, String key) {
+    protected void conditionalAdd(Item item, String value, String key, boolean unescapeHtml) {
         if (StringUtils.isNotEmpty(value)) {
-            item.withString(key, value);
+            String escaped = value;
+            if (unescapeHtml && StringHelper.isValidHtmlEscapeCode(value)) {
+                escaped = StringEscapeUtils.unescapeHtml4(value);
+            }
+            item.withString(key, escaped);
         }
     }
+
 }
