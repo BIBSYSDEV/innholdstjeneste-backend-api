@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayResponse> {
 
-    public static final String BUCKET_URL_TEMPLATE = "https://%s.s3.%s.amazonaws.com//%s/%s/%s/%s/%s";
+    public static final String BUCKET_URL_TEMPLATE = "https://%s.s3.%s.amazonaws.com/files/%s/%s/%s/%s/%s";
     public static final String PATH_PARAMETER_TYPE = "type";
     public static final String PATH_PARAMETER_SUBTYPE = "subtype";
     public static final String PATH_PARAMETER_FIRST_LINK_PART = "firstLinkPart";
