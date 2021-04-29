@@ -114,7 +114,6 @@ public class ContentsDocument implements JsonSerializable {
     }
 
     @JacocoGenerated
-
     public String getPromotional() {
         return promotional;
     }
@@ -174,18 +173,22 @@ public class ContentsDocument implements JsonSerializable {
         return modified;
     }
 
+    @JacocoGenerated
     public void setImageSmall(String imageSmall) {
         this.imageSmall = imageSmall;
     }
 
+    @JacocoGenerated
     public void setImageLarge(String imageLarge) {
         this.imageLarge = imageLarge;
     }
 
+    @JacocoGenerated
     public void setImageOriginal(String imageOriginal) {
         this.imageOriginal = imageOriginal;
     }
 
+    @JacocoGenerated
     public void setAudioFile(String audioFile) {
         this.audioFile = audioFile;
     }
