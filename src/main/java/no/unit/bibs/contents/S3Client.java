@@ -173,7 +173,6 @@ public class S3Client {
     @JacocoGenerated
     private String putFileS3(String isbn, String url, String type, String subtype, String fileExtension,
                              String mimeType) throws IOException {
-
         String fileName = String.format(FILE_NAME_TEMPLATE, isbn, fileExtension);
         URL downloadUrl;
         try {

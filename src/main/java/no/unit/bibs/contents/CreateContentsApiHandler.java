@@ -32,6 +32,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         this(environment, new DynamoDBClient(environment), new S3Client(environment));
     }
 
+
     /**
      * Constructor for injecting used in testing.
      * @param environment environment

@@ -173,6 +173,22 @@ public class ContentsDocument implements JsonSerializable {
         return modified;
     }
 
+    public void setImageSmall(String imageSmall) {
+        this.imageSmall = imageSmall;
+    }
+
+    public void setImageLarge(String imageLarge) {
+        this.imageLarge = imageLarge;
+    }
+
+    public void setImageOriginal(String imageOriginal) {
+        this.imageOriginal = imageOriginal;
+    }
+
+    public void setAudioFile(String audioFile) {
+        this.audioFile = audioFile;
+    }
+
     @JacocoGenerated
     public void setImageSmall(String imageSmall) {
         this.imageSmall = imageSmall;

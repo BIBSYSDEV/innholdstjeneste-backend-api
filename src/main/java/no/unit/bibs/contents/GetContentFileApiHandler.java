@@ -56,7 +56,7 @@ public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayRes
 
 
         String contentFileUrl = String.format(BUCKET_URL_TEMPLATE, environment.readEnv(BUCKET_NAME),
-                environment.readEnv(AWS_REGION), type, subtype, firstLinkPart, secondLinkPart, filename);
+        environment.readEnv(AWS_REGION), type, subtype, firstLinkPart, secondLinkPart, filename);
         GatewayResponse gatewayResponse = new GatewayResponse(environment, contentFileUrl);
         gatewayResponse.setStatusCode(HttpStatus.SC_MOVED_PERMANENTLY);
 
