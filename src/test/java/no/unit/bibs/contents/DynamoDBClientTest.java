@@ -24,6 +24,7 @@ import static no.unit.bibs.contents.DynamoDBClient.DOCUMENT_WITH_ID_WAS_NOT_FOUN
 import static no.unit.bibs.contents.GatewayResponse.EMPTY_JSON;
 import static nva.commons.utils.JsonUtils.objectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -168,6 +169,39 @@ public class DynamoDBClientTest {
         Map<String, String> map = new HashMap<>();
         dynamoDBClient.conditionalAdd(map, SAMPLE_TERM, KEY, false);
         assertEquals(SAMPLE_TERM, map.get(KEY));
+
+        String input = "&Oslash;konomi er g&oslash;y.";
+        dynamoDBClient.conditionalAdd(map, input, ContentsDocument.DESCRIPTION_SHORT, false);
+        assertEquals(input, map.get(ContentsDocument.DESCRIPTION_SHORT));
+
+        String expected = "Økonomi er gøy.";
+        assertNotEquals(expected, input);
+        dynamoDBClient.conditionalAdd(map, input, ContentsDocument.DESCRIPTION_SHORT, true);
+        assertEquals(expected, map.get(ContentsDocument.DESCRIPTION_SHORT));
+
+        String inputNonEscaped = "Økonomi er gøy.";
+        dynamoDBClient.conditionalAdd(map, inputNonEscaped, ContentsDocument.DESCRIPTION_SHORT, true);
+        assertEquals(expected, map.get(ContentsDocument.DESCRIPTION_SHORT));
+
+        dynamoDBClient.conditionalAdd(map, inputNonEscaped, ContentsDocument.DESCRIPTION_SHORT, false);
+        assertEquals(expected, map.get(ContentsDocument.DESCRIPTION_SHORT));
+        
+        
+        Item item = new Item();
+        dynamoDBClient.conditionalAdd(item, SAMPLE_TERM, KEY, false);
+        assertEquals(SAMPLE_TERM, item.get(KEY));
+
+        dynamoDBClient.conditionalAdd(item, input, ContentsDocument.DESCRIPTION_SHORT, false);
+        assertEquals(input, item.get(ContentsDocument.DESCRIPTION_SHORT));
+
+        dynamoDBClient.conditionalAdd(item, input, ContentsDocument.DESCRIPTION_SHORT, true);
+        assertEquals(expected, item.get(ContentsDocument.DESCRIPTION_SHORT));
+
+        dynamoDBClient.conditionalAdd(item, inputNonEscaped, ContentsDocument.DESCRIPTION_SHORT, true);
+        assertEquals(expected, item.get(ContentsDocument.DESCRIPTION_SHORT));
+
+        dynamoDBClient.conditionalAdd(item, inputNonEscaped, ContentsDocument.DESCRIPTION_SHORT, false);
+        assertEquals(expected, item.get(ContentsDocument.DESCRIPTION_SHORT));
     }
 
 }

@@ -191,7 +191,7 @@ public class DynamoDBClient {
         }
     }
 
-    private void conditionalAdd(Item item, String value, String key, boolean unescapeHtml) {
+    protected void conditionalAdd(Item item, String value, String key, boolean unescapeHtml) {
         if (StringUtils.isNotEmpty(value)) {
             String escaped = value;
             if (unescapeHtml && StringHelper.isValidHtmlEscapeCode(value)) {
