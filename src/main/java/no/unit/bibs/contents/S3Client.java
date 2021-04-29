@@ -31,7 +31,7 @@ public class S3Client {
     public static final String CONTENT_DISPOSITION_FILENAME_TEMPLATE = "filename=\"%s\"";
 
     public static final String ERROR_DOWNLOADING_FILE = "ISBN '%s' has invalid URL '%s' for file '%s' (%s): %s";
-    public static final String OBJECT_KEY_TEMPLATE = "%s/%s/%s/%s/%s";
+    public static final String OBJECT_KEY_TEMPLATE = "files/%s/%s/%s/%s/%s";
     public static final String FILE_NAME_TEMPLATE = "%s.%s";
     public static final String FILE_EXTENSION_JPG = "jpg";
     public static final String FILE_EXTENSION_MP3 = "mp3";
