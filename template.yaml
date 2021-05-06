@@ -533,7 +533,7 @@ Resources:
           Value: !Ref UpdateContentsApiFunction
       MetricName: Errors
       Statistic: Sum
-      Period: 300 #5 minutes
+      Period: 600 #10 minutes
       EvaluationPeriods: 1
       Threshold: 0
       ComparisonOperator: GreaterThanThreshold
