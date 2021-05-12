@@ -522,6 +522,54 @@ Resources:
         PredefinedMetricSpecification:
           PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
+  UpdateContentsApiFunctionAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "UpdateContentsApiFunctionAlarm-${AWS::StackName}"
+      AlarmDescription: 'Error in function.'
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref UpdateContentsApiFunction
+      MetricName: Errors
+      Statistic: Sum
+      Period: 600 #10 minutes
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref UpdateContentsApiFunctionAlarmNotification
+
+  UpdateContentsApiFunctionAlarmNotification:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "UpdateContentsApiFunctionAlarmNotification-${AWS::StackName}"
+
+  GetContentsApiFunctionAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "GetContentsApiFunctionAlarm-${AWS::StackName}"
+      AlarmDescription: 'Error in function.'
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GetContentsApiFunction
+      MetricName: Errors
+      Statistic: Sum
+      Period: 600 #10 minutes
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref GetContentsApiFunctionAlarmNotification
+
+  GetContentsApiFunctionAlarmNotification:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "GetContentsApiFunctionAlarmNotification-${AWS::StackName}"
+
   ContentsBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Condition: HasDomainName
