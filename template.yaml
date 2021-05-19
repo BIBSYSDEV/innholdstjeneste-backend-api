@@ -570,6 +570,30 @@ Resources:
     Properties:
       TopicName: !Sub "GetContentsApiFunctionAlarmNotification-${AWS::StackName}"
 
+  GetContentsApiFunctionUsageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "GetContentsApiFunctionUsageAlarm-${AWS::StackName}"
+      AlarmDescription: 'Invocations of function exceeding threshold.'
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref GetContentsApiFunction
+      MetricName: Invocations
+      Statistic: Sum
+      Period: 300 #5 minutes
+      EvaluationPeriods: 1
+      Threshold: 500
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref GetContentsApiFunctionUsageAlarmNotification
+
+  GetContentsApiFunctionUsageAlarmNotification:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "GetContentsApiFunctionUsageAlarmNotification-${AWS::StackName}"
+
   ContentsBasePathMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Condition: HasDomainName
