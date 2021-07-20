@@ -223,7 +223,7 @@ Resources:
                     type: string
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateContentsApiFunction.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateContentsApiFunction.Arn}/invocations
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
@@ -255,7 +255,7 @@ Resources:
                     type: string
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateContentsApiFunction.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateContentsApiFunction.Arn}/invocations
                 responses: { }
                 httpMethod: POST
                 type: AWS_PROXY
