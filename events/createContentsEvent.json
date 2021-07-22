@@ -1,19 +1,15 @@
 {
   "contents": {
-    "isbn": [
-      "9788205377547"
-    ],
+    "isbn": "9788205377547",
     "title": "Pelsjegerliv blandt Nord-Canadas indianere",
-    "contributors": [
-      "Helge Ingstad"
-    ],
-    "year": "",
+    "author": "Helge Ingstad",
+    "date_of_publication": "",
     "description_short": "Etter å ha brutt opp fra sin sakførerpraksis i Norge, reiste Ingstad til arktiske Canada, der han levde i fire år som pelsjeger.",
     "description_long": "Etter å ha brutt opp fra sin sakførerpraksis i Norge, reiste Ingstad til arktiske Canada, der han levde i fire år som pelsjeger. Pelsjegerliv er beretningen om hans opplevelser i denne tiden. Boken ble utgitt i 1931 og er hans første av i alt tolv bøker",
     "table_of_contents": "The opening\n\nSecond breakfast\n\nThree's a crowd\n\nMay the fourth be with you\n\nCinco de mayo",
-    "image_url_small": "https://contents.sandbox.bibs.aws.unit.no/static/js/resources/pelsjegere.jpg",
-    "image_url_large": "",
-    "immage_url_original": "",
-    "source": "bokbase"
+    "image_small": "https://contents.sandbox.bibs.aws.unit.no/static/js/resources/pelsjegere.jpg",
+    "image_large": "",
+    "image_original": "",
+    "source": "BOKBASE"
   }
 }
