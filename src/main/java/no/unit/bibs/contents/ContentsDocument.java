@@ -259,7 +259,7 @@ public class ContentsDocument implements JsonSerializable {
         tempImg.append(imageSmall)
                 .append(imageLarge)
                 .append(imageOriginal);
-        return !(StringUtils.isBlank(tempDesc.toString()) && StringUtils.isBlank(tempImg.toString()));
+        return StringUtils.isNotBlank(tempDesc.toString()) || StringUtils.isNotBlank(tempImg.toString());
     }
 
 }
