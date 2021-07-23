@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import nva.commons.json.JsonSerializable;
 import nva.commons.utils.JacocoGenerated;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -236,6 +237,29 @@ public class ContentsDocument implements JsonSerializable {
     @Override
     public String toString() {
         return toJsonString();
+    }
+
+
+    protected boolean isValid() {
+        if (StringUtils.isBlank(isbn)) {
+            return false;
+        }
+        if (StringUtils.isBlank(source)) {
+            return false;
+        }
+        StringBuilder tempDesc = new StringBuilder();
+        tempDesc.append(descriptionShort)
+                .append(descriptionLong)
+                .append(tableOfContents)
+                .append(author)
+                .append(summary)
+                .append(review)
+                .append(promotional);
+        StringBuilder tempImg = new StringBuilder();
+        tempImg.append(imageSmall)
+                .append(imageLarge)
+                .append(imageOriginal);
+        return StringUtils.isNotBlank(tempDesc.toString()) || StringUtils.isNotBlank(tempImg.toString());
     }
 
 }

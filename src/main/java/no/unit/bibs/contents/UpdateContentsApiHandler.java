@@ -75,7 +75,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         logger.info(JSON_INPUT_LOOKS_LIKE_THAT + contentsDocument.toString());
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
         try {
-            if (StringUtils.isNotEmpty(contentsDocument.getIsbn())) {
+            if (contentsDocument.isValid()) {
 
                 s3Client.handleFiles(contentsDocument);
 
@@ -103,8 +103,8 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                     gatewayResponse.setStatusCode(HttpStatus.SC_CONFLICT);
                 }
             } else {
-                logger.error(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument.toString());
-                gatewayResponse.setErrorBody(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument.toString());
+                logger.error(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument);
+                gatewayResponse.setErrorBody(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument);
                 gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
             }
         } catch (Exception e) {

@@ -8,7 +8,6 @@ import nva.commons.handlers.RequestInfo;
 import nva.commons.handlers.RestRequestHandler;
 import nva.commons.utils.Environment;
 import nva.commons.utils.JacocoGenerated;
-import nva.commons.utils.StringUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.LoggerFactory;
 
@@ -66,15 +65,15 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         ContentsDocument contentsDocument = request.getContents();
         logger.error("json input looks like that :" + contentsDocument.toString());
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
-        if (StringUtils.isNotEmpty(contentsDocument.getIsbn())) {
+        if (contentsDocument.isValid()) {
             s3Client.handleFiles(contentsDocument);
             dynamoDBClient.createContents(contentsDocument);
             String createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
             gatewayResponse.setBody(createContents);
             gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
         } else {
-            logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + contentsDocument.toString());
-            gatewayResponse.setErrorBody(COULD_NOT_INDEX_RECORD_PROVIDED + contentsDocument.toString());
+            logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + contentsDocument);
+            gatewayResponse.setErrorBody(COULD_NOT_INDEX_RECORD_PROVIDED + contentsDocument);
             gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
         return gatewayResponse;
