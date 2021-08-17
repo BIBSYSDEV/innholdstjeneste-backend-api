@@ -1,28 +1,30 @@
 package no.unit.bibs.contents;
 
-import com.amazonaws.services.s3.AmazonS3;
+import nva.commons.utils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.IOException;
+import java.nio.file.Path;
 
+import static nva.commons.utils.JsonUtils.objectMapper;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+
+
 
 public class S3ClientTest {
 
     public static final String SAMPLE_PRESIGNED_S3_WRITE_URL = "https://sampleurl.com/upload?test=test";
-    private static final String SAMPLE_OBJECT_NAME = "testobjectname";
-    private static final String SAMPLE_FILE_NAME = "testfilename";
-    private static final String SAMPLE_MIME_TYPE = "testmime/type";
+    public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
+    public static final String CREATE_CONTENTS_BASE_64_EVENT = "createContentBase64EncodedImage.json";
 
     private S3Client s3Client;
-
-    private AmazonS3 amazonS3Client;
-    private String bucketName;
+    private S3Connection s3Connection;
 
 
     /**
@@ -30,24 +32,34 @@ public class S3ClientTest {
      **/
     @BeforeEach
     public void init() {
-        amazonS3Client  = mock(AmazonS3.class);
-        s3Client = new S3Client(amazonS3Client, bucketName);
+        s3Connection = mock(S3Connection.class);
+        s3Client = new S3Client(s3Connection);
     }
 
     @Test
     public void constructorWithEnvironmentDefinedShouldCreateInstance() {
-        S3Client s3Client = new S3Client(amazonS3Client, bucketName);
         assertNotNull(s3Client);
     }
 
+
     @Test
-    void generatePresignedWriteUrl() throws MalformedURLException {
-        S3Client s3Client = new S3Client(amazonS3Client, bucketName);
-        when(amazonS3Client.generatePresignedUrl(any()))
-                .thenReturn(new URL(SAMPLE_PRESIGNED_S3_WRITE_URL));
-        URL url = s3Client
-                .generatePresignedWriteUrl(SAMPLE_OBJECT_NAME, SAMPLE_FILE_NAME, SAMPLE_MIME_TYPE);
-        assertNotNull(url);
+    void testHandleFilesWithBase64EncodedImageSmall() throws IOException {
+        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        String contentsBase64Encoded = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_BASE_64_EVENT));
+        doNothing().when(s3Connection).uploadFile(any(), anyString(), anyString(), anyString());
+        ContentsDocument contentsDocument = objectMapper.readValue(contentsBase64Encoded, ContentsDocument.class);
+        s3Client.handleFiles(contentsDocument);
+        assertEquals(objectMapper.readValue(contents, ContentsDocument.class), contentsDocument);
+    }
+
+    @Test
+    void testUpdateDocumentContent() throws IOException {
+        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        String mockObjectKey = "blablah";
+        s3Client.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, S3Client.SMALL);
+
+        assertEquals(mockObjectKey, contentsDocument.getImageSmall());
     }
 
 }
