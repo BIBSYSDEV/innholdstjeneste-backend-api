@@ -162,7 +162,6 @@ public class S3Client {
      * Uploads files found in ContentsDocument to S3 replacing url with s3 object key.
      *
      * @param contentsDocument contentsDocument
-     *IOException
      */
     @JacocoGenerated
     public void handleFiles(ContentsDocument contentsDocument) {
