@@ -63,7 +63,8 @@ public class S3Client {
 
     private boolean isStringBase64Encoded(String input) {
         if (StringUtils.isNotEmpty(input)) {
-            Pattern base64Pattern = Pattern.compile("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$");
+            Pattern base64Pattern = Pattern.compile("^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}" +
+                    "=|[A-Za-z0-9+\\/]{4})$");
             Matcher matcher = base64Pattern.matcher(input);
             return matcher.matches();
         } else {
