@@ -350,8 +350,6 @@ Resources:
       Handler: no.unit.bibs.contents.GetContentsApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1024
-      DeploymentPreference:
-        Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
@@ -372,8 +370,6 @@ Resources:
       Handler: no.unit.bibs.contents.GetContentFileApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1024
-      DeploymentPreference:
-        Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
