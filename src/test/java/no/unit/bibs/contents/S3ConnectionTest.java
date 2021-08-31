@@ -17,7 +17,7 @@ public class S3ConnectionTest {
 
     AmazonS3 amazonS3Client;
     S3Connection s3Connection;
-    private String bucketName;
+    private String bucketName = "bucketname";
 
     public static final String SAMPLE_PRESIGNED_S3_WRITE_URL = "https://sampleurl.com/upload?test=test";
     private static final String SAMPLE_OBJECT_NAME = "testobjectname";
@@ -30,8 +30,8 @@ public class S3ConnectionTest {
     @BeforeEach
     public void init() {
         amazonS3Client = mock(AmazonS3.class);
-        HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
-        s3Connection = new S3Connection(amazonS3Client, bucketName, httpURLConnection);
+        HttpURLConnection httpUrlConnection = mock(HttpURLConnection.class);
+        s3Connection = new S3Connection(amazonS3Client, bucketName, httpUrlConnection);
     }
 
     @Test

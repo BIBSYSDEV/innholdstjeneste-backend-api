@@ -36,6 +36,12 @@ public class S3Connection {
         initS3Client(environment);
     }
 
+    /**
+     * Constructor for use in test to inject.
+     * @param amazonS3Client aws S3 client
+     * @param bucketName name til s3 bucket
+     * @param connection httpConnection
+     */
     public S3Connection(AmazonS3 amazonS3Client, String bucketName, HttpURLConnection connection) {
         this.amazonS3Client = amazonS3Client;
         this.bucketName = bucketName;

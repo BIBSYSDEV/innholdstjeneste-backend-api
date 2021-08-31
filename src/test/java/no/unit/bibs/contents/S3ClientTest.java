@@ -41,7 +41,6 @@ public class S3ClientTest {
         assertNotNull(s3Client);
     }
 
-
     @Test
     void testHandleFilesWithBase64EncodedImageSmall() throws IOException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
@@ -58,8 +57,13 @@ public class S3ClientTest {
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         String mockObjectKey = "blablah";
         s3Client.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, S3Client.SMALL);
-
         assertEquals(mockObjectKey, contentsDocument.getImageSmall());
+        s3Client.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, S3Client.LARGE);
+        assertEquals(mockObjectKey, contentsDocument.getImageLarge());
+        s3Client.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, S3Client.ORIGINAL);
+        assertEquals(mockObjectKey, contentsDocument.getImageOriginal());
+        s3Client.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, S3Client.MP3);
+        assertEquals(mockObjectKey, contentsDocument.getAudioFile());
     }
 
 }

@@ -15,9 +15,8 @@ sourceCompatibility = JavaVersion.VERSION_11  // source-code version and must be
 targetCompatibility = JavaVersion.VERSION_11 // bytecode target version
 
 repositories {
-    jcenter()
+    mavenCentral()
     maven { url "https://jitpack.io" }
-    maven { url  "https://dl.bintray.com/unit-nva/nva-commons" }
 }
 
 allprojects {
@@ -49,7 +48,7 @@ dependencies {
     implementation group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.2.1'
     implementation group: 'com.github.BIBSYSDEV', name: 'nva-commons', version: nvaCommonsVersion
     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.9'
-
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
 
     testImplementation group: 'com.github.BIBSYSDEV', name: 'nva-testutils', version: '0.1.16'
     testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
