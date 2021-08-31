@@ -22,16 +22,6 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: '/contents/s3-storage-name'
     Description: Contents S3 bucket name
-  MaxConcurrency:
-    Type: Number
-    Default: 20
-    Description: Max number of provisioned hot instances for a lambda function
-  MinConcurrency:
-    Type: Number
-    Default: 1
-    MaxValue: 1
-    MinValue: 1
-    Description: Min number of provisioned hot instances for a lambda function
 
 Conditions:
   HasDomainName: !Not [!Equals [!Ref CustomDomain, '']]
@@ -185,7 +175,7 @@ Resources:
                     type: string
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentsApiFunction.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentsApiFunction.Arn}/invocations
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
@@ -318,7 +308,7 @@ Resources:
                     type: string
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentFileApiFunction.Arn}:live/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentFileApiFunction.Arn}/invocations
                 responses: {}
                 httpMethod: POST
                 type: AWS_PROXY
@@ -360,11 +350,8 @@ Resources:
       Handler: no.unit.bibs.contents.GetContentsApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1024
-      AutoPublishAlias: live
       DeploymentPreference:
         Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 1
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
@@ -385,11 +372,8 @@ Resources:
       Handler: no.unit.bibs.contents.GetContentFileApiHandler::handleRequest
       Runtime: java11
       MemorySize: 1024
-      AutoPublishAlias: live
       DeploymentPreference:
         Type: AllAtOnce # Or Canary10Percent5Minutes, Linear10PercentEvery1Minute, ...
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 1
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
         Variables:
@@ -445,28 +429,6 @@ Resources:
             Path: /
             Method: put
             RestApiId: !Ref ContentsApi
-
-  GetContentsApiFunctionScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    Properties:
-      MaxCapacity: !Ref MaxConcurrency
-      MinCapacity: !Ref MinConcurrency
-      ResourceId: !Sub function:${GetContentsApiFunction}:live # You need to specify an alis or version here
-      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
-      ScalableDimension: lambda:function:ProvisionedConcurrency
-      ServiceNamespace: lambda
-    DependsOn: GetContentsApiFunctionAliaslive # This is your function logical ID + "Alias" + what you use for AutoPublishAlias
-
-  GetContentsApiFunctionScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: GetContentsApiFunctionScalingPolicy
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref GetContentsApiFunctionScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 0.70 # Any value between 0.1 and 0.9 can be used here
-        PredefinedMetricSpecification:
-          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
 
   UpdateContentsApiFunctionAlarm:
     Type: AWS::CloudWatch::Alarm
