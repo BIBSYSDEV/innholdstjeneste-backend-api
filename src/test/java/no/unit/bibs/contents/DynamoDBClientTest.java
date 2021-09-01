@@ -7,6 +7,7 @@ import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.nio.charset.StandardCharsets;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.exceptions.ApiGatewayException;
 import nva.commons.exceptions.commonexceptions.NotFoundException;
@@ -174,12 +175,12 @@ public class DynamoDBClientTest {
         dynamoDBClient.conditionalAdd(map, input, ContentsDocument.DESCRIPTION_SHORT, false);
         assertEquals(input, map.get(ContentsDocument.DESCRIPTION_SHORT));
 
-        String expected = "Økonomi er gøy.";
+        String expected = new String("Økonomi er gøy.".getBytes(), StandardCharsets.UTF_8);
         assertNotEquals(expected, input);
         dynamoDBClient.conditionalAdd(map, input, ContentsDocument.DESCRIPTION_SHORT, true);
         assertEquals(expected, map.get(ContentsDocument.DESCRIPTION_SHORT));
 
-        String inputNonEscaped = "Økonomi er gøy.";
+        String inputNonEscaped = new String("Økonomi er gøy.".getBytes(), StandardCharsets.UTF_8);
         dynamoDBClient.conditionalAdd(map, inputNonEscaped, ContentsDocument.DESCRIPTION_SHORT, true);
         assertEquals(expected, map.get(ContentsDocument.DESCRIPTION_SHORT));
 
