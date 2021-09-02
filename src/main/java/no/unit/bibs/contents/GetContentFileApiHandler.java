@@ -7,8 +7,6 @@ import nva.commons.apigateway.RequestInfo;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayResponse> {
@@ -21,7 +19,6 @@ public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayRes
     public static final String PATH_PARAMETER_FILENAME = "filename";
     public static final String BUCKET_NAME = "BUCKET_NAME";
     public static final String AWS_REGION = "AWS_REGION";
-    private transient Logger logger = LoggerFactory.getLogger(GetContentFileApiHandler.class);
 
     @JacocoGenerated
     public GetContentFileApiHandler() {

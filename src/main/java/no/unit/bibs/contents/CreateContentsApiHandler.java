@@ -21,7 +21,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     private final DynamoDBClient dynamoDBClient;
     private final S3Client s3Client;
-    Logger logger = LoggerFactory.getLogger(CreateContentsApiHandler.class);
+    private final transient Logger logger = LoggerFactory.getLogger(CreateContentsApiHandler.class);
 
     @JacocoGenerated
     public CreateContentsApiHandler() {

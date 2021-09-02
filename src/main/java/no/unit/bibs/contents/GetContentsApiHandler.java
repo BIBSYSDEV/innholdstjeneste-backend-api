@@ -8,14 +8,11 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class GetContentsApiHandler extends ApiGatewayHandler<Void, GatewayResponse> {
 
     public static final String ISBN = "isbn";
     private final DynamoDBClient dynamoDBClient;
-    private transient Logger logger = LoggerFactory.getLogger(GetContentsApiHandler.class);
 
     @JacocoGenerated
     public GetContentsApiHandler() {

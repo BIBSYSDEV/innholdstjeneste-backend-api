@@ -31,7 +31,8 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     private final DynamoDBClient dynamoDBClient;
     private final S3Client s3Client;
-    private Logger logger = LoggerFactory.getLogger(UpdateContentsApiHandler.class);
+    private final transient Logger logger = LoggerFactory.getLogger(UpdateContentsApiHandler.class);
+
     @JacocoGenerated
     public UpdateContentsApiHandler() {
         this(new Environment());

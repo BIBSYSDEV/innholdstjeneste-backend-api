@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 
+import nva.commons.apigateway.GatewayResponse;
 import static no.unit.nva.hamcrest.PropertyValuePair.EMPTY_STRING;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static nva.commons.core.JsonUtils.objectMapper;
