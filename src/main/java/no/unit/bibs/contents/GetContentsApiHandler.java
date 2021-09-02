@@ -1,20 +1,21 @@
 package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.exceptions.commonexceptions.NotFoundException;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.handlers.RestRequestHandler;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import org.apache.http.HttpStatus;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GetContentsApiHandler extends ApiGatewayHandler<Void, GatewayResponse> {
 
     public static final String ISBN = "isbn";
     private final DynamoDBClient dynamoDBClient;
+    private transient Logger logger = LoggerFactory.getLogger(GetContentsApiHandler.class);
 
     @JacocoGenerated
     public GetContentsApiHandler() {
@@ -27,25 +28,22 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, GatewayRespon
     }
 
     public GetContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
-        super(Void.class, environment, LoggerFactory.getLogger(GetContentsApiHandler.class));
+        super(Void.class, environment);
         this.dynamoDBClient = dynamoDBClient;
     }
 
 
     /**
-     * Implements the main logic of the handler. Any exception thrown by this method will be handled by {@link
-     * RestRequestHandler#handleExpectedException} method.
+     * Implements the main logic of the handler. Any exception thrown by this method will be handled by method.
      *
      * @param input       The input object to the method. Usually a deserialized json.
      * @param requestInfo Request headers and path.
      * @param context     the ApiGateway context.
      * @return the Response body that is going to be serialized in json
-     * @throws ApiGatewayException all exceptions are caught by writeFailure and mapped to error codes through the
-     *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
     protected GatewayResponse processInput(Void input, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
         String isbn = requestInfo.getQueryParameters().get(ISBN);
         GatewayResponse gatewayResponse = new GatewayResponse(environment);
         try {

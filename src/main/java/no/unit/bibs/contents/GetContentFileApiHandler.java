@@ -1,16 +1,14 @@
 package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.handlers.RestRequestHandler;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
-import org.apache.http.HttpStatus;
-import org.slf4j.LoggerFactory;
-
 import java.util.Map;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
+import org.apache.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayResponse> {
@@ -23,6 +21,7 @@ public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayRes
     public static final String PATH_PARAMETER_FILENAME = "filename";
     public static final String BUCKET_NAME = "BUCKET_NAME";
     public static final String AWS_REGION = "AWS_REGION";
+    private transient Logger logger = LoggerFactory.getLogger(GetContentFileApiHandler.class);
 
     @JacocoGenerated
     public GetContentFileApiHandler() {
@@ -30,19 +29,16 @@ public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayRes
     }
 
     public GetContentFileApiHandler(Environment environment) {
-        super(Void.class, environment, LoggerFactory.getLogger(GetContentFileApiHandler.class));
+        super(Void.class, environment);
     }
 
     /**
-     * Implements the main logic of the handler. Any exception thrown by this method will be handled by {@link
-     * RestRequestHandler#handleExpectedException} method.
+     * Implements the main logic of the handler. Any exception thrown by this method will be handled by
      *
      * @param input       The input object to the method. Usually a deserialized json.
      * @param requestInfo Request headers and path.
      * @param context     the ApiGateway context.
      * @return the Response body that is going to be serialized in json
-     * @throws ApiGatewayException all exceptions are caught by writeFailure and mapped to error codes through the
-     *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
     protected GatewayResponse processInput(Void input, RequestInfo requestInfo, Context context) {

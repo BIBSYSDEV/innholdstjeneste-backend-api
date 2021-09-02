@@ -1,20 +1,19 @@
 package no.unit.bibs.contents;
 
+import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
+
 import com.amazonaws.util.json.Jackson;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import nva.commons.exceptions.GatewayResponseSerializingException;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
-import nva.commons.utils.StringUtils;
-import org.apache.http.HttpStatus;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static nva.commons.handlers.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import nva.commons.apigateway.exceptions.GatewayResponseSerializingException;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
+import nva.commons.core.StringUtils;
+import org.apache.http.HttpStatus;
 
 /**
  * POJO containing response object for API Gateway.
