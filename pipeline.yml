@@ -343,7 +343,7 @@ Resources:
             reason: "Skip encryption for CodeBuild project"
     Properties:
       Artifacts:
-        Type: CODEPIPELINE
+        Type: NO_ARTIFACTS
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:5.0
