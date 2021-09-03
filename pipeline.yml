@@ -429,14 +429,12 @@ Resources:
             TemplatePath: 'BuildArtifacts::pipeline.yml'
             ParameterOverrides: !Sub |
               {
+                "GitRepo": "${GitRepo}",
+                "GitBranch": "${GitBranch}",
                 "StackTemplatePath": "${StackTemplatePath}",
                 "StackTemplateConfigurationPath": "${StackTemplateConfigurationPath}",
                 "DeployStackName": "${DeployStackName}",
                 "CodeStarConnectionArn": "/github-connection",
-                "GitRepo": "${GitRepo}",
-                "GitBranch": "${GitBranch}",
-                "GitHubOwner": "${GitHubOwner}",
-                "GitHubOAuthToken": "${GitHubOAuthToken}",
                 "PipelineApprovalAction": "${PipelineApprovalAction}",
                 "PipelineApprovalEmail": "${PipelineApprovalEmail}",
                 "AlertTopicArn": "${AlertTopicArn}"
