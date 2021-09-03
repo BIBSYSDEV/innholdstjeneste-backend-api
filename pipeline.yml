@@ -391,10 +391,10 @@ Resources:
             Provider: GitHub
           Configuration:
             Owner: !Ref GitHubOwner
-              OAuthToken: !Ref GitHubOAuthToken
-              Repo: !Ref GitHubRepo
-              Branch: !Ref GitHubBranch
-              PollForSourceChanges: false
+            OAuthToken: !Ref GitHubOAuthToken
+            Repo: !Ref GitHubRepo
+            Branch: !Ref GitHubBranch
+            PollForSourceChanges: false
           OutputArtifacts: [Name: SourceArtifacts]
           Namespace: SourceVariables
           RunOrder: 1
