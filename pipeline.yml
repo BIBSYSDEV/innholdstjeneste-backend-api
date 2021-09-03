@@ -11,8 +11,8 @@ Metadata:
       - Label:
           default: Git Settings
         Parameters:
-          - GitHubRepo
-          - GitHubBranch
+          - GitRepo
+          - GitBranch
       - Label:
           default: Stack Settings
         Parameters:
@@ -29,9 +29,9 @@ Metadata:
         Parameters:
           - AlertTopicArn
     ParameterLabels:
-      GitHubRepo:
+      GitRepo:
         default: Git Repo
-      GitHubBranch:
+      GitBranch:
         default: Git Branch
       StackTemplatePath:
         default: Stack template path
@@ -72,11 +72,11 @@ Parameters:
     Description: GitHub username owning the repo
     Type: String
     Default: BIBSYSDEV
-  GitHubRepo:
+  GitRepo:
     Type: String
     Default: BIBSYSDEV/innholdstjeneste-backend-api
     Description: Git repository name
-  GitHubBranch:
+  GitBranch:
     Type: String
     Default: develop
     Description: Git repository branch
@@ -392,8 +392,8 @@ Resources:
           Configuration:
             Owner: !Ref GitHubOwner
             OAuthToken: !Ref GitHubOAuthToken
-            Repo: !Ref GitHubRepo
-            Branch: !Ref GitHubBranch
+            Repo: !Ref GitRepo
+            Branch: !Ref GitBranch
             PollForSourceChanges: false
           OutputArtifacts: [Name: SourceArtifacts]
           Namespace: SourceVariables
@@ -433,8 +433,8 @@ Resources:
                 "StackTemplateConfigurationPath": "${StackTemplateConfigurationPath}",
                 "DeployStackName": "${DeployStackName}",
                 "CodeStarConnectionArn": "/github-connection",
-                "GitHubRepo": "${GitHubRepo}",
-                "GitHubBranch": "${GitHubBranch}",
+                "GitRepo": "${GitRepo}",
+                "GitBranch": "${GitBranch}",
                 "GitHubOwner": "${GitHubOwner}",
                 "GitHubOAuthToken": "${GitHubOAuthToken}",
                 "PipelineApprovalAction": "${PipelineApprovalAction}",
