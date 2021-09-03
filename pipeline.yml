@@ -74,7 +74,7 @@ Parameters:
     Default: BIBSYSDEV
   GitRepo:
     Type: String
-    Default: BIBSYSDEV/innholdstjeneste-backend-api
+    Default: innholdstjeneste-backend-api
     Description: Git repository name
   GitBranch:
     Type: String
