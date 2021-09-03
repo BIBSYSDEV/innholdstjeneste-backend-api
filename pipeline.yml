@@ -11,8 +11,8 @@ Metadata:
       - Label:
           default: Git Settings
         Parameters:
-          - GitRepo
-          - GitBranch
+          - GitHubRepo
+          - GitHubBranch
       - Label:
           default: Stack Settings
         Parameters:
@@ -29,9 +29,9 @@ Metadata:
         Parameters:
           - AlertTopicArn
     ParameterLabels:
-      GitRepo:
+      GitHubRepo:
         default: Git Repo
-      GitBranch:
+      GitHubBranch:
         default: Git Branch
       StackTemplatePath:
         default: Stack template path
