@@ -1,17 +1,18 @@
 package no.unit.bibs.contents;
 
+import static java.util.Objects.isNull;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import no.unit.bibs.contents.exception.ParameterException;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.handlers.RestRequestHandler;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.RestRequestHandler;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 import org.apache.http.HttpStatus;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.util.Objects.isNull;
 
 public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
 
@@ -20,6 +21,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     private final DynamoDBClient dynamoDBClient;
     private final S3Client s3Client;
+    private final transient Logger logger = LoggerFactory.getLogger(CreateContentsApiHandler.class);
 
     @JacocoGenerated
     public CreateContentsApiHandler() {
@@ -39,7 +41,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      * @param s3Client s3Client
      */
     public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient, S3Client s3Client) {
-        super(ContentsRequest.class, environment, LoggerFactory.getLogger(CreateContentsApiHandler.class));
+        super(ContentsRequest.class, environment);
         this.dynamoDBClient = dynamoDBClient;
         this.s3Client = s3Client;
     }

@@ -1,23 +1,22 @@
 package no.unit.bibs.contents;
 
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.lambda.runtime.Context;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.exceptions.commonexceptions.NotFoundException;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.utils.Environment;
-import nva.commons.utils.IoUtils;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.lambda.runtime.Context;
+import java.nio.file.Path;
+import java.util.Map;
+import no.unit.nva.testutils.IoUtils;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
+import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class GetContentsApiHandlerTest {
 
