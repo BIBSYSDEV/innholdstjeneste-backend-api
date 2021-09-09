@@ -59,10 +59,6 @@ Parameters:
     Type: String
     Default: contents-backend
     Description: The name to use for the CloudFormation stack managed by this pipeline. (The stack created with the template in StackTemplatePath).
-  CodeStarConnectionArn:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: '/github-connection'
-    Description: The ARN for the CodestarConnection that connects to the GitHub repo
   GitHubOAuthToken:
     Description: OAuth token used by AWS CodePipeline to connect to GitHub
     NoEcho: true
@@ -210,10 +206,6 @@ Resources:
                   - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${DeployStackName}/*'
               - Effect: Allow
                 Action:
-                  - codestar-connections:UseConnection
-                Resource: !Ref CodeStarConnectionArn
-              - Effect: Allow
-                Action:
                   - codebuild:BatchGetBuilds
                   - codebuild:StartBuild
                 Resource:
@@ -284,10 +276,6 @@ Resources:
                   - resource-groups:*
                   - route53:* # GetHostedZone
                 Resource: '*'
-              - Effect: Allow
-                Action:
-                  - codestar-connections:PassConnection
-                Resource: !Ref CodeStarConnectionArn
 
   CodeBuildRole:
     DependsOn: CloudFormationRole # make sure that CloudFormationRole is deleted last
@@ -431,7 +419,6 @@ Resources:
                   {
                     "GitRepo": "${GitRepo}",
                     "GitBranch": "${GitBranch}",
-                    "CodeStarConnectionArn": "/github-connection",
                     "StackTemplatePath": "${StackTemplatePath}",
                     "StackTemplateConfigurationPath": "${StackTemplateConfigurationPath}",
                     "DeployStackName": "${DeployStackName}",
