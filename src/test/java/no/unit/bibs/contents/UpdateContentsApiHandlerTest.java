@@ -83,7 +83,6 @@ class UpdateContentsApiHandlerTest {
         Exception exception = assertThrows(BadRequestException.class, () -> {
             handler.processInput(request, new RequestInfo(), mock(Context.class));
         });
-        System.out.println("");
     }
 
     @Test
