@@ -8,13 +8,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.lambda.runtime.Context;
+
+import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.core.Environment;
 import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -47,20 +48,19 @@ public class GetContentFileApiHandlerTest {
 
     @Test
     void getSuccessStatusCodeReturnsMovedPermanently() {
-        GatewayResponse response =  new GatewayResponse(environment, null, HttpStatus.SC_MOVED_PERMANENTLY);
-        Integer statusCode = getContentFileApiHandler.getSuccessStatusCode(null, response);
-        assertEquals(statusCode, HttpStatus.SC_MOVED_PERMANENTLY);
+        Integer statusCode = getContentFileApiHandler.getSuccessStatusCode(null, null);
+        assertEquals(statusCode, HttpURLConnection.HTTP_MOVED_PERM);
     }
 
     @Test
-    void handlerReturnsStatusAndLocationHeaderBasedOnPathParameters() throws ApiGatewayException {
+    void handlerReturnsStatusAndLocationHeaderBasedOnPathParameters() {
         GetContentFileApiHandler handler = new GetContentFileApiHandler(environment);
         GatewayResponse gatewayResponse = handler.processInput(null, getRequestInfo(), mock(Context.class));
         int actualStatusCode = gatewayResponse.getStatusCode();
         String actuaLocation = gatewayResponse.getHeaders().get(HttpHeaders.LOCATION);
         String expectedLocation = String.format(BUCKET_URL_TEMPLATE, MOCK_BUCKET_NAME, MOCK_AWS_REGION, SAMPLE_TYPE,
                 SAMPLE_SUBTYPE, SAMPLE_FIRST_LINK_PART, SAMPLE_SECOND_LINK_PART, SAMPLE_FILENAME);
-        assertEquals(HttpStatus.SC_MOVED_PERMANENTLY, actualStatusCode);
+        assertEquals(HttpURLConnection.HTTP_MOVED_PERM, actualStatusCode);
         assertEquals(expectedLocation, actuaLocation);
     }
 

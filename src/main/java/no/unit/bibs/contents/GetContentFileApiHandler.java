@@ -1,12 +1,14 @@
 package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
+
+import java.net.HttpURLConnection;
 import java.util.Map;
+
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import org.apache.http.HttpStatus;
 
 
 public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayResponse> {
@@ -51,21 +53,13 @@ public class GetContentFileApiHandler extends ApiGatewayHandler<Void, GatewayRes
         String contentFileUrl = String.format(BUCKET_URL_TEMPLATE, environment.readEnv(BUCKET_NAME),
             environment.readEnv(AWS_REGION), type, subtype, firstLinkPart, secondLinkPart, filename);
         GatewayResponse gatewayResponse = new GatewayResponse(environment, contentFileUrl);
-        gatewayResponse.setStatusCode(HttpStatus.SC_MOVED_PERMANENTLY);
-
+        gatewayResponse.setStatusCode(HttpURLConnection.HTTP_MOVED_PERM);
         return gatewayResponse;
     }
 
-
-    /**
-     * Define the success status code.
-     *
-     * @param input  The request input.
-     * @param output The response output
-     * @return the success status code.
-     */
     @Override
     protected Integer getSuccessStatusCode(Void input, GatewayResponse output) {
-        return output.getStatusCode();
+        return HttpURLConnection.HTTP_MOVED_PERM;
     }
+
 }
