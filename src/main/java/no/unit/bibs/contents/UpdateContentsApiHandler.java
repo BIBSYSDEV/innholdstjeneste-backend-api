@@ -1,23 +1,29 @@
 package no.unit.bibs.contents;
 
 import static java.util.Objects.isNull;
+import static nva.commons.core.JsonUtils.objectMapper;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.GatewayResponseSerializingException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
 import nva.commons.apigateway.RestRequestHandler;
-import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, GatewayResponse> {
+import java.net.HttpURLConnection;
+
+public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, ContentsDocument> {
 
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to UpdateContentsApiHandler";
     public static final String COULD_NOT_UPDATE_PROVIDED_CONTENTS = "Could not update provided contents. ";
@@ -45,9 +51,10 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     /**
      * Constructor for injecting used in testing.
-     * @param environment environment
+     *
+     * @param environment    environment
      * @param dynamoDBClient dynamoDBclient
-     * @param s3Client s3Client
+     * @param s3Client       s3Client
      */
     public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient, S3Client s3Client) {
         super(ContentsRequest.class, environment);
@@ -68,62 +75,63 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
-    protected GatewayResponse processInput(ContentsRequest request, RequestInfo requestInfo,
-                                           Context context) throws ApiGatewayException {
+    protected ContentsDocument processInput(ContentsRequest request, RequestInfo requestInfo,
+                                            Context context) throws ApiGatewayException {
         if (isNull(request)) {
             throw new ParameterException(NO_PARAMETERS_GIVEN_TO_HANDLER);
         }
         ContentsDocument contentsDocument = request.getContents();
         logger.info(JSON_INPUT_LOOKS_LIKE_THAT + contentsDocument.toString());
-        GatewayResponse gatewayResponse = new GatewayResponse(environment);
-        try {
-            if (contentsDocument.isValid()) {
 
-                s3Client.handleFiles(contentsDocument);
+        if (contentsDocument.isValid()) {
 
-                logger.debug(THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST + contentsDocument.toString());
-                try {
-                    String contents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-                    if (StringUtils.isEmpty(contents)) {
-                        String createdContents = createContents(contentsDocument);
-                        gatewayResponse.setBody(createdContents);
-                        gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
-                    } else {
-                        String updatedContents = dynamoDBClient.updateContents(contentsDocument);
-                        logger.info(CONTENTS_UPDATED);
-                        gatewayResponse.setBody(updatedContents);
-                        gatewayResponse.setStatusCode(HttpStatus.SC_OK);
-                    }
-                } catch (NotFoundException e) {
-                    String createdContents = createContents(contentsDocument);
-                    gatewayResponse.setBody(createdContents);
-                    gatewayResponse.setStatusCode(HttpStatus.SC_CREATED);
-                } catch (Exception e) {
-                    String msg = FAILED_AFTER_PERSISTING + e.getMessage();
-                    logger.error(msg, e);
-                    gatewayResponse.setErrorBody(msg);
-                    gatewayResponse.setStatusCode(HttpStatus.SC_CONFLICT);
+            s3Client.handleFiles(contentsDocument);
+
+            logger.debug(THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST + contentsDocument.toString());
+            try {
+                String contents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+                if (StringUtils.isEmpty(contents)) {
+                    return createContents(contentsDocument);
+                } else {
+                    return updateContents(contentsDocument);
                 }
-            } else {
-                logger.error(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument);
-                gatewayResponse.setErrorBody(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument);
-                gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+            } catch (NotFoundException e) {
+                return createContents(contentsDocument);
+            } catch (Exception e) {
+                String msg = FAILED_AFTER_PERSISTING + e.getMessage();
+                logger.error(msg, e);
+                throw new ConflictException(msg);
             }
-        } catch (Exception e) {
-            String msg = ERROR_IN_UPDATE_FUNCTION + e.getMessage();
-            logger.error(msg, e);
-            gatewayResponse.setErrorBody(msg);
-            gatewayResponse.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+        } else {
+            logger.error(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument);
+            throw new BadRequestException(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument);
         }
-        return gatewayResponse;
     }
 
-    private String createContents(ContentsDocument contentsDocument) throws CommunicationException, NotFoundException {
+    private ContentsDocument createContents(ContentsDocument contentsDocument) throws CommunicationException,
+            NotFoundException, GatewayResponseSerializingException {
         dynamoDBClient.createContents(contentsDocument);
         this.waitAMoment(HALF_A_SECOND);
         String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
         logger.info(CONTENTS_CREATED);
-        return createdContents;
+        try {
+            ContentsDocument contents = objectMapper.readValue(createdContents, ContentsDocument.class);
+            return contents;
+        } catch (JsonProcessingException ex) {
+            throw new GatewayResponseSerializingException(ex);
+        }
+    }
+
+    private ContentsDocument updateContents(ContentsDocument contentsDocument) throws CommunicationException,
+            GatewayResponseSerializingException {
+        String updatedContents = dynamoDBClient.updateContents(contentsDocument);
+        logger.info(CONTENTS_UPDATED);
+        try {
+            ContentsDocument response = objectMapper.readValue(updatedContents, ContentsDocument.class);
+            return response;
+        } catch (JsonProcessingException e) {
+            throw new GatewayResponseSerializingException(e);
+        }
     }
 
     @JacocoGenerated
@@ -135,15 +143,9 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         }
     }
 
-    /**
-     * Define the success status code.
-     *
-     * @param input  The request input.
-     * @param output The response output
-     * @return the success status code.
-     */
+
     @Override
-    protected Integer getSuccessStatusCode(ContentsRequest input, GatewayResponse output) {
-        return output.getStatusCode();
+    protected Integer getSuccessStatusCode(ContentsRequest input, ContentsDocument output) {
+        return HttpURLConnection.HTTP_CREATED;
     }
 }

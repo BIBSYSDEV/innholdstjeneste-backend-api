@@ -1,7 +1,6 @@
 package no.unit.bibs.contents;
 
 import static no.unit.bibs.contents.DynamoDBClient.DOCUMENT_WITH_ID_WAS_NOT_FOUND;
-import static no.unit.bibs.contents.GatewayResponse.EMPTY_JSON;
 import static nva.commons.core.JsonUtils.objectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -40,6 +39,7 @@ public class DynamoDBClientTest {
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     public static final String GET_CONTENTS_JSON = "get_contents.json";
     public static final String KEY = "key";
+    private static final String EMPTY_JSON = "{}";
 
     DynamoDBClient dynamoDBClient;
     private Table dynamoTable;

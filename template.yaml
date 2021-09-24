@@ -268,65 +268,6 @@ Resources:
                     application/json:
                       schema:
                         $ref: '#/definitions/Problem'
-          /{type}/{subtype}/{firstLinkPart}/{secondLinkPart}/{filename}:
-            get:
-              description: "Redirects to object in contents S3 bucket"
-              consumes:
-                - application/json
-              produces:
-                - application/json
-              parameters:
-                - in: path
-                  name: type
-                  description: "File type ('images' if image, 'audio' if audio file)"
-                  required: true
-                  schema:
-                    type: string
-                - in: path
-                  name: subtype
-                  description: "File subtype ('small', 'large' or 'original' if image, 'mp3' if audio file)"
-                  required: true
-                  schema:
-                    type: string
-                - in: path
-                  name: firstLinkPart
-                  description: "Second last number of isbn"
-                  required: true
-                  schema:
-                    type: string
-                - in: path
-                  name: secondLinkPart
-                  description: "Last number of isbn"
-                  required: true
-                  schema:
-                    type: string
-                - in: path
-                  name: filename
-                  description: "Filename on format [isbn].[fileextension]. Eg. 9788205377547.jpg"
-                  required: true
-                  schema:
-                    type: string
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentFileApiFunction.Arn}/invocations
-                responses: {}
-                httpMethod: POST
-                type: AWS_PROXY
-              responses:
-                '301':
-                  description: ""
-                '404':
-                  description: "Not Found"
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/definitions/Contents'
-                '500':
-                  description: "Internal Server Error"
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/definitions/Problem'
         definitions:
           Contents:
             type: object
@@ -360,27 +301,6 @@ Resources:
           Type: Api
           Properties:
             Path: /
-            Method: get
-            RestApiId: !Ref ContentsApi
-
-  GetContentFileApiFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Tracing: Active
-      Handler: no.unit.bibs.contents.GetContentFileApiHandler::handleRequest
-      Runtime: java11
-      MemorySize: 1024
-      Role: !GetAtt AccessDynamoDBRole.Arn
-      Environment:
-        Variables:
-          ALLOWED_ORIGIN: '*'
-          TABLE_NAME: !Ref DynamoDBTableName
-          BUCKET_NAME: !Ref BucketName
-      Events:
-        GetEvent:
-          Type: Api
-          Properties:
-            Path: /{type}/{subtype}/{firstLinkPart}/{secondLinkPart}/{filename}
             Method: get
             RestApiId: !Ref ContentsApi
 
