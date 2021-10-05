@@ -380,7 +380,7 @@ Resources:
               Configuration:
                 Owner: !Ref GitHubOwner
                 OAuthToken: !Ref GitHubOAuthToken
-            Repo: !Ref GitRepo
+                Repo: !Ref GitRepo
                 Branch: !Ref GitBranch
                 PollForSourceChanges: false
               OutputArtifacts: [Name: SourceArtifacts]
