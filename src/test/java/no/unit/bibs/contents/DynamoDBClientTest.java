@@ -1,29 +1,7 @@
 package no.unit.bibs.contents;
 
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
-import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
-import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.nio.charset.StandardCharsets;
-import no.unit.bibs.contents.exception.CommunicationException;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.exceptions.commonexceptions.NotFoundException;
-import nva.commons.utils.IoUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-
 import static no.unit.bibs.contents.DynamoDBClient.DOCUMENT_WITH_ID_WAS_NOT_FOUND;
-import static no.unit.bibs.contents.GatewayResponse.EMPTY_JSON;
-import static nva.commons.utils.JsonUtils.objectMapper;
+import static nva.commons.core.JsonUtils.objectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,12 +13,33 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import no.unit.bibs.contents.exception.CommunicationException;
+import no.unit.nva.testutils.IoUtils;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 public class DynamoDBClientTest {
 
     public static final String SAMPLE_TERM = "SampleSearchTerm";
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     public static final String GET_CONTENTS_JSON = "get_contents.json";
     public static final String KEY = "key";
+    private static final String EMPTY_JSON = "{}";
 
     DynamoDBClient dynamoDBClient;
     private Table dynamoTable;

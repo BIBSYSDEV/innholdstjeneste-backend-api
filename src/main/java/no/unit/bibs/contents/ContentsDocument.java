@@ -2,8 +2,8 @@ package no.unit.bibs.contents;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import nva.commons.json.JsonSerializable;
-import nva.commons.utils.JacocoGenerated;
+import nva.commons.core.JsonSerializable;
+import nva.commons.core.JacocoGenerated;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;

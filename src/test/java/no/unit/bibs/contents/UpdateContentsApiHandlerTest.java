@@ -1,31 +1,33 @@
 package no.unit.bibs.contents;
 
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.lambda.runtime.Context;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import no.unit.bibs.contents.exception.ParameterException;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.exceptions.commonexceptions.NotFoundException;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.utils.Environment;
-import nva.commons.utils.IoUtils;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
-
 import static no.unit.bibs.contents.CreateContentsApiHandlerTest.TEST_ISBN;
 import static no.unit.bibs.contents.DynamoDBClientTest.SAMPLE_TERM;
-import static nva.commons.handlers.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static nva.commons.utils.JsonUtils.objectMapper;
-import static nva.commons.utils.StringUtils.EMPTY_STRING;
+import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
+import static nva.commons.core.JsonUtils.objectMapper;
+import static nva.commons.core.StringUtils.EMPTY_STRING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import java.net.HttpURLConnection;
+import java.nio.file.Path;
+import no.unit.bibs.contents.exception.ParameterException;
+import no.unit.nva.testutils.IoUtils;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.apigateway.exceptions.ConflictException;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class UpdateContentsApiHandlerTest {
 
@@ -60,9 +62,10 @@ class UpdateContentsApiHandlerTest {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
+        when(dynamoDbclient.getContents(anyString())).thenReturn(contents);
         when(dynamoDbclient.updateContents(contentsDocument)).thenReturn(contents);
-        GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
-        assertEquals(HttpStatus.SC_CREATED, gatewayResponse.getStatusCode());
+        var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
+        assertEquals(contentsDocument, actual);
     }
 
     @Test
@@ -77,8 +80,9 @@ class UpdateContentsApiHandlerTest {
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(client.updateContents(contentsDocument)).thenReturn(contents);
-        GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
-        assertEquals(HttpStatus.SC_BAD_REQUEST, gatewayResponse.getStatusCode());
+        Exception exception = assertThrows(BadRequestException.class, () -> {
+            handler.processInput(request, new RequestInfo(), mock(Context.class));
+        });
     }
 
     @Test
@@ -92,8 +96,9 @@ class UpdateContentsApiHandlerTest {
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(client.getContents(anyString())).thenReturn(contents);
-        GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
-        assertEquals(HttpStatus.SC_OK, gatewayResponse.getStatusCode());
+        Exception exception = assertThrows(ConflictException.class, () -> {
+            handler.processInput(request, new RequestInfo(), mock(Context.class));
+        });
     }
 
     @Test
@@ -107,8 +112,9 @@ class UpdateContentsApiHandlerTest {
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(client.getContents(anyString())).thenThrow(NotFoundException.class);
-        GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
-        assertEquals(HttpStatus.SC_BAD_REQUEST, gatewayResponse.getStatusCode());
+        Exception exception = assertThrows(NotFoundException.class, () -> {
+            handler.processInput(request, new RequestInfo(), mock(Context.class));
+        });
     }
 
     @Test
@@ -122,8 +128,8 @@ class UpdateContentsApiHandlerTest {
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(client.getContents(anyString())).thenThrow(NotFoundException.class).thenReturn(contents);
-        GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
-        assertEquals(HttpStatus.SC_CREATED, gatewayResponse.getStatusCode());
+        var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
+        assertEquals(contentsDocument, actual);
     }
 
     @Test
@@ -137,17 +143,17 @@ class UpdateContentsApiHandlerTest {
         ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(client.getContents(anyString())).thenThrow(IllegalArgumentException.class);
-        GatewayResponse gatewayResponse = handler.processInput(request, new RequestInfo(), mock(Context.class));
-        assertEquals(HttpStatus.SC_CONFLICT, gatewayResponse.getStatusCode());
+        Exception exception = assertThrows(ConflictException.class, () -> {
+            handler.processInput(request, new RequestInfo(), mock(Context.class));
+        });
     }
 
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
         UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, dynamoDBClient, s3Client);
-        GatewayResponse response =  new GatewayResponse(environment, SAMPLE_TERM, HttpStatus.SC_OK);
-        Integer statusCode = handler.getSuccessStatusCode(null, response);
-        assertEquals(statusCode, HttpStatus.SC_OK);
+        Integer statusCode = handler.getSuccessStatusCode(null, null);
+        assertEquals(statusCode, HttpURLConnection.HTTP_CREATED);
     }
 
 
@@ -156,7 +162,6 @@ class UpdateContentsApiHandlerTest {
         Exception exception = assertThrows(ParameterException.class, () -> {
             handler.processInput(null, new RequestInfo(), mock(Context.class));
         });
-
         assertTrue(exception.getMessage().contains(UpdateContentsApiHandler.NO_PARAMETERS_GIVEN_TO_HANDLER));
     }
 

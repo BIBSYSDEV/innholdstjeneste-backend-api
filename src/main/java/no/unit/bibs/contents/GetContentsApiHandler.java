@@ -1,17 +1,19 @@
 package no.unit.bibs.contents;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.exceptions.commonexceptions.NotFoundException;
-import nva.commons.handlers.ApiGatewayHandler;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.handlers.RestRequestHandler;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
-import org.apache.http.HttpStatus;
-import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import nva.commons.apigateway.ApiGatewayHandler;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.GatewayResponseSerializingException;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
 
-public class GetContentsApiHandler extends ApiGatewayHandler<Void, GatewayResponse> {
+import java.net.HttpURLConnection;
+
+import static nva.commons.core.JsonUtils.objectMapper;
+
+public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocument> {
 
     public static final String ISBN = "isbn";
     private final DynamoDBClient dynamoDBClient;
@@ -22,53 +24,40 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, GatewayRespon
     }
 
     @JacocoGenerated
-    public GetContentsApiHandler(Environment environment)  {
+    public GetContentsApiHandler(Environment environment) {
         this(environment, new DynamoDBClient(environment));
     }
 
     public GetContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
-        super(Void.class, environment, LoggerFactory.getLogger(GetContentsApiHandler.class));
+        super(Void.class, environment);
         this.dynamoDBClient = dynamoDBClient;
     }
 
-
     /**
-     * Implements the main logic of the handler. Any exception thrown by this method will be handled by {@link
-     * RestRequestHandler#handleExpectedException} method.
+     * Implements the main logic of the handler. Any exception thrown by this method will be handled by method.
      *
      * @param input       The input object to the method. Usually a deserialized json.
      * @param requestInfo Request headers and path.
      * @param context     the ApiGateway context.
      * @return the Response body that is going to be serialized in json
-     * @throws ApiGatewayException all exceptions are caught by writeFailure and mapped to error codes through the
-     *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
-    protected GatewayResponse processInput(Void input, RequestInfo requestInfo, Context context)
+    protected ContentsDocument processInput(Void input, RequestInfo requestInfo, Context context)
             throws ApiGatewayException {
-        String isbn = requestInfo.getQueryParameters().get(ISBN);
-        GatewayResponse gatewayResponse = new GatewayResponse(environment);
+        String isbn = requestInfo.getQueryParameter(ISBN);
+
+        String contents = dynamoDBClient.getContents(isbn);
         try {
-            String contents = dynamoDBClient.getContents(isbn);
-            gatewayResponse.setStatusCode(HttpStatus.SC_OK);
-            gatewayResponse.setBody(contents);
-        } catch (NotFoundException e) {
-            gatewayResponse.setErrorBody(e.getMessage());
-            gatewayResponse.setStatusCode(HttpStatus.SC_NOT_FOUND);
+            ContentsDocument response = objectMapper.readValue(contents, ContentsDocument.class);
+            return response;
+        } catch (JsonProcessingException e) {
+            throw new GatewayResponseSerializingException(e);
         }
-        return gatewayResponse;
     }
 
-
-    /**
-     * Define the success status code.
-     *
-     * @param input  The request input.
-     * @param output The response output
-     * @return the success status code.
-     */
     @Override
-    protected Integer getSuccessStatusCode(Void input, GatewayResponse output) {
-        return output.getStatusCode();
+    protected Integer getSuccessStatusCode(Void input, ContentsDocument output) {
+        return HttpURLConnection.HTTP_OK;
     }
+
 }

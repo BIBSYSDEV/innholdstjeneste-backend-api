@@ -10,19 +10,18 @@ import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
-import no.unit.bibs.contents.exception.CommunicationException;
-import nva.commons.exceptions.commonexceptions.NotFoundException;
-import nva.commons.utils.Environment;
-import nva.commons.utils.JacocoGenerated;
-import nva.commons.utils.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import no.unit.bibs.contents.exception.CommunicationException;
+import nva.commons.apigateway.exceptions.NotFoundException;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
+import nva.commons.core.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class DynamoDBClient {

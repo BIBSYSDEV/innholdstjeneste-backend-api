@@ -4,23 +4,24 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.ParameterException;
 import no.unit.nva.testutils.HandlerRequestBuilder;
-import nva.commons.exceptions.ApiGatewayException;
-import nva.commons.handlers.GatewayResponse;
-import nva.commons.handlers.RequestInfo;
-import nva.commons.utils.Environment;
-import nva.commons.utils.IoUtils;
-import org.apache.http.HttpStatus;
+import no.unit.nva.testutils.IoUtils;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.nio.file.Path;
 
-import static nva.commons.handlers.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static nva.commons.utils.JsonUtils.objectMapper;
-import static nva.commons.utils.StringUtils.EMPTY_STRING;
+import nva.commons.apigateway.GatewayResponse;
+import static no.unit.nva.hamcrest.PropertyValuePair.EMPTY_STRING;
+import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
+import static nva.commons.core.JsonUtils.objectMapper;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -60,9 +61,8 @@ public class CreateContentsApiHandlerTest {
     @Test
     void getSuccessStatusCodeReturnsOK() {
         CreateContentsApiHandler handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
-        var response =  new no.unit.bibs.contents.GatewayResponse(environment, MESSAGE, HttpStatus.SC_OK);
-        Integer statusCode = handler.getSuccessStatusCode(null, response);
-        assertEquals(statusCode, HttpStatus.SC_OK);
+        Integer statusCode = handler.getSuccessStatusCode(null, null);
+        assertEquals(statusCode, HttpURLConnection.HTTP_CREATED);
     }
 
     @Test
@@ -74,7 +74,7 @@ public class CreateContentsApiHandlerTest {
         when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
-        assertEquals(contents, actual.getBody());
+        assertEquals(contentsDocument, actual);
     }
 
     @Test
@@ -86,44 +86,20 @@ public class CreateContentsApiHandlerTest {
         when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         var handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
-        var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
-        assertTrue(actual.getBody().contains(CreateContentsApiHandler.COULD_NOT_INDEX_RECORD_PROVIDED));
+        Exception exception = assertThrows(BadRequestException.class, () -> {
+            handler.processInput(request, new RequestInfo(), mock(Context.class));
+        });
+        assertTrue(exception.getMessage().contains(CreateContentsApiHandler.COULD_NOT_INDEX_RECORD_PROVIDED));
     }
 
     @Test
     void handlerThrowsExceptionWithEmptyRequest()  {
-        Exception exception = assertThrows(ParameterException.class, () -> {
+        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
+        Exception exception = assertThrows(BadRequestException.class, () -> {
             handler.processInput(null, new RequestInfo(), mock(Context.class));
         });
-
+        System.out.println();
         assertTrue(exception.getMessage().contains(CreateContentsApiHandler.NO_PARAMETERS_GIVEN_TO_HANDLER));
     }
 
-
-    @Test
-    public void handleRequestReturnsCreatedIfContentsIsPosted() throws IOException {
-        ContentsRequest request = readMockCreateContentsRequestFromJsonFile();
-        GatewayResponse<Void> response = sendRequest(request);
-        assertThat(response.getStatusCode(), is(equalTo(HttpStatus.SC_CREATED)));
-    }
-
-    private <T> GatewayResponse<T> sendRequest(ContentsRequest request) throws IOException {
-        InputStream input = createRequest(request);
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        handler.handleRequest(input, output, context);
-
-        return GatewayResponse.fromOutputStream(output);
-    }
-
-    private InputStream createRequest(ContentsRequest request) throws JsonProcessingException {
-        return new HandlerRequestBuilder<ContentsRequest>(objectMapper)
-                .withBody(request)
-                .build();
-    }
-
-    private ContentsRequest readMockCreateContentsRequestFromJsonFile() throws JsonProcessingException {
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
-        return new ContentsRequest(contentsDocument);
-    }
 }
