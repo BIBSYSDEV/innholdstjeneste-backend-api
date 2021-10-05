@@ -418,10 +418,10 @@ Resources:
                 ParameterOverrides: !Sub |
                   {
                     "GitRepo": "${GitRepo}",
-                "GitBranch": "${GitBranch}",
-                "StackTemplatePath": "${StackTemplatePath}",
-                "StackTemplateConfigurationPath": "${StackTemplateConfigurationPath}",
-                "DeployStackName": "${DeployStackName}",
+                    "GitBranch": "${GitBranch}",
+                    "StackTemplatePath": "${StackTemplatePath}",
+                    "StackTemplateConfigurationPath": "${StackTemplateConfigurationPath}",
+                    "DeployStackName": "${DeployStackName}",
                     "PipelineApprovalAction": "${PipelineApprovalAction}",
                     "PipelineApprovalEmail": "${PipelineApprovalEmail}",
                     "AlertTopicArn": "${AlertTopicArn}"
