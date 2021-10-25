@@ -1,7 +1,7 @@
 package no.unit.bibs.contents;
 
 import static java.util.Objects.isNull;
-import static nva.commons.core.JsonUtils.objectMapper;
+import static nva.commons.core.JsonUtils.dtoObjectMapper;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -75,7 +75,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             dynamoDBClient.createContents(contentsDocument);
             String createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
             try {
-                ContentsDocument response = objectMapper.readValue(createContents, ContentsDocument.class);
+                ContentsDocument response = dtoObjectMapper.readValue(createContents, ContentsDocument.class);
                 return response;
             } catch (JsonProcessingException e) {
                 throw new GatewayResponseSerializingException(e);

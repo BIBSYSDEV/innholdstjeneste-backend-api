@@ -11,7 +11,7 @@ import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
 
-import static nva.commons.core.JsonUtils.objectMapper;
+import static nva.commons.core.JsonUtils.dtoObjectMapper;
 
 public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocument> {
 
@@ -48,7 +48,7 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
 
         String contents = dynamoDBClient.getContents(isbn);
         try {
-            ContentsDocument response = objectMapper.readValue(contents, ContentsDocument.class);
+            ContentsDocument response = dtoObjectMapper.readValue(contents, ContentsDocument.class);
             return response;
         } catch (JsonProcessingException e) {
             throw new GatewayResponseSerializingException(e);

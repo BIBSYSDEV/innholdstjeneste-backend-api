@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import nva.commons.apigateway.GatewayResponse;
 import static no.unit.nva.hamcrest.PropertyValuePair.EMPTY_STRING;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static nva.commons.core.JsonUtils.objectMapper;
+import static nva.commons.core.JsonUtils.dtoObjectMapper;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -69,7 +69,7 @@ public class CreateContentsApiHandlerTest {
     void handlerReturnsSearchResultsWhenQueryIsSingleTerm() throws ApiGatewayException, JsonProcessingException {
         var handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         doNothing().when(dynamoDBClient).createContents(contentsDocument);
         when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
         ContentsRequest request = new ContentsRequest(contentsDocument);
@@ -81,7 +81,7 @@ public class CreateContentsApiHandlerTest {
     void handlerReturnsErrorWhithEmptyContentsDocument() throws ApiGatewayException, JsonProcessingException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         contents = contents.replace(TEST_ISBN, EMPTY_STRING);
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         doNothing().when(dynamoDBClient).createContents(contentsDocument);
         when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
         ContentsRequest request = new ContentsRequest(contentsDocument);
