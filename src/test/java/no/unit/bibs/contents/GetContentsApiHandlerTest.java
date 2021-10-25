@@ -1,6 +1,6 @@
 package no.unit.bibs.contents;
 
-import static nva.commons.core.JsonUtils.objectMapper;
+import static nva.commons.core.JsonUtils.dtoObjectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,7 +52,7 @@ public class GetContentsApiHandlerTest {
         DynamoDBClient dynamoDBClient = mock(DynamoDBClient.class);
         var handler = new GetContentsApiHandler(environment, dynamoDBClient);
         String contents = IoUtils.stringFromResources(Path.of(DynamoDBClientTest.GET_CONTENTS_JSON));
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         when(dynamoDBClient.getContents(SAMPLE_SEARCH_TERM)).thenReturn(contents);
         var actual = handler.processInput(null, getRequestInfo(), mock(Context.class));
         assertEquals(contentsDocument, actual);
