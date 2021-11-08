@@ -3,7 +3,7 @@ plugins {
     id 'checkstyle'
     id 'pmd'
     id 'jacoco'
-    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
     id 'nebula.lint' version '17.3.0'
     id "org.owasp.dependencycheck" version "6.4.1.1"
 }
@@ -91,7 +91,7 @@ jacocoTestReport {
 }
 
 jacoco {
-    toolVersion = "0.8.5"
+    toolVersion = "0.8.7"
 }
 
 check.dependsOn jacocoTestCoverageVerification
