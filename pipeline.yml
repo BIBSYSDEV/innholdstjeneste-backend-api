@@ -129,8 +129,8 @@ Resources:
               StorageClass: INTELLIGENT_TIERING
               TransitionInDays: 30
           - Id: DeleteContentAfter8Days
-              Status: 'Enabled'
-              ExpirationInDays: 8
+            Status: 'Enabled'
+            ExpirationInDays: 8
 
   PipelineApprovalTopic:
     Type: AWS::SNS::Topic
