@@ -123,13 +123,8 @@ Resources:
         Status: Enabled
       LifecycleConfiguration:
         Rules:
-          - Id: IntelligentTieringRule
-            Status: Enabled
-            Transition:
-              StorageClass: INTELLIGENT_TIERING
-              TransitionInDays: 30
           - Id: DeleteContentAfter8Days
-            Status: 'Enabled'
+            Status: Enabled
             ExpirationInDays: 8
 
   PipelineApprovalTopic:
