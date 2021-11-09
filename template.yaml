@@ -139,12 +139,21 @@ Resources:
             - Effect: Allow
               Principal: '*'
               Action: 'execute-api:Invoke'
-              Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*'
+              Resource:
+                - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/GET/'
+                - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/OPTIONS/'
             - Effect: Allow
-              Principal:
-                AWS: !Sub 'arn:aws:iam:${AWS::AccountId}:root'
+              Principal: '*'
               Action: 'execute-api:Invoke'
-              Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/POST/'
+              Resource:
+                - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/PUT/'
+                - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/POST/'
+              Condition:
+                IpAddress:
+                  'aws:SourceIp':
+                    - 35.156.26.140
+                    - 80.212.255.137
+                    - 158.36.131.0/24
 
       DefinitionBody:
         openapi: 3.0.3
