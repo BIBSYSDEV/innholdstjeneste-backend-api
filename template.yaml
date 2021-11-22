@@ -30,8 +30,6 @@ Conditions:
 Globals:
   Function:
     Timeout: 20
-    Architecures:
-      - arm64
   Api:
     Cors:
       AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
