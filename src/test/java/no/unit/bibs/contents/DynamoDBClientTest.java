@@ -27,7 +27,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import no.unit.bibs.contents.exception.CommunicationException;
-import no.unit.nva.testutils.IoUtils;
+import nva.commons.core.ioutils.IoUtils;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;

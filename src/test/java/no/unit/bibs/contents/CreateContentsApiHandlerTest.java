@@ -1,30 +1,8 @@
 package no.unit.bibs.contents;
 
-import com.amazonaws.services.lambda.runtime.Context;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import no.unit.bibs.contents.exception.ParameterException;
-import no.unit.nva.testutils.HandlerRequestBuilder;
-import no.unit.nva.testutils.IoUtils;
-import nva.commons.apigateway.RequestInfo;
-import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.apigateway.exceptions.BadRequestException;
-import nva.commons.core.Environment;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.nio.file.Path;
-
-import nva.commons.apigateway.GatewayResponse;
 import static no.unit.nva.hamcrest.PropertyValuePair.EMPTY_STRING;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static nva.commons.core.JsonUtils.dtoObjectMapper;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,9 +11,20 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.amazonaws.services.lambda.runtime.Context;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.net.HttpURLConnection;
+import java.nio.file.Path;
+import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.BadRequestException;
+import nva.commons.core.Environment;
+import nva.commons.core.ioutils.IoUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 public class CreateContentsApiHandlerTest {
 
-    public static final String MESSAGE = "message";
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     public static final String TEST_ISBN = "9788205377547";
     private Environment environment;

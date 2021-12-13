@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import no.unit.nva.testutils.IoUtils;
+import nva.commons.core.ioutils.IoUtils;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
