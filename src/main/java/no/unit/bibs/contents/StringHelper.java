@@ -274,6 +274,7 @@ public class StringHelper {
      * @param string string to check
      * @return TRUE if the string contains an html escaped char
      */
+    @SuppressWarnings("PMD.CognitiveComplexity")
     public static boolean isValidHtmlEscapeCode(String string) {
         if (string == null) {
             return false;

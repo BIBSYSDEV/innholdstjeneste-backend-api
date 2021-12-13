@@ -10,7 +10,7 @@ import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import no.unit.nva.testutils.IoUtils;
+import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
