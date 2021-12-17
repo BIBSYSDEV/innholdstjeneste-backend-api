@@ -10,10 +10,6 @@ import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
@@ -22,6 +18,12 @@ import nva.commons.core.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
 
 public class DynamoDBClient {
@@ -85,7 +87,7 @@ public class DynamoDBClient {
 
     private Item generateItem(ContentsDocument document) {
         Item item = new Item();
-        item.withString(ContentsDocument.ISBN, document.getIsbn());
+        item.withString(ContentsDocument.ISBN, document.getIsbn().toUpperCase(Locale.getDefault()));
         conditionalAdd(item, document.getTitle(), ContentsDocument.TITLE, true);
         conditionalAdd(item, document.getDateOfPublication(), ContentsDocument.DATE_OF_PUBLICATION, false);
         conditionalAdd(item, document.getAuthor(), ContentsDocument.AUTHOR, true);
@@ -117,7 +119,7 @@ public class DynamoDBClient {
      * @throws NotFoundException contentsDocument not found
      */
     public String getContents(String isbn) throws NotFoundException {
-        Item item = contentsTable.getItem(ContentsDocument.ISBN, isbn);
+        Item item = contentsTable.getItem(ContentsDocument.ISBN, isbn.toUpperCase(Locale.getDefault()));
         if (Objects.isNull(item) || EMPTY_JSON_OBJECT.equals(item.toJSON())) {
             throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
         }
