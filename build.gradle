@@ -37,7 +37,7 @@ dependencies {
     compileOnly group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.1.1'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.13.0'
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.33'
-    implementation group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: '1.12.129'
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: '1.12.145'
     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.9'
     implementation group: 'com.github.bibsysdev', name: 'core', version: '1.18.5'
     implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '1.18.5'
