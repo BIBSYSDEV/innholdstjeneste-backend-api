@@ -13,7 +13,6 @@ import java.net.HttpURLConnection;
 
 import static nva.commons.core.JsonUtils.dtoObjectMapper;
 
-
 public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocument> {
 
     public static final String ISBN = "isbn";
