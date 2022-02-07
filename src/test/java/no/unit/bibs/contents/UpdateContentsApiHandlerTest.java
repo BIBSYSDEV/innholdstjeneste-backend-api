@@ -1,8 +1,8 @@
 package no.unit.bibs.contents;
 
 import static no.unit.bibs.contents.CreateContentsApiHandlerTest.TEST_ISBN;
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
+import static nva.commons.core.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

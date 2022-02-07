@@ -1,6 +1,6 @@
 package no.unit.bibs.contents;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static nva.commons.core.JsonUtils.dtoObjectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;

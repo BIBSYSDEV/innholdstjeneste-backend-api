@@ -1,7 +1,7 @@
 package no.unit.bibs.contents;
 
 import static no.unit.bibs.contents.DynamoDBClient.DOCUMENT_WITH_ID_WAS_NOT_FOUND;
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static nva.commons.core.JsonUtils.dtoObjectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
