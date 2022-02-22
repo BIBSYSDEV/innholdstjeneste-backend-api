@@ -120,7 +120,9 @@ public class DynamoDBClient {
      */
     public String getContents(String isbn) throws NotFoundException {
         Item item = contentsTable.getItem(ContentsDocument.ISBN, isbn.toUpperCase(Locale.getDefault()));
+        System.out.println("Must have found an Item: " + item);
         if (Objects.isNull(item) || EMPTY_JSON_OBJECT.equals(item.toJSON())) {
+            System.out.println("Item was empty eller null");
             throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
         }
         return item.toJSON();

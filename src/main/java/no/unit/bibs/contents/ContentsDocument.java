@@ -2,7 +2,7 @@ package no.unit.bibs.contents;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import nva.commons.core.JsonSerializable;
+import no.unit.nva.commons.json.JsonSerializable;
 import nva.commons.core.JacocoGenerated;
 import org.apache.commons.lang3.StringUtils;
 

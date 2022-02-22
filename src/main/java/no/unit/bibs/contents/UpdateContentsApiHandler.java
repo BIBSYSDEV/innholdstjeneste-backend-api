@@ -1,14 +1,14 @@
 package no.unit.bibs.contents;
 
 import static java.util.Objects.isNull;
-import static nva.commons.core.JsonUtils.dtoObjectMapper;
-
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
+import nva.commons.apigateway.RestRequestHandler;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.ConflictException;
@@ -17,11 +17,11 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import nva.commons.core.StringUtils;
-import nva.commons.apigateway.RestRequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
+
 
 public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, ContentsDocument> {
 

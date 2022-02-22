@@ -11,7 +11,7 @@ import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
 
-import static nva.commons.core.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocument> {
 
@@ -45,12 +45,15 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
     protected ContentsDocument processInput(Void input, RequestInfo requestInfo, Context context)
             throws ApiGatewayException {
         String isbn = requestInfo.getQueryParameter(ISBN);
-
+        System.out.println("ISBN from queryParam: " + isbn);
         String contents = dynamoDBClient.getContents(isbn);
+        System.out.println("contents from DynamoDB: " + contents);
         try {
             ContentsDocument response = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+            System.out.println("Laget en ResponseObject :" + response.toString());
             return response;
         } catch (JsonProcessingException e) {
+            System.out.println("final exception: " + e.getMessage());
             throw new GatewayResponseSerializingException(e);
         }
     }

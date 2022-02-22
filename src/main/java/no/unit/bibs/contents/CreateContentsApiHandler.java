@@ -1,8 +1,6 @@
 package no.unit.bibs.contents;
 
 import static java.util.Objects.isNull;
-import static nva.commons.core.JsonUtils.dtoObjectMapper;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import nva.commons.apigateway.ApiGatewayHandler;
@@ -17,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
+
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, ContentsDocument> {
 
