@@ -11,7 +11,7 @@ import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static nva.commons.core.JsonUtils.dtoObjectMapper;
 
 public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocument> {
 
