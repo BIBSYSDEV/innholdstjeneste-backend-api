@@ -2,10 +2,6 @@ package no.unit.bibs.contents;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializable;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import nva.commons.core.JacocoGenerated;
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,7 +11,7 @@ import java.util.Objects;
 import static com.amazonaws.util.json.Jackson.toJsonString;
 
 @SuppressWarnings("PMD.TooManyFields")
-public class ContentsDocument implements JsonSerializable {
+public class ContentsDocument {
 
     public static final String TITLE = "title";
     public static final String AUTHOR = "author";
@@ -267,13 +263,4 @@ public class ContentsDocument implements JsonSerializable {
         return StringUtils.isNotBlank(tempDesc.toString()) || StringUtils.isNotBlank(tempImg.toString());
     }
 
-    @Override
-    public void serialize(JsonGenerator gen, SerializerProvider serializers) {
-
-    }
-
-    @Override
-    public void serializeWithType(JsonGenerator gen, SerializerProvider serializers, TypeSerializer typeSer) {
-
-    }
 }
