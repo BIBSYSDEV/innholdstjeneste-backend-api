@@ -27,7 +27,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.apigateway.exceptions.ApiGatewayException;

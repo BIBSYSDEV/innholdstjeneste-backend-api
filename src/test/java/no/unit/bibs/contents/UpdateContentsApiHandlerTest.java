@@ -18,7 +18,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.apigateway.RequestInfo;
