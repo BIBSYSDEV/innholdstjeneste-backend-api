@@ -2,16 +2,15 @@ package no.unit.bibs.contents;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import no.unit.nva.commons.json.JsonSerializable;
 import nva.commons.core.JacocoGenerated;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
 import java.util.Objects;
 
-import static com.amazonaws.util.json.Jackson.toJsonString;
-
 @SuppressWarnings("PMD.TooManyFields")
-public class ContentsDocument {
+public class ContentsDocument implements JsonSerializable {
 
     public static final String TITLE = "title";
     public static final String AUTHOR = "author";
@@ -237,7 +236,7 @@ public class ContentsDocument {
     @JacocoGenerated
     @Override
     public String toString() {
-        return toJsonString(this);
+        return toJsonString();
     }
 
 
