@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import nva.commons.core.JacocoGenerated;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -269,12 +268,12 @@ public class ContentsDocument implements JsonSerializable {
     }
 
     @Override
-    public void serialize(JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    public void serialize(JsonGenerator gen, SerializerProvider serializers) {
 
     }
 
     @Override
-    public void serializeWithType(JsonGenerator gen, SerializerProvider serializers, TypeSerializer typeSer) throws IOException {
+    public void serializeWithType(JsonGenerator gen, SerializerProvider serializers, TypeSerializer typeSer) {
 
     }
 }

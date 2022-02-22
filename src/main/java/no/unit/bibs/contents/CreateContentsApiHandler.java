@@ -1,10 +1,7 @@
 package no.unit.bibs.contents;
 
-import static java.util.Objects.isNull;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.RestRequestHandler;
@@ -17,6 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
+
+import static java.util.Objects.isNull;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, ContentsDocument> {
 
@@ -75,7 +75,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             dynamoDBClient.createContents(contentsDocument);
             String createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
             try {
-                ContentsDocument response = new ObjectMapper().readValue(createContents, ContentsDocument.class);
+                ContentsDocument response = dtoObjectMapper.readValue(createContents, ContentsDocument.class);
                 return response;
             } catch (JsonProcessingException e) {
                 throw new GatewayResponseSerializingException(e);
