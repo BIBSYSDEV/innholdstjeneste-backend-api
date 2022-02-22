@@ -3,6 +3,7 @@ package no.unit.bibs.contents;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializable;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
@@ -12,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.time.Instant;
 import java.util.Objects;
 
-import static com.amazonaws.util.json.Jackson.toJsonString;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 @SuppressWarnings("PMD.TooManyFields")
 public class ContentsDocument implements JsonSerializable {
@@ -241,7 +242,11 @@ public class ContentsDocument implements JsonSerializable {
     @JacocoGenerated
     @Override
     public String toString() {
-        return toJsonString(this);
+        try {
+            return dtoObjectMapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
