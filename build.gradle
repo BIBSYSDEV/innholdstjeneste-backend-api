@@ -38,7 +38,7 @@ dependencies {
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.36'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: '1.12.129'
     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.9'
-    implementation group: 'com.github.bibsysdev', name: 'json', version: '1.20.12'
+    implementation group: 'com.github.bibsysdev', name: 'json', version: '1.20.15'
     implementation group: 'com.github.bibsysdev', name: 'core', version: '1.20.15'
     implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '1.20.15'
     testImplementation group: 'com.github.bibsysdev', name: 'nvatestutils', version: '1.20.15'
