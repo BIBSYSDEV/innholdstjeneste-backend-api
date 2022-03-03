@@ -11,7 +11,6 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,6 @@ public class S3ClientTest {
 
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     public static final String CREATE_CONTENTS_BASE_64_EVENT = "createContentBase64EncodedImage.json";
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private S3Client s3Client;
     private S3Connection s3Connection;
@@ -47,15 +45,15 @@ public class S3ClientTest {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         String contentsBase64Encoded = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_BASE_64_EVENT));
         doNothing().when(s3Connection).uploadFile(any(), anyString(), anyString(), anyString());
-        ContentsDocument contentsDocument = objectMapper.readValue(contentsBase64Encoded, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contentsBase64Encoded, ContentsDocument.class);
         s3Client.handleFiles(contentsDocument);
-        assertEquals(objectMapper.readValue(contents, ContentsDocument.class), contentsDocument);
+        assertEquals(dtoObjectMapper.readValue(contents, ContentsDocument.class), contentsDocument);
     }
 
     @Test
     void testUpdateDocumentContent() throws IOException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         String mockObjectKey = "blablah";
         s3Client.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, S3Client.SMALL);
         assertEquals(mockObjectKey, contentsDocument.getImageSmall());

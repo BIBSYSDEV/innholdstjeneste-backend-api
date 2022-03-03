@@ -1,6 +1,7 @@
 package no.unit.bibs.contents;
 
 import static no.unit.bibs.contents.DynamoDBClient.DOCUMENT_WITH_ID_WAS_NOT_FOUND;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -26,7 +27,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -44,7 +44,6 @@ public class DynamoDBClientTest {
 
     DynamoDBClient dynamoDBClient;
     private Table dynamoTable;
-    private ObjectMapper objectMapper = new ObjectMapper();
 
 
     /**
@@ -119,7 +118,7 @@ public class DynamoDBClientTest {
     @Test
     public void addDocumentTest() throws IOException, CommunicationException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument document = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
         PutItemOutcome putItemOutcome = mock(PutItemOutcome.class);
         Item item = new Item()
@@ -141,7 +140,7 @@ public class DynamoDBClientTest {
         when(outcome.getItem()).thenReturn(item);
         when(item.toJSON()).thenReturn(EMPTY_JSON);
         String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
-        ContentsDocument document = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         String updateContents = client.updateContents(document);
         assertEquals(EMPTY_JSON, updateContents);
     }
@@ -153,7 +152,7 @@ public class DynamoDBClientTest {
         UpdateItemOutcome outcome = mock(UpdateItemOutcome.class);
         when(table.updateItem(any(UpdateItemSpec.class))).thenReturn(outcome);
         String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
-        ContentsDocument document = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         when(table.getItem(ContentsDocument.ISBN, SAMPLE_TERM)).thenReturn(new Item());
         when(outcome.getItem()).thenThrow(IllegalArgumentException.class);
         Exception exception = assertThrows(CommunicationException.class, () -> {

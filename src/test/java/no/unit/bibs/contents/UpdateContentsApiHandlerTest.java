@@ -1,8 +1,8 @@
 package no.unit.bibs.contents;
 
 import static no.unit.bibs.contents.CreateContentsApiHandlerTest.TEST_ISBN;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static nva.commons.core.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -18,7 +18,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.apigateway.RequestInfo;
@@ -32,7 +31,6 @@ import org.junit.jupiter.api.Test;
 
 class UpdateContentsApiHandlerTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private Environment environment;
     private Table dynamoTable;
     private DynamoDBClient dynamoDBClient;
@@ -62,7 +60,7 @@ class UpdateContentsApiHandlerTest {
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
         UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, dynamoDbclient, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(dynamoDbclient.getContents(anyString())).thenReturn(contents);
         when(dynamoDbclient.updateContents(contentsDocument)).thenReturn(contents);
@@ -79,7 +77,7 @@ class UpdateContentsApiHandlerTest {
         UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         contents = contents.replace(TEST_ISBN, EMPTY_STRING);
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(client.updateContents(contentsDocument)).thenReturn(contents);
         Exception exception = assertThrows(BadRequestException.class, () -> {
@@ -95,7 +93,7 @@ class UpdateContentsApiHandlerTest {
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
         UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(client.getContents(anyString())).thenReturn(contents);
         Exception exception = assertThrows(ConflictException.class, () -> {
@@ -111,7 +109,7 @@ class UpdateContentsApiHandlerTest {
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
         UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(client.getContents(anyString())).thenThrow(NotFoundException.class);
         Exception exception = assertThrows(NotFoundException.class, () -> {
@@ -127,7 +125,7 @@ class UpdateContentsApiHandlerTest {
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
         UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(client.getContents(anyString())).thenThrow(NotFoundException.class).thenReturn(contents);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
@@ -142,7 +140,7 @@ class UpdateContentsApiHandlerTest {
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
         UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = objectMapper.readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(client.getContents(anyString())).thenThrow(IllegalArgumentException.class);
         Exception exception = assertThrows(ConflictException.class, () -> {

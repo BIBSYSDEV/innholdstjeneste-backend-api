@@ -2,7 +2,7 @@ package no.unit.bibs.contents;
 
 import static no.unit.nva.hamcrest.PropertyValuePair.EMPTY_STRING;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static nva.commons.core.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,7 +16,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -60,7 +59,7 @@ public class CreateContentsApiHandlerTest {
     void handlerReturnsSearchResultsWhenQueryIsSingleTerm() throws ApiGatewayException, JsonProcessingException {
         var handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = new ObjectMapper().readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         doNothing().when(dynamoDBClient).createContents(contentsDocument);
         when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
         ContentsRequest request = new ContentsRequest(contentsDocument);
@@ -72,7 +71,7 @@ public class CreateContentsApiHandlerTest {
     void handlerReturnsErrorWhithEmptyContentsDocument() throws ApiGatewayException, JsonProcessingException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         contents = contents.replace(TEST_ISBN, EMPTY_STRING);
-        ContentsDocument contentsDocument = new ObjectMapper().readValue(contents, ContentsDocument.class);
+        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         doNothing().when(dynamoDBClient).createContents(contentsDocument);
         when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
         ContentsRequest request = new ContentsRequest(contentsDocument);
