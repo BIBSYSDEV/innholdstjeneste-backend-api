@@ -10,6 +10,12 @@ import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
@@ -24,10 +30,12 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 
 public class DynamoDBClient {
 
+    public static final Region REGION = Region.EU_WEST_1;
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBClient.class);
 
     public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
@@ -38,15 +46,17 @@ public class DynamoDBClient {
     public static final String _EQUALS_ = " = ";
     public static final String SET_ = "set ";
     private static final String EMPTY_JSON_OBJECT = "{}";
+    public static final String PRIMARYKEY_ISBN = "isbn";
 
     private Table contentsTable;
+    private static String tableName;
+    private static DynamoDbClient dynamoDbClient;
 
     /**
      * Creates a new DynamoDBClient.
-     *
      */
     @JacocoGenerated
-    public DynamoDBClient(Environment environment)  {
+    public DynamoDBClient(Environment environment) {
         initDynamoDbClient(environment);
     }
 
@@ -63,7 +73,9 @@ public class DynamoDBClient {
     private void initDynamoDbClient(Environment environment) {
         try {
             AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient();
-            contentsTable = new DynamoDB(dynamoDB).getTable(environment.readEnv(TABLE_NAME));
+            tableName = environment.readEnv(TABLE_NAME);
+            contentsTable = new DynamoDB(dynamoDB).getTable(tableName);
+            dynamoDbClient = DynamoDbClient.builder().region(REGION).build();
         } catch (Exception e) {
             logger.error(CANNOT_CONNECT_TO_DYNAMO_DB, e);
         }
@@ -71,9 +83,10 @@ public class DynamoDBClient {
 
     /**
      * Adds or insert a document to dynamoDB.
+     *
      * @param document the document to be inserted
      * @throws CommunicationException when something goes wrong
-     * */
+     */
     public void createContents(ContentsDocument document) throws CommunicationException {
         try {
             Item item = this.generateItem(document);
@@ -119,17 +132,30 @@ public class DynamoDBClient {
      * @throws NotFoundException contentsDocument not found
      */
     public String getContents(String isbn) throws NotFoundException {
-        Item item = contentsTable.getItem(ContentsDocument.ISBN, isbn.toUpperCase(Locale.getDefault()));
-        System.out.println("Must have found an Item: " + item);
-        if (Objects.isNull(item) || EMPTY_JSON_OBJECT.equals(item.toJSON())) {
-            System.out.println("Item was empty eller null");
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        keyToGet.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(isbn).build());
+        GetItemRequest request = GetItemRequest.builder()
+                .key(keyToGet)
+                .tableName(tableName)
+                .build();
+        try {
+            Map<String, AttributeValue> returnedItem = DynamoDbClient.builder().region(REGION).build().getItem(request).item();
+            if (returnedItem != null || !returnedItem.isEmpty()) {
+                return dtoObjectMapper.writeValueAsString(returnedItem);
+            } else {
+                System.out.format("No item found with the isbn %s!\n", isbn);
+            }
+        } catch (DynamoDbException | JsonProcessingException e) {
+            System.err.println(e.getMessage());
             throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
         }
-        return item.toJSON();
+        return isbn;
     }
+
 
     /**
      * Updates the contentsDocument identified by it's isbn.
+     *
      * @param document contentsDocument to update
      * @return json representation of contents.
      * @throws CommunicationException exception while connecting to database
