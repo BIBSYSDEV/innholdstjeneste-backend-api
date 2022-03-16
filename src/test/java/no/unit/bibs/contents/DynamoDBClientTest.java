@@ -1,6 +1,7 @@
 package no.unit.bibs.contents;
 
 import static no.unit.bibs.contents.DynamoDBClient.DOCUMENT_WITH_ID_WAS_NOT_FOUND;
+import static no.unit.bibs.contents.DynamoDBClient.PRIMARYKEY_ISBN;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -33,6 +34,10 @@ import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 
 public class DynamoDBClientTest {
 
@@ -64,22 +69,20 @@ public class DynamoDBClientTest {
 
     @Test
     void handlerReturnsNotFoundExceptionWhenShittyResponseFromDynamoDB()  {
-        Table table = mock(Table.class);
-        DynamoDBClient dbClient = new DynamoDBClient(table);
-        when(table.getItem(ContentsDocument.ISBN, SAMPLE_TERM)).thenReturn(null);
-        Exception exception = assertThrows(NotFoundException.class, () -> {
-            dbClient.getContents(SAMPLE_TERM);
-        });
+        DynamoDbClient client = mock(DynamoDbClient.class);
+        DynamoDBClient dbClient = new DynamoDBClient(client);
+        when(client.getItem(any(GetItemRequest.class))).thenReturn(null);
+        Exception exception = assertThrows(NotFoundException.class, () -> dbClient.getContents(SAMPLE_TERM));
 
         String expectedMessage = String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, SAMPLE_TERM);
         String actualMessage = exception.getMessage();
 
         assertEquals(actualMessage, (expectedMessage));
 
-        when(table.getItem(ContentsDocument.ISBN, SAMPLE_TERM)).thenReturn(new Item());
-        exception = assertThrows(NotFoundException.class, () -> {
-            dbClient.getContents(SAMPLE_TERM);
-        });
+        GetItemResponse getItemResponse = mock(GetItemResponse.class);
+        when(client.getItem(any(GetItemRequest.class))).thenReturn(getItemResponse);
+        when(getItemResponse.item()).thenReturn(new HashMap<>());
+        exception = assertThrows(NotFoundException.class, () -> dbClient.getContents(SAMPLE_TERM));
 
         actualMessage = exception.getMessage();
 
@@ -88,12 +91,17 @@ public class DynamoDBClientTest {
 
 
     @Test
-    public void searchSingleTermReturnsResponse() throws ApiGatewayException, IOException {
-        DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
+    public void searchSingleTermReturnsResponse() throws ApiGatewayException {
+        DynamoDbClient client = mock(DynamoDbClient.class);
         String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
         Item item = new Item();
         item.withJSON("contents", contents);
-        when(dynamoTable.getItem(anyString(), anyString())).thenReturn(item);
+        GetItemResponse getItemResponse = mock(GetItemResponse.class);
+        Map<String, AttributeValue> returnedItem = new HashMap<>();
+        returnedItem.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(SAMPLE_TERM).build());
+        DynamoDBClient dynamoDBClient = new DynamoDBClient(client);
+        when(client.getItem(any(GetItemRequest.class))).thenReturn(getItemResponse);
+        when(getItemResponse.item()).thenReturn(returnedItem);
         String getContentsResponse = dynamoDBClient.getContents(SAMPLE_TERM);
         assertNotNull(getContentsResponse);
     }
@@ -111,7 +119,8 @@ public class DynamoDBClientTest {
 
     @Test
     public void searchSingleTermReturnsErrorResponseWhenExceptionInDoSearch() {
-        DynamoDBClient dynamoDBClient = new DynamoDBClient(dynamoTable);
+        DynamoDbClient client = mock(DynamoDbClient.class);
+        DynamoDBClient dynamoDBClient = new DynamoDBClient(client);
         assertThrows(NotFoundException.class, () -> dynamoDBClient.getContents(SAMPLE_TERM));
     }
     
