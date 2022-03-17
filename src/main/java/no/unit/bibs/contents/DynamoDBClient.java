@@ -1,15 +1,5 @@
 package no.unit.bibs.contents;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
-import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
-import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
-import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
-import com.amazonaws.services.dynamodbv2.model.ReturnValue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.apigateway.exceptions.NotFoundException;
@@ -22,9 +12,14 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -44,13 +39,8 @@ public class DynamoDBClient {
     public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
     public static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
     public static final String TABLE_NAME = "TABLE_NAME";
-    public static final String KEY_PREFIX = ":";
-    public static final String COMMA_ = ", ";
-    public static final String _EQUALS_ = " = ";
-    public static final String SET_ = "set ";
     public static final String PRIMARYKEY_ISBN = "isbn";
 
-    private Table contentsTable;
     private static String tableName;
     private DynamoDbClient dbClient;
 
@@ -64,15 +54,6 @@ public class DynamoDBClient {
 
     /**
      * Creates a new DynamoDBClient.
-     *
-     * @param dynamoTable Table
-     */
-    public DynamoDBClient(Table dynamoTable) {
-        contentsTable = dynamoTable;
-    }
-
-    /**
-     * Creates a new DynamoDBClient.
      */
     public DynamoDBClient(DynamoDbClient dbClient) {
         this.dbClient = dbClient;
@@ -81,9 +62,7 @@ public class DynamoDBClient {
     @JacocoGenerated
     private void initDynamoDbClient(Environment environment) {
         try {
-            AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient();
             tableName = environment.readEnv(TABLE_NAME);
-            contentsTable = new DynamoDB(dynamoDB).getTable(tableName);
             dbClient = DynamoDbClient.builder().region(REGION).build();
         } catch (Exception e) {
             logger.error(CANNOT_CONNECT_TO_DYNAMO_DB, e);
@@ -98,40 +77,49 @@ public class DynamoDBClient {
      */
     public void createContents(ContentsDocument document) throws CommunicationException {
         try {
-            Item item = this.generateItem(document);
-            contentsTable.putItem(new PutItemSpec().withItem(item));
-            logger.info("contents created");
+            PutItemRequest putItemRequest = PutItemRequest
+                    .builder()
+                    .tableName(tableName)
+                    .item(this.generateItemMap(document))
+                    .build();
+            PutItemResponse putItemResponse = dbClient.putItem(putItemRequest);
+            if (putItemResponse.hasAttributes()) {
+                logger.info("contents created");
+            } else {
+                logger.error("Create contents went wrong. ");
+                throw new RuntimeException("Create contents went wrong. ");
+            }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Creation error: " + e.getMessage(), e);
         }
     }
 
-    private Item generateItem(ContentsDocument document) {
-        Item item = new Item();
-        item.withString(ContentsDocument.ISBN, document.getIsbn().toUpperCase(Locale.getDefault()));
-        conditionalAdd(item, document.getTitle(), ContentsDocument.TITLE, true);
-        conditionalAdd(item, document.getDateOfPublication(), ContentsDocument.DATE_OF_PUBLICATION, false);
-        conditionalAdd(item, document.getAuthor(), ContentsDocument.AUTHOR, true);
-        conditionalAdd(item, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT, true);
-        conditionalAdd(item, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG, true);
-        conditionalAdd(item, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS, true);
-        conditionalAdd(item, document.getPromotional(), ContentsDocument.PROMOTIONAL, true);
-        conditionalAdd(item, document.getSummary(), ContentsDocument.SUMMARY, true);
-        conditionalAdd(item, document.getReview(), ContentsDocument.REVIEW, true);
-        conditionalAdd(item, document.getImageSmall(), ContentsDocument.IMAGE_SMALL, false);
-        conditionalAdd(item, document.getImageLarge(), ContentsDocument.IMAGE_LARGE, false);
-        conditionalAdd(item, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL, false);
-        conditionalAdd(item, document.getAudioFile(), ContentsDocument.AUDIO_FILE, false);
-        item.withString(ContentsDocument.SOURCE, document.getSource());
+    private Map<String, AttributeValue> generateItemMap(ContentsDocument document) {
+        Map<String, AttributeValue> itemMap = new HashMap<>();
+        itemMap.put(ContentsDocument.ISBN,
+                AttributeValue.builder().s(document.getIsbn().toUpperCase(Locale.getDefault())).build());
+        conditionalAddForCreate(itemMap, document.getTitle(), ContentsDocument.TITLE, true);
+        conditionalAddForCreate(itemMap, document.getDateOfPublication(), ContentsDocument.DATE_OF_PUBLICATION, false);
+        conditionalAddForCreate(itemMap, document.getAuthor(), ContentsDocument.AUTHOR, true);
+        conditionalAddForCreate(itemMap, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT, true);
+        conditionalAddForCreate(itemMap, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG, true);
+        conditionalAddForCreate(itemMap, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS, true);
+        conditionalAddForCreate(itemMap, document.getPromotional(), ContentsDocument.PROMOTIONAL, true);
+        conditionalAddForCreate(itemMap, document.getSummary(), ContentsDocument.SUMMARY, true);
+        conditionalAddForCreate(itemMap, document.getReview(), ContentsDocument.REVIEW, true);
+        conditionalAddForCreate(itemMap, document.getImageSmall(), ContentsDocument.IMAGE_SMALL, false);
+        conditionalAddForCreate(itemMap, document.getImageLarge(), ContentsDocument.IMAGE_LARGE, false);
+        conditionalAddForCreate(itemMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL, false);
+        conditionalAddForCreate(itemMap, document.getAudioFile(), ContentsDocument.AUDIO_FILE, false);
+        itemMap.put(ContentsDocument.SOURCE, AttributeValue.builder().s(document.getSource()).build());
         if (Objects.isNull(document.getCreated())) {
-            item.withString(ContentsDocument.CREATED, Instant.now().toString());
+            itemMap.put(ContentsDocument.CREATED, AttributeValue.builder().s(Instant.now().toString()).build());
         } else {
-            item.withString(ContentsDocument.CREATED, document.getCreated().toString());
+            itemMap.put(ContentsDocument.CREATED, AttributeValue.builder().s(document.getCreated().toString()).build());
         }
-        return item;
+        return itemMap;
     }
-
 
     /**
      * Gets the contentsDocument by given isbn.
@@ -152,12 +140,7 @@ public class DynamoDBClient {
             if (itemResponse != null) {
                 Map<String, AttributeValue> returnedItem = itemResponse.item();
                 if (returnedItem != null && !returnedItem.isEmpty()) {
-                    Map<String, String> item = new HashMap<>();
-                    Set<String> keys = returnedItem.keySet();
-                    for (String key1 : keys) {
-                        item.put(key1, returnedItem.get(key1).toString());
-                    }
-                    return dtoObjectMapper.writeValueAsString(item);
+                    return parseAttributeValueMap(returnedItem);
                 }
             }
             logger.info(String.format("No item found with the isbn %s!", isbn));
@@ -175,7 +158,7 @@ public class DynamoDBClient {
     }
 
     /**
-     * Updates the contentsDocument identified by it's isbn.
+     * Updates the contentsDocument identified by its isbn.
      *
      * @param document contentsDocument to update
      * @return json representation of contents.
@@ -183,71 +166,82 @@ public class DynamoDBClient {
      */
     protected String updateContents(ContentsDocument document) throws CommunicationException {
         try {
-            StringBuilder expression = new StringBuilder();
-            ValueMap valueMap = new ValueMap();
-            this.generateExpressionAndValueMap(document, expression, valueMap);
-            UpdateItemSpec updateItemSpec = new UpdateItemSpec()
-                    .withPrimaryKey(ContentsDocument.ISBN, document.getIsbn());
-            updateItemSpec = updateItemSpec.withUpdateExpression(expression.toString());
-            updateItemSpec = updateItemSpec.withValueMap(valueMap);
-            updateItemSpec = updateItemSpec.withReturnValues(ReturnValue.UPDATED_NEW);
-            UpdateItemOutcome updateItemOutcome = contentsTable.updateItem(updateItemSpec);
+            Map<String, AttributeValueUpdate> attributeUpdates = this.findValuesToUpdate(document);
+            UpdateItemRequest updateItemRequest = UpdateItemRequest
+                    .builder()
+                    .tableName(tableName)
+                    .attributeUpdates(attributeUpdates)
+                    .build();
+            UpdateItemResponse updateItemResponse = dbClient.updateItem(updateItemRequest);
             logger.info("contents updated");
-            return updateItemOutcome.getItem().toJSON();
+            Map<String, AttributeValue> returnedItem = updateItemResponse.attributes();
+            if (returnedItem != null && !returnedItem.isEmpty()) {
+                return parseAttributeValueMap(returnedItem);
+            }
+            logger.error("Update error: Could not find an item to return.");
+            throw new RuntimeException("Update error: Could not find an item to return.");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Update error: " + e.getMessage(), e);
+        } finally {
+            closeDbClient();
         }
     }
 
-    private void generateExpressionAndValueMap(ContentsDocument document, StringBuilder expression,
-                                               ValueMap valueMap) {
-        Map<String, String> inputValues = this.findValuesToUpdate(document);
-        expression.append(SET_);
-        for (String key : inputValues.keySet()) {
-            expression.append(key).append(_EQUALS_).append(KEY_PREFIX).append(key).append(COMMA_);
-            valueMap.withString(KEY_PREFIX + key, inputValues.get(key));
+    protected String parseAttributeValueMap(Map<String, AttributeValue> returnedItem) throws JsonProcessingException {
+        Map<String, String> item = new HashMap<>();
+        Set<String> keys = returnedItem.keySet();
+        for (String key1 : keys) {
+            item.put(key1, returnedItem.get(key1).toString());
         }
-        // remove last bracket
-        expression.deleteCharAt(expression.length() - COMMA_.length());
+        return dtoObjectMapper.writeValueAsString(item);
     }
 
-    private Map<String, String> findValuesToUpdate(ContentsDocument document) {
-        Map<String, String> updateValueMap = new HashMap<>();
-        conditionalAdd(updateValueMap, document.getTitle(), ContentsDocument.TITLE, true);
-        conditionalAdd(updateValueMap, document.getAuthor(), ContentsDocument.AUTHOR, true);
-        conditionalAdd(updateValueMap, document.getDateOfPublication(), ContentsDocument.DATE_OF_PUBLICATION, false);
-        conditionalAdd(updateValueMap, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT, true);
-        conditionalAdd(updateValueMap, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG, true);
-        conditionalAdd(updateValueMap, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS, true);
-        conditionalAdd(updateValueMap, document.getPromotional(), ContentsDocument.PROMOTIONAL, true);
-        conditionalAdd(updateValueMap, document.getSummary(), ContentsDocument.SUMMARY, true);
-        conditionalAdd(updateValueMap, document.getReview(), ContentsDocument.REVIEW, true);
-        conditionalAdd(updateValueMap, document.getImageSmall(), ContentsDocument.IMAGE_SMALL, false);
-        conditionalAdd(updateValueMap, document.getImageLarge(), ContentsDocument.IMAGE_LARGE, false);
-        conditionalAdd(updateValueMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL, false);
-        conditionalAdd(updateValueMap, document.getAudioFile(), ContentsDocument.AUDIO_FILE, false);
-        updateValueMap.put(ContentsDocument.MODIFIED, Instant.now().toString());
+    private Map<String, AttributeValueUpdate> findValuesToUpdate(ContentsDocument document) {
+        Map<String, AttributeValueUpdate> updateValueMap = new HashMap<>();
+        this.conditionalAddForUpdate(updateValueMap, document.getTitle(), ContentsDocument.TITLE, true);
+        this.conditionalAddForUpdate(updateValueMap, document.getAuthor(), ContentsDocument.AUTHOR, true);
+        this.conditionalAddForUpdate(updateValueMap, document.getDateOfPublication(),
+                ContentsDocument.DATE_OF_PUBLICATION, false);
+        this.conditionalAddForUpdate(updateValueMap, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT,
+                true);
+        this.conditionalAddForUpdate(updateValueMap, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG,
+                true);
+        this.conditionalAddForUpdate(updateValueMap, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS,
+                true);
+        this.conditionalAddForUpdate(updateValueMap, document.getPromotional(), ContentsDocument.PROMOTIONAL, true);
+        this.conditionalAddForUpdate(updateValueMap, document.getSummary(), ContentsDocument.SUMMARY, true);
+        this.conditionalAddForUpdate(updateValueMap, document.getReview(), ContentsDocument.REVIEW, true);
+        this.conditionalAddForUpdate(updateValueMap, document.getImageSmall(), ContentsDocument.IMAGE_SMALL, false);
+        this.conditionalAddForUpdate(updateValueMap, document.getImageLarge(), ContentsDocument.IMAGE_LARGE, false);
+        this.conditionalAddForUpdate(updateValueMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL,
+                false);
+        this.conditionalAddForUpdate(updateValueMap, document.getAudioFile(), ContentsDocument.AUDIO_FILE, false);
+        AttributeValue attributeValue = AttributeValue.builder().s(Instant.now().toString()).build();
+        updateValueMap.put(ContentsDocument.MODIFIED, AttributeValueUpdate.builder().value(attributeValue).build());
         return updateValueMap;
     }
 
-    protected void conditionalAdd(Map<String, String> updateValueMap, String value, String key, boolean unescapeHtml) {
+    protected void conditionalAddForUpdate(Map<String, AttributeValueUpdate> updateValueMap, String value, String key,
+                                           boolean unescapeHtml) {
         if (StringUtils.isNotEmpty(value)) {
             String escaped = value;
             if (unescapeHtml && StringHelper.isValidHtmlEscapeCode(value)) {
                 escaped = StringEscapeUtils.unescapeHtml4(value);
             }
-            updateValueMap.put(key, escaped);
+            AttributeValue attributeValue = AttributeValue.builder().s(escaped).build();
+            updateValueMap.put(key, AttributeValueUpdate.builder().value(attributeValue).build());
         }
     }
 
-    protected void conditionalAdd(Item item, String value, String key, boolean unescapeHtml) {
+    protected void conditionalAddForCreate(Map<String, AttributeValue> itemMap, String value, String key,
+                                           boolean unescapeHtml) {
         if (StringUtils.isNotEmpty(value)) {
             String escaped = value;
             if (unescapeHtml && StringHelper.isValidHtmlEscapeCode(value)) {
                 escaped = StringEscapeUtils.unescapeHtml4(value);
             }
-            item.withString(key, escaped);
+            itemMap.put(key, AttributeValue.builder().s(escaped).build());
         }
     }
 
