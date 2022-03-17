@@ -160,10 +160,10 @@ public class DynamoDBClient {
                     return dtoObjectMapper.writeValueAsString(item);
                 }
             }
-            System.out.format("No item found with the isbn %s!\n", isbn);
+            logger.info(String.format("No item found with the isbn %s!", isbn));
             throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
         } catch (DynamoDbException | JsonProcessingException e) {
-            System.err.println(e.getMessage());
+            logger.error(e.getMessage());
             throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
         } finally {
             closeDbClient();
