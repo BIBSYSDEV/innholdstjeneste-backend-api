@@ -42,7 +42,7 @@ public class DynamoDBClientTest {
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     public static final String GET_CONTENTS_JSON = "get_contents.json";
 
-    DynamoDBClient dynamoDBClient;
+    DynamoDBClient dbClient;
     private DynamoDbClient client;
 
 
@@ -52,7 +52,7 @@ public class DynamoDBClientTest {
     @BeforeEach
     public void init() {
         client = mock(DynamoDbClient.class);
-        dynamoDBClient = new DynamoDBClient(client);
+        dbClient = new DynamoDBClient(client);
     }
 
     @Test
@@ -64,8 +64,6 @@ public class DynamoDBClientTest {
 
     @Test
     void handlerReturnsNotFoundExceptionWhenShittyResponseFromDynamoDB()  {
-        DynamoDbClient client = mock(DynamoDbClient.class);
-        DynamoDBClient dbClient = new DynamoDBClient(client);
         when(client.getItem(any(GetItemRequest.class))).thenReturn(null);
         Exception exception = assertThrows(NotFoundException.class, () -> dbClient.getContents(SAMPLE_TERM));
 
@@ -87,17 +85,15 @@ public class DynamoDBClientTest {
 
     @Test
     public void searchSingleTermReturnsResponse() throws ApiGatewayException {
-        DynamoDbClient client = mock(DynamoDbClient.class);
         String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
         Item item = new Item();
         item.withJSON("contents", contents);
         GetItemResponse getItemResponse = mock(GetItemResponse.class);
         Map<String, AttributeValue> returnedItem = new HashMap<>();
         returnedItem.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(SAMPLE_TERM).build());
-        DynamoDBClient dynamoDBClient = new DynamoDBClient(client);
         when(client.getItem(any(GetItemRequest.class))).thenReturn(getItemResponse);
         when(getItemResponse.item()).thenReturn(returnedItem);
-        String getContentsResponse = dynamoDBClient.getContents(SAMPLE_TERM);
+        String getContentsResponse = dbClient.getContents(SAMPLE_TERM);
         assertNotNull(getContentsResponse);
     }
 
@@ -107,33 +103,27 @@ public class DynamoDBClientTest {
         when(document.getIsbn()).thenReturn(SAMPLE_TERM);
         when(document.getSource()).thenReturn(SAMPLE_TERM);
         doThrow(IllegalArgumentException.class).when(client).putItem(any(PutItemRequest.class));
-        DynamoDBClient dynamoDBClient = new DynamoDBClient(client);
-        assertThrows(CommunicationException.class, () -> dynamoDBClient.createContents(document));
+        assertThrows(CommunicationException.class, () -> dbClient.createContents(document));
     }
 
 
     @Test
     public void searchSingleTermReturnsErrorResponseWhenExceptionInDoSearch() {
-        DynamoDbClient client = mock(DynamoDbClient.class);
-        DynamoDBClient dynamoDBClient = new DynamoDBClient(client);
-        assertThrows(NotFoundException.class, () -> dynamoDBClient.getContents(SAMPLE_TERM));
+        assertThrows(NotFoundException.class, () -> dbClient.getContents(SAMPLE_TERM));
     }
     
     @Test
     public void addDocumentTest() throws IOException, CommunicationException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        DynamoDbClient client = mock(DynamoDbClient.class);
-        DynamoDBClient dynamoDBClient = new DynamoDBClient(client);
         PutItemResponse putItemReponse = mock(PutItemResponse.class);
         when(client.putItem(any(PutItemRequest.class))).thenReturn(putItemReponse);
         when(putItemReponse.hasAttributes()).thenReturn(true);
-        dynamoDBClient.createContents(document);
+        dbClient.createContents(document);
     }
 
     @Test
     public void testUpdateContents() throws CommunicationException, JsonProcessingException {
-        DynamoDbClient client = mock(DynamoDbClient.class);
         UpdateItemResponse updateItemResponse = mock(UpdateItemResponse.class);
         when(client.updateItem(any(UpdateItemRequest.class))).thenReturn(updateItemResponse);
         Map<String, AttributeValue> returnedItem = new HashMap<>();
@@ -141,20 +131,17 @@ public class DynamoDBClientTest {
         when(updateItemResponse.attributes()).thenReturn(returnedItem);
         String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
         ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        DynamoDBClient dynamoDBClient = new DynamoDBClient(client);
-        String updateContents = dynamoDBClient.updateContents(document);
-        assertEquals(dynamoDBClient.parseAttributeValueMap(returnedItem), updateContents);
+        String updateContents = dbClient.updateContents(document);
+        assertEquals(dbClient.parseAttributeValueMap(returnedItem), updateContents);
     }
 
     @Test
     public void testUpdateContentsThrowsException() throws JsonProcessingException {
-        DynamoDbClient client = mock(DynamoDbClient.class);
         UpdateItemResponse updateItemResponse = mock(UpdateItemResponse.class);
-        DynamoDBClient dynamoDBClient = new DynamoDBClient(client);
         when(client.updateItem(any(UpdateItemRequest.class))).thenReturn(updateItemResponse);
         String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
         ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        Exception exception = assertThrows(CommunicationException.class, () -> dynamoDBClient.updateContents(document));
+        Exception exception = assertThrows(CommunicationException.class, () -> dbClient.updateContents(document));
 
         String expectedMessage = "Update error:";
         String actualMessage = exception.getMessage();
