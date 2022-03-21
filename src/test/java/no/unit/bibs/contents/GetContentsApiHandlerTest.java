@@ -22,24 +22,23 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class GetContentsApiHandlerTest {
 
     public static final String SAMPLE_SEARCH_TERM = "searchTerm";
     private Environment environment;
     private GetContentsApiHandler getContentsApiHandler;
-    private DynamoDbClient client;
+    private Table dynamoTable;
 
     private void initEnvironment() {
         environment = mock(Environment.class);
-        client = mock(DynamoDbClient.class);
+        dynamoTable = mock(Table.class);
     }
 
     @BeforeEach
     public void init() {
         initEnvironment();
-        getContentsApiHandler = new GetContentsApiHandler(environment, new DynamoDBClient(client));
+        getContentsApiHandler = new GetContentsApiHandler(environment, new DynamoDBClient(dynamoTable));
     }
 
     @Test
