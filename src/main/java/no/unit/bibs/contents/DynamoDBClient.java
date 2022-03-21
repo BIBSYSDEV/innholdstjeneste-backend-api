@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
@@ -190,10 +189,10 @@ public class DynamoDBClient {
 
     protected String parseAttributeValueMap(Map<String, AttributeValue> returnedItem) throws JsonProcessingException {
         Map<String, String> item = new HashMap<>();
-        Set<String> keys = returnedItem.keySet();
-        for (String key1 : keys) {
-            item.put(key1, returnedItem.get(key1).toString());
-        }
+
+        returnedItem.keySet()
+                .forEach(key -> item.put(key,
+                        returnedItem.get(key).getValueForField("S", String.class).orElse(null)));
         return dtoObjectMapper.writeValueAsString(item);
     }
 
