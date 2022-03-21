@@ -147,13 +147,7 @@ public class DynamoDBClient {
         } catch (DynamoDbException | JsonProcessingException e) {
             logger.error(e.getMessage());
             throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
-        } finally {
-            closeDbClient();
         }
-    }
-
-    private void closeDbClient() {
-        dbClient.close();
     }
 
     /**
@@ -182,8 +176,6 @@ public class DynamoDBClient {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Update error: " + e.getMessage(), e);
-        } finally {
-            closeDbClient();
         }
     }
 
