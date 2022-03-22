@@ -181,7 +181,6 @@ public class DynamoDBClient {
 
     protected String parseAttributeValueMap(Map<String, AttributeValue> returnedItem) throws JsonProcessingException {
         Map<String, String> item = new HashMap<>();
-
         returnedItem.keySet()
                 .forEach(key -> item.put(key,
                         returnedItem.get(key).getValueForField("S", String.class).orElse(null)));
