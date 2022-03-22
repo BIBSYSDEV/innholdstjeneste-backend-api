@@ -111,7 +111,7 @@ public class DynamoDBClientTest {
     public void searchSingleTermReturnsErrorResponseWhenExceptionInDoSearch() {
         assertThrows(NotFoundException.class, () -> dbClient.getContents(SAMPLE_TERM));
     }
-    
+
     @Test
     public void addDocumentTest() throws IOException, CommunicationException {
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
