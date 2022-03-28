@@ -36,7 +36,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     public static final int HALF_A_SECOND = 500;
 
     private final DynamoDBClient dynamoDBClient;
-    private final S3Client s3Client;
+    private final StorageClient storageClient;
     private final transient Logger logger = LoggerFactory.getLogger(UpdateContentsApiHandler.class);
 
     @JacocoGenerated
@@ -46,7 +46,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     @JacocoGenerated
     public UpdateContentsApiHandler(Environment environment) {
-        this(environment, new DynamoDBClient(environment), new S3Client(environment));
+        this(environment, new DynamoDBClient(environment), new StorageClient(environment));
     }
 
     /**
@@ -54,12 +54,13 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      *
      * @param environment    environment
      * @param dynamoDBClient dynamoDBclient
-     * @param s3Client       s3Client
+     * @param storageClient       s3Client
      */
-    public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient, S3Client s3Client) {
+    public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient,
+                                    StorageClient storageClient) {
         super(ContentsRequest.class, environment);
         this.dynamoDBClient = dynamoDBClient;
-        this.s3Client = s3Client;
+        this.storageClient = storageClient;
     }
 
 
@@ -85,7 +86,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
         if (contentsDocument.isValid()) {
 
-            s3Client.handleFiles(contentsDocument);
+            storageClient.handleFiles(contentsDocument);
 
             logger.debug(THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST + contentsDocument.toString());
             try {

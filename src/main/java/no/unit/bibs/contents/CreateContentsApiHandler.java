@@ -24,7 +24,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not persist provided contents. ";
 
     private final DynamoDBClient dynamoDBClient;
-    private final S3Client s3Client;
+    private final StorageClient storageClient;
     private final transient Logger logger = LoggerFactory.getLogger(CreateContentsApiHandler.class);
 
     @JacocoGenerated
@@ -34,7 +34,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     @JacocoGenerated
     public CreateContentsApiHandler(Environment environment) {
-        this(environment, new DynamoDBClient(environment), new S3Client(environment));
+        this(environment, new DynamoDBClient(environment), new StorageClient(environment));
     }
 
 
@@ -42,12 +42,13 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      * Constructor for injecting used in testing.
      * @param environment environment
      * @param dynamoDBClient dynamoDBclient
-     * @param s3Client s3Client
+     * @param storageClient s3Client
      */
-    public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient, S3Client s3Client) {
+    public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient,
+                                    StorageClient storageClient) {
         super(ContentsRequest.class, environment);
         this.dynamoDBClient = dynamoDBClient;
-        this.s3Client = s3Client;
+        this.storageClient = storageClient;
     }
 
 
@@ -71,7 +72,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         ContentsDocument contentsDocument = request.getContents();
         logger.error("json input looks like that :" + contentsDocument.toString());
         if (contentsDocument.isValid()) {
-            s3Client.handleFiles(contentsDocument);
+            storageClient.handleFiles(contentsDocument);
             dynamoDBClient.createContents(contentsDocument);
             String createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
             try {

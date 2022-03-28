@@ -32,9 +32,9 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 public class DynamoDBClient {
 
-    public static final Region REGION = Region.EU_WEST_1;
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBClient.class);
 
+    public static final String AWS_REGION = "AWS_REGION";
     public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
     public static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
     public static final String TABLE_NAME = "TABLE_NAME";
@@ -62,7 +62,9 @@ public class DynamoDBClient {
     private void initDynamoDbClient(Environment environment) {
         try {
             tableName = environment.readEnv(TABLE_NAME);
-            dbClient = DynamoDbClient.builder().region(REGION).build();
+            dbClient = DynamoDbClient.builder()
+                    .region(Region.of(environment.readEnv(AWS_REGION)))
+                    .build();
         } catch (Exception e) {
             logger.error(CANNOT_CONNECT_TO_DYNAMO_DB, e);
         }

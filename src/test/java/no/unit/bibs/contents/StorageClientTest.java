@@ -17,12 +17,12 @@ import org.junit.jupiter.api.Test;
 
 
 
-public class S3ClientTest {
+public class StorageClientTest {
 
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     public static final String CREATE_CONTENTS_BASE_64_EVENT = "createContentBase64EncodedImage.json";
 
-    private S3Client s3Client;
+    private StorageClient storageClient;
     private S3Connection s3Connection;
 
 
@@ -32,36 +32,36 @@ public class S3ClientTest {
     @BeforeEach
     public void init() {
         s3Connection = mock(S3Connection.class);
-        s3Client = new S3Client(s3Connection);
+        storageClient = new StorageClient(s3Connection);
     }
 
     @Test
     public void constructorWithEnvironmentDefinedShouldCreateInstance() {
-        assertNotNull(s3Client);
+        assertNotNull(storageClient);
     }
 
     @Test
     void testHandleFilesWithBase64EncodedImageSmall() throws IOException {
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        String contentsBase64Encoded = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_BASE_64_EVENT));
-        doNothing().when(s3Connection).uploadFile(any(), anyString(), anyString(), anyString());
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contentsBase64Encoded, ContentsDocument.class);
-        s3Client.handleFiles(contentsDocument);
+        var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        var contentsBase64Encoded = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_BASE_64_EVENT));
+        doNothing().when(s3Connection).uploadFile(any(byte[].class), anyString(), anyString(), anyString());
+        var contentsDocument = dtoObjectMapper.readValue(contentsBase64Encoded, ContentsDocument.class);
+        storageClient.handleFiles(contentsDocument);
         assertEquals(dtoObjectMapper.readValue(contents, ContentsDocument.class), contentsDocument);
     }
 
     @Test
     void testUpdateDocumentContent() throws IOException {
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        String mockObjectKey = "blablah";
-        s3Client.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, S3Client.SMALL);
+        var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        var mockObjectKey = "blablah";
+        storageClient.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, StorageClient.SMALL);
         assertEquals(mockObjectKey, contentsDocument.getImageSmall());
-        s3Client.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, S3Client.LARGE);
+        storageClient.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, StorageClient.LARGE);
         assertEquals(mockObjectKey, contentsDocument.getImageLarge());
-        s3Client.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, S3Client.ORIGINAL);
+        storageClient.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, StorageClient.ORIGINAL);
         assertEquals(mockObjectKey, contentsDocument.getImageOriginal());
-        s3Client.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, S3Client.MP3);
+        storageClient.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, StorageClient.MP3);
         assertEquals(mockObjectKey, contentsDocument.getAudioFile());
     }
 

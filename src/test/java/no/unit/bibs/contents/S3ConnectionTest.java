@@ -2,11 +2,11 @@ package no.unit.bibs.contents;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 public class S3ConnectionTest {
 
     S3Presigner s3Presigner;
+    S3Client s3Client;
     S3Connection s3Connection;
     private String bucketName = "bucketname";
 
@@ -31,21 +32,18 @@ public class S3ConnectionTest {
      **/
     @BeforeEach
     public void init() {
+        s3Client = mock(S3Client.class);
         s3Presigner = mock(S3Presigner.class);
-        HttpURLConnection httpUrlConnection = mock(HttpURLConnection.class);
-        s3Connection = new S3Connection(s3Presigner, bucketName, httpUrlConnection);
+        s3Connection = new S3Connection(s3Client, s3Presigner, bucketName);
     }
 
     @Test
     void generatePresignedWriteUrl() throws MalformedURLException {
-
-        PresignedPutObjectRequest presignedPutObjectRequest = mock(PresignedPutObjectRequest.class);
+        var presignedPutObjectRequest = mock(PresignedPutObjectRequest.class);
         when(presignedPutObjectRequest.url()).thenReturn(new URL(SAMPLE_PRESIGNED_S3_WRITE_URL));
-
         when(s3Presigner.presignPutObject((PutObjectPresignRequest) any()))
                 .thenReturn(presignedPutObjectRequest);
-
-        URL url = s3Connection
+        var url = s3Connection
                 .generatePresignedWriteUrl(SAMPLE_OBJECT_NAME, SAMPLE_FILE_NAME, SAMPLE_MIME_TYPE);
         assertNotNull(url);
     }

@@ -1,6 +1,5 @@
 package no.unit.bibs.contents;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -15,11 +14,10 @@ import nva.commons.core.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class S3Client {
+public class StorageClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(S3Client.class);
+    private static final Logger logger = LoggerFactory.getLogger(StorageClient.class);
 
-    public static final String ERROR_UPLOADING_FILE = "Error uploading file";
     public static final String ERROR_STORING_FILE = "error storing file: ";
 
     public static final String ERROR_DOWNLOADING_FILE = "ISBN '%s' has invalid URL '%s' for file '%s' (%s): %s";
@@ -42,7 +40,7 @@ public class S3Client {
     /**
      * Creates a new S3Client.
      */
-    public S3Client(Environment environment) {
+    public StorageClient(Environment environment) {
         s3Connection = new S3Connection(environment);
     }
 
@@ -51,7 +49,7 @@ public class S3Client {
      *
      * @param s3Connection s3Connection
      */
-    public S3Client(S3Connection s3Connection) {
+    public StorageClient(S3Connection s3Connection) {
         this.s3Connection = s3Connection;
     }
 
@@ -78,19 +76,15 @@ public class S3Client {
      * @return String objectKey
      */
     @JacocoGenerated
-    private String decodeBase64Attributes(String isbn, String input, String type, String subtype, String fileExtension,
-                                          String mimeType) {
-
-        try (InputStream targetStream = new ByteArrayInputStream(Base64.getDecoder().decode(input))) {
-            return putFileS3(isbn, targetStream,
+    private String decodeBase64Attributes(String isbn, String input, String type, String subtype,
+                                                   String fileExtension, String mimeType) {
+        return putFileS3(
+                isbn,
+                Base64.getDecoder().decode(input),
                 type,
                 subtype,
                 fileExtension,
                 mimeType);
-        } catch (IOException e) {
-            logger.error(ERROR_UPLOADING_FILE, e);
-        }
-        return null;
     }
 
     /**
@@ -230,8 +224,8 @@ public class S3Client {
     }
 
     @JacocoGenerated
-    protected String putFileS3(String isbn, InputStream inputStream, String type, String subtype, String fileExtension,
-                               String mimeType) throws IOException {
+    protected String putFileS3(String isbn, byte[] bytesArray, String type, String subtype, String fileExtension,
+                               String mimeType) {
         String fileName = String.format(FILE_NAME_TEMPLATE, isbn, fileExtension);
 
         String secondLinkPart = isbn.substring(isbn.length() - 2, isbn.length() - 1);
@@ -239,10 +233,10 @@ public class S3Client {
 
         String objectKey = String.format(OBJECT_KEY_TEMPLATE, type, subtype, firstLinkPart, secondLinkPart, fileName);
         s3Connection.uploadFile(
-            inputStream,
-            objectKey,
-            fileName,
-            mimeType
+                bytesArray,
+                objectKey,
+                fileName,
+                mimeType
         );
         return objectKey;
     }
@@ -265,7 +259,7 @@ public class S3Client {
         String objectKey = String.format(OBJECT_KEY_TEMPLATE, type, subtype, firstLinkPart, secondLinkPart, fileName);
         try (InputStream inputStream = downloadUrl.openStream()) {
             s3Connection.uploadFile(
-                inputStream,
+                inputStream.readAllBytes(),
                 objectKey,
                 fileName,
                 mimeType
