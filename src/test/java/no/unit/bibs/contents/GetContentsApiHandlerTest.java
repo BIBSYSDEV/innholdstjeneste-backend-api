@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.lambda.runtime.Context;
 
 import java.net.HttpURLConnection;
@@ -22,23 +21,24 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class GetContentsApiHandlerTest {
 
     public static final String SAMPLE_SEARCH_TERM = "searchTerm";
     private Environment environment;
     private GetContentsApiHandler getContentsApiHandler;
-    private Table dynamoTable;
+    private DynamoDbClient client;
 
     private void initEnvironment() {
         environment = mock(Environment.class);
-        dynamoTable = mock(Table.class);
+        client = mock(DynamoDbClient.class);
     }
 
     @BeforeEach
     public void init() {
         initEnvironment();
-        getContentsApiHandler = new GetContentsApiHandler(environment, new DynamoDBClient(dynamoTable));
+        getContentsApiHandler = new GetContentsApiHandler(environment, new DynamoDBClient(client));
     }
 
     @Test
