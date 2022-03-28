@@ -38,14 +38,14 @@ public class StorageClient {
     private final S3Connection s3Connection;
 
     /**
-     * Creates a new S3Client.
+     * Creates a new StorageClient.
      */
     public StorageClient(Environment environment) {
         s3Connection = new S3Connection(environment);
     }
 
     /**
-     * Creates a new S3Client.
+     * Creates a new StorageClient.
      *
      * @param s3Connection s3Connection
      */

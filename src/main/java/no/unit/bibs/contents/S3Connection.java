@@ -67,7 +67,7 @@ public class S3Connection {
     /**
      * Uploads inputstream to S3 using a presigned upload write url.
      *
-     * @param bytesArray inputStream
+     * @param bytesArray bytesArray
      * @param objectName  objectName
      * @param filename    filename
      * @param mimeType    mimeType
