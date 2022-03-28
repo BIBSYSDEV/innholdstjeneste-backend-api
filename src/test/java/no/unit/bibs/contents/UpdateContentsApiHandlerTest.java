@@ -11,7 +11,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -32,7 +31,6 @@ import org.junit.jupiter.api.Test;
 class UpdateContentsApiHandlerTest {
 
     private Environment environment;
-    private Table dynamoTable;
     private DynamoDBClient dynamoDBClient;
     private S3Client s3Client;
     private UpdateContentsApiHandler handler;
@@ -46,7 +44,6 @@ class UpdateContentsApiHandlerTest {
     public void init() {
         environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        dynamoTable = mock(Table.class);
         dynamoDBClient = mock(DynamoDBClient.class);
         s3Client = mock(S3Client.class);
         handler = new UpdateContentsApiHandler(environment, dynamoDBClient, s3Client);

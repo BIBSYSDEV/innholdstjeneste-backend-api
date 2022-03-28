@@ -1,7 +1,5 @@
 package no.unit.bibs.contents;
 
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -85,9 +83,6 @@ public class DynamoDBClientTest {
 
     @Test
     public void searchSingleTermReturnsResponse() throws ApiGatewayException {
-        String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
-        Item item = new Item();
-        item.withJSON("contents", contents);
         GetItemResponse getItemResponse = mock(GetItemResponse.class);
         Map<String, AttributeValue> returnedItem = new HashMap<>();
         returnedItem.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(SAMPLE_TERM).build());
