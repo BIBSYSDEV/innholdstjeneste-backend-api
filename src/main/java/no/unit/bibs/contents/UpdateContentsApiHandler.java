@@ -54,7 +54,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      *
      * @param environment    environment
      * @param dynamoDBClient dynamoDBclient
-     * @param storageClient       s3Client
+     * @param storageClient  storageClient
      */
     public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient,
                                     StorageClient storageClient) {
