@@ -1,6 +1,5 @@
 package no.unit.bibs.contents;
 
-import com.amazonaws.HttpMethod;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -223,7 +222,7 @@ public class S3Client {
             URL url = new URL(fileUrl);
             HttpURLConnection.setFollowRedirects(true);
             HttpURLConnection huc = (HttpURLConnection) url.openConnection();
-            huc.setRequestMethod(HttpMethod.HEAD.name());
+            huc.setRequestMethod("HEAD");
             int responseCode = huc.getResponseCode();
             return responseCode < 300;
         }
