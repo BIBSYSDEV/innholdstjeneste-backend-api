@@ -30,13 +30,12 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     public static final String CONTENTS_CREATED = "contents created";
     public static final String CONTENTS_UPDATED = "contents updated";
     public static final String FAILED_AFTER_PERSISTING = "failed after persisting: ";
-    public static final String ERROR_IN_UPDATE_FUNCTION = "error in update function: ";
     public static final String THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST = "This is my ContentsDocument to persist: ";
     public static final String JSON_INPUT_LOOKS_LIKE_THAT = "json input looks like that :";
-    public static final int HALF_A_SECOND = 500;
+    public static final int FOURTH_OF_A_SECOND = 250;
 
     private final DynamoDBClient dynamoDBClient;
-    private final S3Client s3Client;
+    private final StorageClient storageClient;
     private final transient Logger logger = LoggerFactory.getLogger(UpdateContentsApiHandler.class);
 
     @JacocoGenerated
@@ -46,7 +45,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     @JacocoGenerated
     public UpdateContentsApiHandler(Environment environment) {
-        this(environment, new DynamoDBClient(environment), new S3Client(environment));
+        this(environment, new DynamoDBClient(environment), new StorageClient(environment));
     }
 
     /**
@@ -54,12 +53,13 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      *
      * @param environment    environment
      * @param dynamoDBClient dynamoDBclient
-     * @param s3Client       s3Client
+     * @param storageClient  storageClient
      */
-    public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient, S3Client s3Client) {
+    public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient,
+                                    StorageClient storageClient) {
         super(ContentsRequest.class, environment);
         this.dynamoDBClient = dynamoDBClient;
-        this.s3Client = s3Client;
+        this.storageClient = storageClient;
     }
 
 
@@ -85,7 +85,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
         if (contentsDocument.isValid()) {
 
-            s3Client.handleFiles(contentsDocument);
+            storageClient.handleFiles(contentsDocument);
 
             logger.debug(THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST + contentsDocument.toString());
             try {
@@ -111,7 +111,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     private ContentsDocument createContents(ContentsDocument contentsDocument) throws CommunicationException,
             NotFoundException, GatewayResponseSerializingException {
         dynamoDBClient.createContents(contentsDocument);
-        this.waitAMoment(HALF_A_SECOND);
+        this.waitAMoment(FOURTH_OF_A_SECOND);
         String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
         logger.info(CONTENTS_CREATED);
         try {
@@ -123,14 +123,16 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     }
 
     private ContentsDocument updateContents(ContentsDocument contentsDocument) throws CommunicationException,
-            GatewayResponseSerializingException {
-        String updatedContents = dynamoDBClient.updateContents(contentsDocument);
+            GatewayResponseSerializingException, NotFoundException {
+        dynamoDBClient.updateContents(contentsDocument);
         logger.info(CONTENTS_UPDATED);
+        this.waitAMoment(FOURTH_OF_A_SECOND);
+        String updatedContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
         try {
-            ContentsDocument response = dtoObjectMapper.readValue(updatedContents, ContentsDocument.class);
-            return response;
-        } catch (JsonProcessingException e) {
-            throw new GatewayResponseSerializingException(e);
+            ContentsDocument contents = dtoObjectMapper.readValue(updatedContents, ContentsDocument.class);
+            return contents;
+        } catch (JsonProcessingException ex) {
+            throw new GatewayResponseSerializingException(ex);
         }
     }
 

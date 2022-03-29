@@ -32,7 +32,7 @@ public class CreateContentsApiHandlerTest {
     private CreateContentsApiHandler handler;
     private Context context;
     private DynamoDBClient dynamoDBClient;
-    private S3Client s3Client;
+    private StorageClient storageClient;
 
 
     /**
@@ -43,21 +43,21 @@ public class CreateContentsApiHandlerTest {
         environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
         dynamoDBClient = mock(DynamoDBClient.class);
-        s3Client = mock(S3Client.class);
-        handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
+        storageClient = mock(StorageClient.class);
+        handler = new CreateContentsApiHandler(environment, dynamoDBClient, storageClient);
         this.context = mock(Context.class);
     }
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        CreateContentsApiHandler handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
+        CreateContentsApiHandler handler = new CreateContentsApiHandler(environment, dynamoDBClient, storageClient);
         Integer statusCode = handler.getSuccessStatusCode(null, null);
         assertEquals(statusCode, HttpURLConnection.HTTP_CREATED);
     }
 
     @Test
     void handlerReturnsSearchResultsWhenQueryIsSingleTerm() throws ApiGatewayException, JsonProcessingException {
-        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
+        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, storageClient);
         String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         doNothing().when(dynamoDBClient).createContents(contentsDocument);
@@ -75,7 +75,7 @@ public class CreateContentsApiHandlerTest {
         doNothing().when(dynamoDBClient).createContents(contentsDocument);
         when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
         ContentsRequest request = new ContentsRequest(contentsDocument);
-        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
+        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, storageClient);
         Exception exception = assertThrows(BadRequestException.class, () -> {
             handler.processInput(request, new RequestInfo(), mock(Context.class));
         });
@@ -84,7 +84,7 @@ public class CreateContentsApiHandlerTest {
 
     @Test
     void handlerThrowsExceptionWithEmptyRequest()  {
-        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, s3Client);
+        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, storageClient);
         Exception exception = assertThrows(BadRequestException.class, () -> {
             handler.processInput(null, new RequestInfo(), mock(Context.class));
         });

@@ -1,7 +1,5 @@
 package no.unit.bibs.contents;
 
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
@@ -85,9 +83,6 @@ public class DynamoDBClientTest {
 
     @Test
     public void searchSingleTermReturnsResponse() throws ApiGatewayException {
-        String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
-        Item item = new Item();
-        item.withJSON("contents", contents);
         GetItemResponse getItemResponse = mock(GetItemResponse.class);
         Map<String, AttributeValue> returnedItem = new HashMap<>();
         returnedItem.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(SAMPLE_TERM).build());
@@ -131,22 +126,7 @@ public class DynamoDBClientTest {
         when(updateItemResponse.attributes()).thenReturn(returnedItem);
         String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
         ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        String updateContents = dbClient.updateContents(document);
-        assertEquals(dbClient.parseAttributeValueMap(returnedItem), updateContents);
-    }
-
-    @Test
-    public void testUpdateContentsThrowsException() throws JsonProcessingException {
-        UpdateItemResponse updateItemResponse = mock(UpdateItemResponse.class);
-        when(client.updateItem(any(UpdateItemRequest.class))).thenReturn(updateItemResponse);
-        String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
-        ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        Exception exception = assertThrows(CommunicationException.class, () -> dbClient.updateContents(document));
-
-        String expectedMessage = "Update error:";
-        String actualMessage = exception.getMessage();
-
-        assertTrue(actualMessage.contains(expectedMessage));
+        dbClient.updateContents(document);
     }
 
 }
