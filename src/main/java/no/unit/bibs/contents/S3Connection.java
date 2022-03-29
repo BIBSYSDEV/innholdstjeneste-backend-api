@@ -13,6 +13,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -77,7 +78,9 @@ public class S3Connection {
     protected void uploadFile(byte[] bytesArray, String objectName, String filename, String mimeType) {
         try {
             PutObjectRequest putObjectRequest = createPutObjectRequest(objectName, filename, mimeType);
-            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytesArray));
+            PutObjectResponse putObjectResponse =
+                    s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytesArray));
+            logger.info("Etag for uploaded file: " + putObjectResponse.eTag());
         } catch (S3Exception e) {
             logger.error(ERROR_UPLOADING_FILE, e);
             throw e;

@@ -17,7 +17,6 @@ import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 import java.time.Instant;
@@ -82,13 +81,8 @@ public class DynamoDBClient {
                     .tableName(tableName)
                     .item(this.generateItemMap(document))
                     .build();
-            PutItemResponse putItemResponse = dbClient.putItem(putItemRequest);
-            if (putItemResponse.hasAttributes()) {
-                logger.info("contents created");
-            } else {
-                logger.error("Create contents went wrong. ");
-                throw new RuntimeException("Create contents went wrong. ");
-            }
+            dbClient.putItem(putItemRequest);
+            logger.info("contents created");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Creation error: " + e.getMessage(), e);
