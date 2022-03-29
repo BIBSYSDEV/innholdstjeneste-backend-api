@@ -161,9 +161,12 @@ public class DynamoDBClient {
      */
     protected String updateContents(ContentsDocument document) throws CommunicationException {
         try {
+            HashMap<String, AttributeValue> keyToUpdate = new HashMap<>();
+            keyToUpdate.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(document.getIsbn()).build());
             Map<String, AttributeValueUpdate> attributeUpdates = this.findValuesToUpdate(document);
             UpdateItemRequest updateItemRequest = UpdateItemRequest
                     .builder()
+                    .key(keyToUpdate)
                     .tableName(tableName)
                     .attributeUpdates(attributeUpdates)
                     .build();
