@@ -32,7 +32,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     public static final String FAILED_AFTER_PERSISTING = "failed after persisting: ";
     public static final String THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST = "This is my ContentsDocument to persist: ";
     public static final String JSON_INPUT_LOOKS_LIKE_THAT = "json input looks like that :";
-    public static final int HALF_A_SECOND = 500;
+    public static final int FOURTH_OF_A_SECOND = 250;
 
     private final DynamoDBClient dynamoDBClient;
     private final StorageClient storageClient;
@@ -111,7 +111,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     private ContentsDocument createContents(ContentsDocument contentsDocument) throws CommunicationException,
             NotFoundException, GatewayResponseSerializingException {
         dynamoDBClient.createContents(contentsDocument);
-        this.waitAMoment(HALF_A_SECOND);
+        this.waitAMoment(FOURTH_OF_A_SECOND);
         String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
         logger.info(CONTENTS_CREATED);
         try {
@@ -126,7 +126,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             GatewayResponseSerializingException, NotFoundException {
         dynamoDBClient.updateContents(contentsDocument);
         logger.info(CONTENTS_UPDATED);
-        this.waitAMoment(HALF_A_SECOND);
+        this.waitAMoment(FOURTH_OF_A_SECOND);
         String updatedContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
         try {
             ContentsDocument contents = dtoObjectMapper.readValue(updatedContents, ContentsDocument.class);
