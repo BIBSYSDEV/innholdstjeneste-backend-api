@@ -60,13 +60,12 @@ class UpdateContentsApiHandlerTest {
         ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
         when(dynamoDbclient.getContents(anyString())).thenReturn(contents);
-        when(dynamoDbclient.updateContents(contentsDocument)).thenReturn(contents);
         var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
         assertEquals(contentsDocument, actual);
     }
 
     @Test
-    public void testEmptyIsbnInContentsDocument() throws ApiGatewayException, JsonProcessingException {
+    public void testEmptyIsbnInContentsDocument() throws JsonProcessingException {
         DynamoDBClient client = mock(DynamoDBClient.class);
         StorageClient storageClient = mock(StorageClient.class);
         Environment environment = mock(Environment.class);
@@ -76,24 +75,7 @@ class UpdateContentsApiHandlerTest {
         contents = contents.replace(TEST_ISBN, EMPTY_STRING);
         ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         ContentsRequest request = new ContentsRequest(contentsDocument);
-        when(client.updateContents(contentsDocument)).thenReturn(contents);
         Exception exception = assertThrows(BadRequestException.class, () -> {
-            handler.processInput(request, new RequestInfo(), mock(Context.class));
-        });
-    }
-
-    @Test
-    public void testEmptyContentsDocumentRequest() throws ApiGatewayException, JsonProcessingException {
-        DynamoDBClient client = mock(DynamoDBClient.class);
-        StorageClient storageClient = mock(StorageClient.class);
-        Environment environment = mock(Environment.class);
-        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, storageClient);
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        ContentsRequest request = new ContentsRequest(contentsDocument);
-        when(client.getContents(anyString())).thenReturn(contents);
-        Exception exception = assertThrows(ConflictException.class, () -> {
             handler.processInput(request, new RequestInfo(), mock(Context.class));
         });
     }

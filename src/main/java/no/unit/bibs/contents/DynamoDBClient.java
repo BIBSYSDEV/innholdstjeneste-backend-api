@@ -149,10 +149,9 @@ public class DynamoDBClient {
      * Updates the contentsDocument identified by its isbn.
      *
      * @param document contentsDocument to update
-     * @return json representation of contents.
      * @throws CommunicationException exception while connecting to database
      */
-    protected String updateContents(ContentsDocument document) throws CommunicationException {
+    protected void updateContents(ContentsDocument document) throws CommunicationException {
         try {
             HashMap<String, AttributeValue> keyToUpdate = new HashMap<>();
             keyToUpdate.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(document.getIsbn()).build());
@@ -165,12 +164,6 @@ public class DynamoDBClient {
                     .build();
             dbClient.updateItem(updateItemRequest);
             logger.info("contents updated");
-            String contents = getContents(document.getIsbn());
-            if (contents != null && !contents.isEmpty()) {
-                return contents;
-            }
-            logger.error("Update error: Could not find an item to return.");
-            throw new RuntimeException("Update error: Could not find an item to return.");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Update error: " + e.getMessage(), e);
