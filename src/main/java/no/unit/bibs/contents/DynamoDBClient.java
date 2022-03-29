@@ -170,11 +170,11 @@ public class DynamoDBClient {
                     .tableName(tableName)
                     .attributeUpdates(attributeUpdates)
                     .build();
-            UpdateItemResponse updateItemResponse = dbClient.updateItem(updateItemRequest);
+            dbClient.updateItem(updateItemRequest);
             logger.info("contents updated");
-            Map<String, AttributeValue> returnedItem = updateItemResponse.attributes();
-            if (returnedItem != null && !returnedItem.isEmpty()) {
-                return parseAttributeValueMap(returnedItem);
+            String contents = getContents(document.getIsbn());
+            if (contents != null && !contents.isEmpty()) {
+                return contents;
             }
             logger.error("Update error: Could not find an item to return.");
             throw new RuntimeException("Update error: Could not find an item to return.");
