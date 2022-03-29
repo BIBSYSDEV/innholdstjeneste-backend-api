@@ -126,22 +126,7 @@ public class DynamoDBClientTest {
         when(updateItemResponse.attributes()).thenReturn(returnedItem);
         String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
         ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        String updateContents = dbClient.updateContents(document);
-        assertEquals(dbClient.parseAttributeValueMap(returnedItem), updateContents);
-    }
-
-    @Test
-    public void testUpdateContentsThrowsException() throws JsonProcessingException {
-        UpdateItemResponse updateItemResponse = mock(UpdateItemResponse.class);
-        when(client.updateItem(any(UpdateItemRequest.class))).thenReturn(updateItemResponse);
-        String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
-        ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        Exception exception = assertThrows(CommunicationException.class, () -> dbClient.updateContents(document));
-
-        String expectedMessage = "Update error:";
-        String actualMessage = exception.getMessage();
-
-        assertTrue(actualMessage.contains(expectedMessage));
+        dbClient.updateContents(document);
     }
 
 }

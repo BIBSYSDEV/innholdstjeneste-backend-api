@@ -17,9 +17,7 @@ import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -32,9 +30,9 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 public class DynamoDBClient {
 
-    public static final Region REGION = Region.EU_WEST_1;
     private static final Logger logger = LoggerFactory.getLogger(DynamoDBClient.class);
 
+    public static final String AWS_REGION = "AWS_REGION";
     public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
     public static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
     public static final String TABLE_NAME = "TABLE_NAME";
@@ -62,7 +60,9 @@ public class DynamoDBClient {
     private void initDynamoDbClient(Environment environment) {
         try {
             tableName = environment.readEnv(TABLE_NAME);
-            dbClient = DynamoDbClient.builder().region(REGION).build();
+            dbClient = DynamoDbClient.builder()
+                    .region(Region.of(environment.readEnv(AWS_REGION)))
+                    .build();
         } catch (Exception e) {
             logger.error(CANNOT_CONNECT_TO_DYNAMO_DB, e);
         }
@@ -81,13 +81,8 @@ public class DynamoDBClient {
                     .tableName(tableName)
                     .item(this.generateItemMap(document))
                     .build();
-            PutItemResponse putItemResponse = dbClient.putItem(putItemRequest);
-            if (putItemResponse.hasAttributes()) {
-                logger.info("contents created");
-            } else {
-                logger.error("Create contents went wrong. ");
-                throw new RuntimeException("Create contents went wrong. ");
-            }
+            dbClient.putItem(putItemRequest);
+            logger.info("contents created");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Creation error: " + e.getMessage(), e);
@@ -154,25 +149,21 @@ public class DynamoDBClient {
      * Updates the contentsDocument identified by its isbn.
      *
      * @param document contentsDocument to update
-     * @return json representation of contents.
      * @throws CommunicationException exception while connecting to database
      */
-    protected String updateContents(ContentsDocument document) throws CommunicationException {
+    protected void updateContents(ContentsDocument document) throws CommunicationException {
         try {
+            HashMap<String, AttributeValue> keyToUpdate = new HashMap<>();
+            keyToUpdate.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(document.getIsbn()).build());
             Map<String, AttributeValueUpdate> attributeUpdates = this.findValuesToUpdate(document);
             UpdateItemRequest updateItemRequest = UpdateItemRequest
                     .builder()
+                    .key(keyToUpdate)
                     .tableName(tableName)
                     .attributeUpdates(attributeUpdates)
                     .build();
-            UpdateItemResponse updateItemResponse = dbClient.updateItem(updateItemRequest);
+            dbClient.updateItem(updateItemRequest);
             logger.info("contents updated");
-            Map<String, AttributeValue> returnedItem = updateItemResponse.attributes();
-            if (returnedItem != null && !returnedItem.isEmpty()) {
-                return parseAttributeValueMap(returnedItem);
-            }
-            logger.error("Update error: Could not find an item to return.");
-            throw new RuntimeException("Update error: Could not find an item to return.");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Update error: " + e.getMessage(), e);

@@ -1,20 +1,23 @@
 package no.unit.bibs.contents;
 
-import com.amazonaws.HttpMethod;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Date;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import javax.ws.rs.core.HttpHeaders;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 public class S3Connection {
 
@@ -25,8 +28,8 @@ public class S3Connection {
     @SuppressWarnings("PMD.UseUnderscoresInNumericLiterals")
     private static final int PRESIGNED_URL_EXPIRY_MILLISECONDS = 10000;
     private String bucketName;
-    private AmazonS3 amazonS3Client;
-    private HttpURLConnection connection;
+    private S3Presigner s3Presigner;
+    private S3Client s3Client;
     private static final String AWS_REGION = "AWS_REGION";
     private static final String BUCKET_NAME = "BUCKET_NAME";
     public static final String CANNOT_CONNECT_TO_S3 = "Cannot connect to S3";
@@ -37,22 +40,24 @@ public class S3Connection {
 
     /**
      * Constructor for use in test to inject.
-     * @param amazonS3Client aws S3 client
-     * @param bucketName name til s3 bucket
-     * @param connection httpConnection
+     * @param s3Client aws S3Client
+     * @param s3Presigner aws S3 presigner
+     * @param bucketName name of s3 bucket
      */
-    public S3Connection(AmazonS3 amazonS3Client, String bucketName, HttpURLConnection connection) {
-        this.amazonS3Client = amazonS3Client;
+    public S3Connection(S3Client s3Client, S3Presigner s3Presigner, String bucketName) {
+        this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
         this.bucketName = bucketName;
-        this.connection = connection;
     }
 
     @JacocoGenerated
     private void initS3Client(Environment environment) {
         try {
-            this.amazonS3Client = AmazonS3ClientBuilder.standard()
-                    .withRegion(environment.readEnv(AWS_REGION))
-                    .withPathStyleAccessEnabled(true)
+            this.s3Client = S3Client.builder()
+                    .region(Region.of(environment.readEnv(AWS_REGION)))
+                    .build();
+            this.s3Presigner = S3Presigner.builder()
+                    .region(Region.of(environment.readEnv(AWS_REGION)))
                     .build();
             this.bucketName = environment.readEnv(BUCKET_NAME);
         } catch (Exception e) {
@@ -63,38 +68,20 @@ public class S3Connection {
     /**
      * Uploads inputstream to S3 using a presigned upload write url.
      *
-     * @param inputStream inputStream
+     * @param bytesArray bytesArray
      * @param objectName  objectName
      * @param filename    filename
      * @param mimeType    mimeType
-     * @throws IOException IOException
      */
     @JacocoGenerated
     @SuppressWarnings("PMD.AssignmentInOperand")
-    protected void uploadFile(InputStream inputStream, String objectName, String filename, String mimeType)
-            throws IOException {
+    protected void uploadFile(byte[] bytesArray, String objectName, String filename, String mimeType) {
         try {
-            URL url = generatePresignedWriteUrl(objectName, filename, mimeType);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setDoOutput(true);
-            connection.setRequestMethod(HttpMethod.PUT.name());
-            connection.setRequestProperty(HttpHeaders.CONTENT_TYPE, mimeType);
-            connection.setRequestProperty(HttpHeaders.CONTENT_DISPOSITION,
-                    String.format(CONTENT_DISPOSITION_FILENAME_TEMPLATE, filename));
-
-            try (OutputStream outs = connection.getOutputStream()) {
-                int numRead;
-                byte[] buf = new byte[8 * 1024];
-                while ((numRead = inputStream.read(buf)) >= 0) {
-                    outs.write(buf, 0, numRead);
-                }
-                outs.flush();
-                outs.close();
-                // Check the HTTP response code. To complete the upload and make the object available,
-                // you must interact with the connection object in some way.
-                connection.getResponseCode();
-            }
-        } catch (IOException e) {
+            PutObjectRequest putObjectRequest = createPutObjectRequest(objectName, filename, mimeType);
+            PutObjectResponse putObjectResponse =
+                    s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytesArray));
+            logger.info("Etag for uploaded file: " + putObjectResponse.eTag());
+        } catch (S3Exception e) {
             logger.error(ERROR_UPLOADING_FILE, e);
             throw e;
         }
@@ -109,24 +96,36 @@ public class S3Connection {
      * @return URL
      */
     public URL generatePresignedWriteUrl(String objectName, String filename, String mimeType) {
-        Date expiration = new Date();
-        long msec = expiration.getTime();
-        msec += PRESIGNED_URL_EXPIRY_MILLISECONDS;
-        expiration.setTime(msec);
 
-        GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName,
-                objectName, HttpMethod.PUT);
-        generatePresignedUrlRequest.setExpiration(expiration);
+        PutObjectRequest putObjectRequest = createPutObjectRequest(objectName, filename, mimeType);
 
+        PutObjectPresignRequest presignedPutObjectRequest = PutObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMillis(PRESIGNED_URL_EXPIRY_MILLISECONDS))
+                .putObjectRequest(putObjectRequest)
+                .build();
+
+        PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignedPutObjectRequest);
+
+        return presignedRequest.url();
+    }
+
+    private PutObjectRequest createPutObjectRequest(String objectName, String filename, String mimeType) {
+
+        Map<String, String> metadata = new HashMap<>();
         if (filename != null && !filename.isEmpty()) {
-            generatePresignedUrlRequest.addRequestParameter(HttpHeaders.CONTENT_DISPOSITION,
+            metadata.put(HttpHeaders.CONTENT_DISPOSITION,
                     String.format(CONTENT_DISPOSITION_FILENAME_TEMPLATE, filename));
         }
 
         if (mimeType != null && !mimeType.isEmpty() && mimeType.contains("/")) {
-            generatePresignedUrlRequest.addRequestParameter(HttpHeaders.CONTENT_TYPE, mimeType);
+            metadata.put(HttpHeaders.CONTENT_TYPE, mimeType);
         }
 
-        return amazonS3Client.generatePresignedUrl(generatePresignedUrlRequest);
+        return PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(objectName)
+                .metadata(metadata)
+                .build();
     }
+
 }
