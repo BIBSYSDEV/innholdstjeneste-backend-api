@@ -47,7 +47,7 @@ dependencies {
     implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '1.25.0'
     testImplementation group: 'com.github.bibsysdev', name: 'nvatestutils', version: '1.25.0'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.5.1'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.9.0'
 
     shadowJar {
         archiveClassifier.set('')
