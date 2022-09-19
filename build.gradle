@@ -42,7 +42,7 @@ dependencies {
     implementation group: 'software.amazon.awssdk', name: 'dynamodb', version: '2.17.191'
     implementation group: 'software.amazon.awssdk', name: 's3', version: '2.17.191'
     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.9'
-    implementation group: 'com.github.bibsysdev', name: 'json', version: '1.25.0'
+    implementation group: 'com.github.bibsysdev', name: 'json', version: '1.25.7'
     implementation group: 'com.github.bibsysdev', name: 'core', version: '1.25.4'
     implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '1.25.0'
     testImplementation group: 'com.github.bibsysdev', name: 'nvatestutils', version: '1.25.4'
