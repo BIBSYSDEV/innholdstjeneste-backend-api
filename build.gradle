@@ -5,7 +5,7 @@ plugins {
     id 'jacoco'
     id 'com.github.johnrengelman.shadow' version '6.1.0'
     id 'nebula.lint' version '17.7.0'
-    id "org.owasp.dependencycheck" version "7.1.2"
+    id "org.owasp.dependencycheck" version "7.2.1"
 }
 
 group 'no.unit.bibs'
@@ -42,8 +42,8 @@ dependencies {
     implementation group: 'software.amazon.awssdk', name: 'dynamodb', version: '2.17.191'
     implementation group: 'software.amazon.awssdk', name: 's3', version: '2.17.191'
     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.9'
-    implementation group: 'com.github.bibsysdev', name: 'json', version: '1.25.7'
-    implementation group: 'com.github.bibsysdev', name: 'core', version: '1.25.4'
+    implementation group: 'com.github.bibsysdev', name: 'json', version: '1.25.8'
+    implementation group: 'com.github.bibsysdev', name: 'core', version: '1.25.8'
     implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '1.25.7'
     testImplementation group: 'com.github.bibsysdev', name: 'nvatestutils', version: '1.25.4'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.5.1'
