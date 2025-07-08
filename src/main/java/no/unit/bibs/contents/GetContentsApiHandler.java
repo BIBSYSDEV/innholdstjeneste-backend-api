@@ -16,7 +16,7 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocument> {
 
     public static final String ISBN = "isbn";
-    private final DynamoDBClient dynamoDBClient;
+    private final DBClient dbClient;
 
     @JacocoGenerated
     public GetContentsApiHandler() {
@@ -25,12 +25,17 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
 
     @JacocoGenerated
     public GetContentsApiHandler(Environment environment) {
-        this(environment, new DynamoDBClient(environment));
+        this(environment, new DBClient(environment));
     }
 
-    public GetContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient) {
+    public GetContentsApiHandler(Environment environment, DBClient dbClient) {
         super(Void.class, environment);
-        this.dynamoDBClient = dynamoDBClient;
+        this.dbClient = dbClient;
+    }
+
+    @Override
+    protected void validateRequest(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+
     }
 
     /**
@@ -46,7 +51,7 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
             throws ApiGatewayException {
         String isbn = requestInfo.getQueryParameter(ISBN);
         System.out.println("ISBN from queryParam: " + isbn);
-        String contents = dynamoDBClient.getContents(isbn);
+        String contents = dbClient.getContents(isbn);
         System.out.println("contents from DynamoDB: " + contents);
         try {
             ContentsDocument response = dtoObjectMapper.readValue(contents, ContentsDocument.class);

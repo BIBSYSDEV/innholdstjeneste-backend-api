@@ -23,7 +23,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to CreateContentsApiHandler";
     public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not persist provided contents. ";
 
-    private final DynamoDBClient dynamoDBClient;
+    private final DBClient dynamoDBClient;
     private final StorageClient storageClient;
     private final transient Logger logger = LoggerFactory.getLogger(CreateContentsApiHandler.class);
 
@@ -34,7 +34,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     @JacocoGenerated
     public CreateContentsApiHandler(Environment environment) {
-        this(environment, new DynamoDBClient(environment), new StorageClient(environment));
+        this(environment, new DBClient(environment), new StorageClient(environment));
     }
 
 
@@ -44,13 +44,18 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      * @param dynamoDBClient dynamoDBclient
      * @param storageClient storageClient
      */
-    public CreateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient,
+    public CreateContentsApiHandler(Environment environment, DBClient dynamoDBClient,
                                     StorageClient storageClient) {
         super(ContentsRequest.class, environment);
         this.dynamoDBClient = dynamoDBClient;
         this.storageClient = storageClient;
     }
 
+
+    @Override
+    protected void validateRequest(ContentsRequest input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+
+    }
 
     /**
      * Implements the main logic of the handler. Any exception thrown by this method will be handled by {@link

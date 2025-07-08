@@ -1,4 +1,2 @@
 rootProject.name = 'innholdstjeneste-backend-api'
-include 'src:main'
-findProject(':src:main')?.name = 'main'
 

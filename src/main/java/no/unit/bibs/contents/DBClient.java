@@ -28,9 +28,9 @@ import java.util.Objects;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 
-public class DynamoDBClient {
+public class DBClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(DynamoDBClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(DBClient.class);
 
     public static final String AWS_REGION = "AWS_REGION";
     public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
@@ -45,14 +45,14 @@ public class DynamoDBClient {
      * Creates a new DynamoDBClient.
      */
     @JacocoGenerated
-    public DynamoDBClient(Environment environment) {
+    public DBClient(Environment environment) {
         initDynamoDbClient(environment);
     }
 
     /**
      * Creates a new DynamoDBClient.
      */
-    public DynamoDBClient(DynamoDbClient dbClient) {
+    public DBClient(DynamoDbClient dbClient) {
         this.dbClient = dbClient;
     }
 

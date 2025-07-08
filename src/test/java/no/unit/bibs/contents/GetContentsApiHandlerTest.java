@@ -27,52 +27,50 @@ public class GetContentsApiHandlerTest {
 
     public static final String SAMPLE_SEARCH_TERM = "searchTerm";
     private Environment environment;
-    private GetContentsApiHandler getContentsApiHandler;
+    private GetContentsApiHandler contentsApiHandler;
     private DynamoDbClient client;
+    private RequestInfo requestInfo;
 
-    private void initEnvironment() {
-        environment = mock(Environment.class);
-        client = mock(DynamoDbClient.class);
-    }
 
     @BeforeEach
     public void init() {
-        initEnvironment();
-        getContentsApiHandler = new GetContentsApiHandler(environment, new DynamoDBClient(client));
+        environment = mock(Environment.class);
+        requestInfo = mock(RequestInfo.class);
+        when(requestInfo.getQueryParameters()).thenReturn(Map.of(GetContentsApiHandler.ISBN, SAMPLE_SEARCH_TERM));
+        when(environment.readEnv(GetContentsApiHandler.ALLOWED_ORIGIN_ENV)).thenReturn("*");
+        when(environment.readEnv("DYNAMODB_TABLE_NAME_ENV"))
+            .thenReturn("TEST_TABLE_NAME");
+
+        client = mock(DynamoDbClient.class);
+        contentsApiHandler = new GetContentsApiHandler(environment, new DBClient(client));
     }
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        Integer statusCode = getContentsApiHandler.getSuccessStatusCode(null, null);
+        var statusCode = contentsApiHandler.getSuccessStatusCode(null, null);
         assertEquals(statusCode, HttpURLConnection.HTTP_OK);
     }
 
     @Test
     void handlerReturnsContentsDocumentByGivenTerm() throws ApiGatewayException, JsonProcessingException {
-        DynamoDBClient dynamoDBClient = mock(DynamoDBClient.class);
+        var dynamoDBClient = mock(DBClient.class);
         var handler = new GetContentsApiHandler(environment, dynamoDBClient);
-        String contents = IoUtils.stringFromResources(Path.of(DynamoDBClientTest.GET_CONTENTS_JSON));
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        var  contents = IoUtils.stringFromResources(Path.of(DBClientTest.GET_CONTENTS_JSON));
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         when(dynamoDBClient.getContents(SAMPLE_SEARCH_TERM)).thenReturn(contents);
-        var actual = handler.processInput(null, getRequestInfo(), mock(Context.class));
+        var actual = handler.processInput(null, requestInfo, mock(Context.class));
         assertEquals(contentsDocument, actual);
     }
 
     @Test
     void handlerReturnsBadRequestExceptionWhenMissingIsbn() {
-        DynamoDBClient dynamoDBClient = mock(DynamoDBClient.class);
+        var dynamoDBClient = mock(DBClient.class);
         var handler = new GetContentsApiHandler(environment, dynamoDBClient);
         Exception exception = assertThrows(BadRequestException.class, () -> {
-            handler.processInput(null, new RequestInfo(), mock(Context.class));
+            handler.processInput(null, requestInfo, mock(Context.class));
         });
         assertTrue(exception.getMessage().contains(GetContentsApiHandler.ISBN));
     }
 
-
-    private RequestInfo getRequestInfo() {
-        var requestInfo = new RequestInfo();
-        requestInfo.setQueryParameters(Map.of(GetContentsApiHandler.ISBN, SAMPLE_SEARCH_TERM));
-        return requestInfo;
-    }
 
 }

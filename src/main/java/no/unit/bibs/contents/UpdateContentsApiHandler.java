@@ -34,7 +34,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     public static final String JSON_INPUT_LOOKS_LIKE_THAT = "json input looks like that :";
     public static final int FOURTH_OF_A_SECOND = 250;
 
-    private final DynamoDBClient dynamoDBClient;
+    private final DBClient dynamoDBClient;
     private final StorageClient storageClient;
     private final transient Logger logger = LoggerFactory.getLogger(UpdateContentsApiHandler.class);
 
@@ -45,7 +45,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     @JacocoGenerated
     public UpdateContentsApiHandler(Environment environment) {
-        this(environment, new DynamoDBClient(environment), new StorageClient(environment));
+        this(environment, new DBClient(environment), new StorageClient(environment));
     }
 
     /**
@@ -55,13 +55,18 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      * @param dynamoDBClient dynamoDBclient
      * @param storageClient  storageClient
      */
-    public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient,
+    public UpdateContentsApiHandler(Environment environment, DBClient dynamoDBClient,
                                     StorageClient storageClient) {
         super(ContentsRequest.class, environment);
         this.dynamoDBClient = dynamoDBClient;
         this.storageClient = storageClient;
     }
 
+
+    @Override
+    protected void validateRequest(ContentsRequest input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+
+    }
 
     /**
      * Implements the main logic of the handler. Any exception thrown by this method will be handled by {@link

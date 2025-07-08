@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
+import java.util.Map;
 
 import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.core.ioutils.IoUtils;
@@ -31,7 +32,8 @@ import org.junit.jupiter.api.Test;
 class UpdateContentsApiHandlerTest {
 
     private Environment environment;
-    private DynamoDBClient dynamoDBClient;
+    private RequestInfo requestInfo;
+    private DBClient dbClient;
     private StorageClient storageClient;
     private UpdateContentsApiHandler handler;
 
@@ -44,102 +46,84 @@ class UpdateContentsApiHandlerTest {
     public void init() {
         environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        dynamoDBClient = mock(DynamoDBClient.class);
+        dbClient = mock(DBClient.class);
         storageClient = mock(StorageClient.class);
-        handler = new UpdateContentsApiHandler(environment, dynamoDBClient, storageClient);
+        handler = new UpdateContentsApiHandler(environment, dbClient, storageClient);
+        requestInfo = mock(RequestInfo.class);
+        when(requestInfo.getQueryParameters()).thenReturn(Map.of("isbn", TEST_ISBN));
     }
 
     @Test
     public void processInputTest() throws ApiGatewayException, JsonProcessingException {
-        DynamoDBClient dynamoDbclient = mock(DynamoDBClient.class);
-        StorageClient storageClient = mock(StorageClient.class);
-        Environment environment = mock(Environment.class);
-        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, dynamoDbclient, storageClient);
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        ContentsRequest request = new ContentsRequest(contentsDocument);
-        when(dynamoDbclient.getContents(anyString())).thenReturn(contents);
-        var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
+
+
+        var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        var request = new ContentsRequest(contentsDocument);
+        when(dbClient.getContents(anyString())).thenReturn(contents);
+        var actual = handler.processInput(request, requestInfo, mock(Context.class));
         assertEquals(contentsDocument, actual);
     }
 
     @Test
     public void testEmptyIsbnInContentsDocument() throws JsonProcessingException {
-        DynamoDBClient client = mock(DynamoDBClient.class);
-        StorageClient storageClient = mock(StorageClient.class);
-        Environment environment = mock(Environment.class);
-        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, storageClient);
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+
+        var  contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
         contents = contents.replace(TEST_ISBN, EMPTY_STRING);
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        ContentsRequest request = new ContentsRequest(contentsDocument);
-        Exception exception = assertThrows(BadRequestException.class, () -> {
-            handler.processInput(request, new RequestInfo(), mock(Context.class));
+        var  contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        var  request = new ContentsRequest(contentsDocument);
+        var  exception = assertThrows(BadRequestException.class, () -> {
+            handler.processInput(request, requestInfo, mock(Context.class));
         });
     }
 
     @Test
     public void testGetContentsNotFoundWithFinalCrashing() throws ApiGatewayException, JsonProcessingException {
-        DynamoDBClient client = mock(DynamoDBClient.class);
-        StorageClient storageClient = mock(StorageClient.class);
-        Environment environment = mock(Environment.class);
-        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, storageClient);
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        ContentsRequest request = new ContentsRequest(contentsDocument);
-        when(client.getContents(anyString())).thenThrow(NotFoundException.class);
-        Exception exception = assertThrows(NotFoundException.class, () -> {
-            handler.processInput(request, new RequestInfo(), mock(Context.class));
+
+        var  contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        var  contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        var request = new ContentsRequest(contentsDocument);
+        when(dbClient.getContents(anyString())).thenThrow(NotFoundException.class);
+        var  exception = assertThrows(NotFoundException.class, () -> {
+            handler.processInput(request, requestInfo, mock(Context.class));
         });
     }
 
     @Test
     public void testGetContentsNotFound() throws ApiGatewayException, JsonProcessingException {
-        DynamoDBClient client = mock(DynamoDBClient.class);
-        StorageClient storageClient = mock(StorageClient.class);
-        Environment environment = mock(Environment.class);
-        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, storageClient);
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        ContentsRequest request = new ContentsRequest(contentsDocument);
-        when(client.getContents(anyString())).thenThrow(NotFoundException.class).thenReturn(contents);
-        var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
+
+        var  contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        var  contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        var  request = new ContentsRequest(contentsDocument);
+        when(dbClient.getContents(anyString())).thenThrow(NotFoundException.class).thenReturn(contents);
+        var actual = handler.processInput(request, requestInfo, mock(Context.class));
         assertEquals(contentsDocument, actual);
     }
 
     @Test
     public void testGetContentsNotFoundThenCrashing() throws ApiGatewayException, JsonProcessingException {
-        DynamoDBClient client = mock(DynamoDBClient.class);
-        StorageClient storageClient = mock(StorageClient.class);
-        Environment environment = mock(Environment.class);
-        when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, client, storageClient);
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        ContentsRequest request = new ContentsRequest(contentsDocument);
-        when(client.getContents(anyString())).thenThrow(IllegalArgumentException.class);
-        Exception exception = assertThrows(ConflictException.class, () -> {
-            handler.processInput(request, new RequestInfo(), mock(Context.class));
+
+        var  contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        var  contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        var  request = new ContentsRequest(contentsDocument);
+        when(dbClient.getContents(anyString())).thenThrow(IllegalArgumentException.class);
+        var  exception = assertThrows(ConflictException.class, () -> {
+            handler.processInput(request, requestInfo, mock(Context.class));
         });
     }
 
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        UpdateContentsApiHandler handler = new UpdateContentsApiHandler(environment, dynamoDBClient, storageClient);
-        Integer statusCode = handler.getSuccessStatusCode(null, null);
+        var  statusCode = handler.getSuccessStatusCode(null, null);
         assertEquals(statusCode, HttpURLConnection.HTTP_CREATED);
     }
 
 
     @Test
     void handlerThrowsExceptionWithEmptyRequest()  {
-        Exception exception = assertThrows(ParameterException.class, () -> {
-            handler.processInput(null, new RequestInfo(), mock(Context.class));
+        var  exception = assertThrows(ParameterException.class, () -> {
+            handler.processInput(null, requestInfo, mock(Context.class));
         });
         assertTrue(exception.getMessage().contains(UpdateContentsApiHandler.NO_PARAMETERS_GIVEN_TO_HANDLER));
     }
