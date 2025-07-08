@@ -1,6 +1,5 @@
 package no.unit.bibs.contents;
 
-import static java.util.Objects.isNull;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import nva.commons.apigateway.ApiGatewayHandler;
@@ -11,11 +10,10 @@ import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.GatewayResponseSerializingException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
 
+import static java.util.Objects.isNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, ContentsDocument> {
@@ -25,7 +23,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     private final DBClient dynamoDBClient;
     private final StorageClient storageClient;
-    private final transient Logger logger = LoggerFactory.getLogger(CreateContentsApiHandler.class);
+
 
     @JacocoGenerated
     public CreateContentsApiHandler() {
@@ -40,9 +38,10 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     /**
      * Constructor for injecting used in testing.
-     * @param environment environment
-     * @param dynamoDBClient dynamoDBclient
-     * @param storageClient storageClient
+     *
+     * @param environment    environment
+     * @param dynamoDBClient dynamoDBClient
+     * @param storageClient  storageClient
      */
     public CreateContentsApiHandler(Environment environment, DBClient dynamoDBClient,
                                     StorageClient storageClient) {
@@ -54,41 +53,41 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     @Override
     protected void validateRequest(ContentsRequest input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-
+        if (isNull(input)) {
+            throw new BadRequestException(NO_PARAMETERS_GIVEN_TO_HANDLER);
+        }
+        if (!input.getContents().isValid()) {
+            throw new BadRequestException(COULD_NOT_INDEX_RECORD_PROVIDED + input.getContents());
+        }
     }
 
     /**
      * Implements the main logic of the handler. Any exception thrown by this method will be handled by {@link
      * RestRequestHandler#handleExpectedException} method.
      *
-     * @param request     The input object to the method. Usually a deserialized json.
+     * @param input     The input object to the method. Usually a deserialized Json.
      * @param requestInfo Request headers and path.
      * @param context     the ApiGateway context.
-     * @return the Response body that is going to be serialized in json
+     * @return the Response body that is going to be serialized in Json.
      * @throws ApiGatewayException all exceptions are caught by writeFailure and mapped to error codes through the
      *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
-    protected ContentsDocument processInput(ContentsRequest request, RequestInfo requestInfo,
-                                           Context context) throws ApiGatewayException {
-        if (isNull(request)) {
-            throw new BadRequestException(NO_PARAMETERS_GIVEN_TO_HANDLER);
-        }
-        ContentsDocument contentsDocument = request.getContents();
-        logger.error("json input looks like that :" + contentsDocument.toString());
-        if (contentsDocument.isValid()) {
+    protected ContentsDocument processInput(ContentsRequest input, RequestInfo requestInfo,
+                                            Context context) throws ApiGatewayException {
+        try {
+            var contentsDocument = input.getContents();
             storageClient.handleFiles(contentsDocument);
             dynamoDBClient.createContents(contentsDocument);
-            String createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-            try {
-                ContentsDocument response = dtoObjectMapper.readValue(createContents, ContentsDocument.class);
-                return response;
-            } catch (JsonProcessingException e) {
-                throw new GatewayResponseSerializingException(e);
-            }
-        } else {
-            logger.error(COULD_NOT_INDEX_RECORD_PROVIDED + contentsDocument);
-            throw new BadRequestException(COULD_NOT_INDEX_RECORD_PROVIDED + contentsDocument);
+            var createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+            return dtoObjectMapper.readValue(createContents, ContentsDocument.class);
+
+        } catch (JsonProcessingException e) {
+            throw new GatewayResponseSerializingException(e);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(COULD_NOT_INDEX_RECORD_PROVIDED);
+        } catch (Exception e) {
+            throw new BadRequestException(e.getMessage(), e);
         }
     }
 

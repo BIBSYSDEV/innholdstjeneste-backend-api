@@ -92,7 +92,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
             storageClient.handleFiles(contentsDocument);
 
-            logger.debug(THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST + contentsDocument.toString());
+            logger.debug(THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST + contentsDocument);
             try {
                 String contents = dynamoDBClient.getContents(contentsDocument.getIsbn());
                 if (StringUtils.isEmpty(contents)) {
@@ -120,8 +120,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
         logger.info(CONTENTS_CREATED);
         try {
-            ContentsDocument contents = dtoObjectMapper.readValue(createdContents, ContentsDocument.class);
-            return contents;
+            return dtoObjectMapper.readValue(createdContents, ContentsDocument.class);
         } catch (JsonProcessingException ex) {
             throw new GatewayResponseSerializingException(ex);
         }
@@ -134,8 +133,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         this.waitAMoment(FOURTH_OF_A_SECOND);
         String updatedContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
         try {
-            ContentsDocument contents = dtoObjectMapper.readValue(updatedContents, ContentsDocument.class);
-            return contents;
+            return dtoObjectMapper.readValue(updatedContents, ContentsDocument.class);
         } catch (JsonProcessingException ex) {
             throw new GatewayResponseSerializingException(ex);
         }
