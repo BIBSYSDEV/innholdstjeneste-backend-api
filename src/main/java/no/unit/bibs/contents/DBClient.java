@@ -82,7 +82,7 @@ public class DBClient {
                     .item(this.generateItemMap(document))
                     .build();
             var response = dbClient.putItem(putItemRequest);
-            logger.info(response.toString());
+            logger.debug("PutItemResponse: {}", response.sdkHttpResponse().statusCode());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Creation error: " + e.getMessage(), e);
