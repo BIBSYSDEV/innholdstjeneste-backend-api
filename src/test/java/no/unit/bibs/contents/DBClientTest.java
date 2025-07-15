@@ -7,6 +7,7 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
@@ -107,11 +108,20 @@ public class DBClientTest {
 
     @Test
     public void addDocumentTest() throws IOException, CommunicationException {
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        PutItemResponse putItemReponse = mock(PutItemResponse.class);
-        when(client.putItem(any(PutItemRequest.class))).thenReturn(putItemReponse);
-        when(putItemReponse.hasAttributes()).thenReturn(true);
+        var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        var document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        var putItemResponse = mock(PutItemResponse.class);
+
+        when(client.putItem(any(PutItemRequest.class)))
+            .thenReturn(putItemResponse);
+        when(putItemResponse.hasAttributes())
+            .thenReturn(true);
+        when(putItemResponse.sdkHttpResponse())
+            .thenReturn(mock(SdkHttpResponse.class));
+        when(putItemResponse.sdkHttpResponse().isSuccessful())
+            .thenReturn(true);
+        when(putItemResponse.sdkHttpResponse().statusCode())
+            .thenReturn(200);
         dbClient.createContents(document);
     }
 
