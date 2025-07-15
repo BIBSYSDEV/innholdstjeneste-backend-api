@@ -65,7 +65,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      * Implements the main logic of the handler. Any exception thrown by this method will be handled by {@link
      * RestRequestHandler#handleExpectedException} method.
      *
-     * @param input     The input object to the method. Usually a deserialized Json.
+     * @param input     The input object to the method. Usually a deserialized JSON.
      * @param requestInfo Request headers and path.
      * @param context     the ApiGateway context.
      * @return the Response body that is going to be serialized in Json.
