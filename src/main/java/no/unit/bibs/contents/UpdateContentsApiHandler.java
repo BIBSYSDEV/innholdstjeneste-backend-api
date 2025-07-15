@@ -46,7 +46,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      * Constructor for injecting used in testing.
      *
      * @param environment    environment
-     * @param dbClient dynamoDBclient
+     * @param dbClient        dbClient
      * @param storageClient  storageClient
      */
     public UpdateContentsApiHandler(Environment environment, DBClient dbClient,
