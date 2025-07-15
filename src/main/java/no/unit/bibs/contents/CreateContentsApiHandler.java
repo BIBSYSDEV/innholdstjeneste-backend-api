@@ -68,7 +68,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      * @param input     The input object to the method. Usually a deserialized JSON.
      * @param requestInfo Request headers and path.
      * @param context     the ApiGateway context.
-     * @return the Response body that is going to be serialized in Json.
+     * @return the Response body that is going to be serialized in JSON.
      * @throws ApiGatewayException all exceptions are caught by writeFailure and mapped to error codes through the
      *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
