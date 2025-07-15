@@ -2,6 +2,7 @@ package no.unit.bibs.contents;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
+import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -83,10 +84,10 @@ public class DBClient {
                     .build();
             var response = dbClient.putItem(putItemRequest);
             if (isNull(response.sdkHttpResponse())) {
-                throw new Exception("No response from DynamoDB");
+                throw new BadGatewayException("No response from DynamoDB");
             }
             if (!response.sdkHttpResponse().isSuccessful()) {
-                throw new Exception("Failed to create ContentsDocument: " + response.sdkHttpResponse().statusCode());
+                throw new BadGatewayException("Failed to create ContentsDocument: " + response.sdkHttpResponse().statusCode());
             }
             logger.info("ContentsDocument with ISBN {} created successfully.", document.getIsbn());
         } catch (Exception e) {
