@@ -80,6 +80,9 @@ public class CreateContentsApiHandlerTest {
         assertEquals(contentsDocument, actual);
     }
 
+    /**
+     * Test for handlerReturnsErrorWithEmptyContentsDocument.
+     */
     @Test
     void handlerReturnsErrorWithEmptyContentsDocument() throws ApiGatewayException, JsonProcessingException {
         var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT))
