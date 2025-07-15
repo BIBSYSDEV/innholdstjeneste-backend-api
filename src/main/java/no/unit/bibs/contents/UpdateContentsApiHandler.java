@@ -2,10 +2,11 @@ package no.unit.bibs.contents;
 
 import static java.util.Objects.isNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static nva.commons.core.StringUtils.isEmpty;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
-import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.RestRequestHandler;
@@ -16,7 +17,6 @@ import nva.commons.apigateway.exceptions.GatewayResponseSerializingException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +26,9 @@ import java.net.HttpURLConnection;
 public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, ContentsDocument> {
 
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to UpdateContentsApiHandler";
-    public static final String COULD_NOT_UPDATE_PROVIDED_CONTENTS = "Could not update provided contents. ";
     public static final String CONTENTS_CREATED = "contents created";
     public static final String CONTENTS_UPDATED = "contents updated";
     public static final String FAILED_AFTER_PERSISTING = "failed after persisting: ";
-    public static final String THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST = "This is my ContentsDocument to persist: ";
-    public static final String JSON_INPUT_LOOKS_LIKE_THAT = "json input looks like that :";
     public static final int FOURTH_OF_A_SECOND = 250;
 
     private final DBClient dynamoDBClient;
@@ -65,14 +62,19 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     @Override
     protected void validateRequest(ContentsRequest input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-
+        if (isNull(input)) {
+            throw new BadRequestException(NO_PARAMETERS_GIVEN_TO_HANDLER);
+        }
+        if (!input.getContents().isValid()) {
+            throw new BadRequestException("Document is not valid: " + input.getContents());
+        }
     }
 
     /**
      * Implements the main logic of the handler. Any exception thrown by this method will be handled by {@link
      * RestRequestHandler#handleExpectedException} method.
      *
-     * @param request     The input object to the method. Usually a deserialized json.
+     * @param input     The input object to the method. Usually a deserialized json.
      * @param requestInfo Request headers and path.
      * @param context     the ApiGateway context.
      * @return the Response body that is going to be serialized in json
@@ -80,46 +82,38 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
-    protected ContentsDocument processInput(ContentsRequest request, RequestInfo requestInfo,
+    protected ContentsDocument processInput(ContentsRequest input, RequestInfo requestInfo,
                                             Context context) throws ApiGatewayException {
-        if (isNull(request)) {
-            throw new ParameterException(NO_PARAMETERS_GIVEN_TO_HANDLER);
-        }
-        ContentsDocument contentsDocument = request.getContents();
-        logger.info(JSON_INPUT_LOOKS_LIKE_THAT + contentsDocument.toString());
 
-        if (contentsDocument.isValid()) {
-
-            storageClient.handleFiles(contentsDocument);
-
-            logger.debug(THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST + contentsDocument);
-            try {
-                String contents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-                if (StringUtils.isEmpty(contents)) {
-                    return createContents(contentsDocument);
-                } else {
-                    return updateContents(contentsDocument);
-                }
-            } catch (NotFoundException e) {
+        var contentsDocument = input.getContents();
+        storageClient.handleFiles(contentsDocument);
+        try {
+            var contents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+            if (isEmpty(contents)) {
                 return createContents(contentsDocument);
-            } catch (Exception e) {
-                String msg = FAILED_AFTER_PERSISTING + e.getMessage();
-                logger.error(msg, e);
-                throw new ConflictException(msg);
+            } else {
+                return updateContents(contentsDocument);
             }
-        } else {
-            logger.error(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument);
-            throw new BadRequestException(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument);
+        } catch (NotFoundException e) {
+            return createContents(contentsDocument);
+        } catch (Exception e) {
+            var msg = FAILED_AFTER_PERSISTING + e.getMessage();
+            logger.error(msg, e);
+            throw new ConflictException(msg);
         }
     }
 
     private ContentsDocument createContents(ContentsDocument contentsDocument) throws CommunicationException,
             NotFoundException, GatewayResponseSerializingException {
-        dynamoDBClient.createContents(contentsDocument);
-        this.waitAMoment(FOURTH_OF_A_SECOND);
-        String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-        logger.info(CONTENTS_CREATED);
+
         try {
+            dynamoDBClient.createContents(contentsDocument);
+            this.waitAMoment(FOURTH_OF_A_SECOND);
+            var createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+            if (isEmpty(createdContents)) {
+                throw new NotFoundException("Contents with ISBN <" + contentsDocument.getIsbn() + "> not found after creation");
+            }
+            logger.info(CONTENTS_CREATED);
             return dtoObjectMapper.readValue(createdContents, ContentsDocument.class);
         } catch (JsonProcessingException ex) {
             throw new GatewayResponseSerializingException(ex);
@@ -129,10 +123,10 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     private ContentsDocument updateContents(ContentsDocument contentsDocument) throws CommunicationException,
             GatewayResponseSerializingException, NotFoundException {
         dynamoDBClient.updateContents(contentsDocument);
-        logger.info(CONTENTS_UPDATED);
         this.waitAMoment(FOURTH_OF_A_SECOND);
-        String updatedContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+        var updatedContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
         try {
+            logger.info(CONTENTS_UPDATED);
             return dtoObjectMapper.readValue(updatedContents, ContentsDocument.class);
         } catch (JsonProcessingException ex) {
             throw new GatewayResponseSerializingException(ex);

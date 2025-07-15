@@ -76,13 +76,13 @@ public class DBClient {
      */
     public void createContents(ContentsDocument document) throws CommunicationException {
         try {
-            PutItemRequest putItemRequest = PutItemRequest
+            var putItemRequest = PutItemRequest
                     .builder()
                     .tableName(tableName)
                     .item(this.generateItemMap(document))
                     .build();
-            dbClient.putItem(putItemRequest);
-            logger.info("contents created");
+            var response = dbClient.putItem(putItemRequest);
+            logger.info(response.toString());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Creation error: " + e.getMessage(), e);

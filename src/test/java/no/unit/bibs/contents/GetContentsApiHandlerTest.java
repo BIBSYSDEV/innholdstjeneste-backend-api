@@ -12,65 +12,65 @@ import org.junit.jupiter.api.Test;
 
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
-import java.util.Map;
 
+import static no.unit.bibs.contents.GetContentsApiHandler.ISBN;
+import static no.unit.bibs.contents.GetContentsApiHandler.MISSING_REQUIRED_QUERY_PARAMETER;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class GetContentsApiHandlerTest {
 
     public static final String SAMPLE_SEARCH_TERM = "searchTerm";
+    public static final String COGNITO_AUTHORIZER_URLS = "COGNITO_AUTHORIZER_URLS";
     private RequestInfo requestInfo;
     private DBClient dbClient;
-    private CreateContentsApiHandler mockedApiHandler;
+    private GetContentsApiHandler mockedApiHandler;
 
 
     @BeforeEach
     public void init() {
         requestInfo = mock(RequestInfo.class);
-        when(requestInfo.getQueryParameters()).thenReturn(Map.of(GetContentsApiHandler.ISBN, SAMPLE_SEARCH_TERM));
+        dbClient = mock(DBClient.class);
+        var environment = mock(Environment.class);
 
-        Environment environment = mock(Environment.class);
-        when(environment.readEnv(GetContentsApiHandler.ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        when(environment.readEnv("COGNITO_AUTHORIZER_URLS"))
+        when(environment.readEnv(ALLOWED_ORIGIN_ENV))
+            .thenReturn("*");
+        when(environment.readEnv(COGNITO_AUTHORIZER_URLS))
             .thenReturn("https://test.cognito.auth.url");
 
-        dbClient = mock(DBClient.class);
-        var storageClient = mock(StorageClient.class);
-        mockedApiHandler = new CreateContentsApiHandler(environment, dbClient, storageClient);
-
+        mockedApiHandler = new GetContentsApiHandler(environment, dbClient);
     }
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
         var statusCode = mockedApiHandler.getSuccessStatusCode(null, null);
-        assertEquals(HttpURLConnection.HTTP_CREATED, statusCode);
+        assertEquals(HttpURLConnection.HTTP_OK, statusCode);
     }
 
     @Test
     void handlerReturnsContentsDocumentByGivenTerm() throws ApiGatewayException, JsonProcessingException {
         var contents = IoUtils.stringFromResources(Path.of(DBClientTest.GET_CONTENTS_JSON));
         var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        when(dbClient.getContents(SAMPLE_SEARCH_TERM)).thenReturn(contents);
 
-        doNothing().when(dbClient).createContents(contentsDocument);
-        when(dbClient.getContents(anyString())).thenReturn(contents);
-        var input = new ContentsRequest(contentsDocument);
-        var actual = mockedApiHandler.processInput(input, requestInfo, mock(Context.class));
+        when(requestInfo.getQueryParameter(anyString()))
+            .thenReturn(SAMPLE_SEARCH_TERM);
+        when(dbClient.getContents(anyString()))
+            .thenReturn(contents);
+
+        var actual = mockedApiHandler.processInput(mock(Void.class), requestInfo, mock(Context.class));
         assertEquals(contentsDocument, actual);
     }
 
     @Test
     void handlerReturnsBadRequestExceptionWhenMissingIsbn() {
         var exception = assertThrows(BadRequestException.class,
-            () -> mockedApiHandler.validateRequest(null, requestInfo, mock(Context.class)));
-        assertEquals("No parameters given to CreateContentsApiHandler", exception.getMessage());
+            () -> mockedApiHandler.validateRequest(mock(Void.class), requestInfo, mock(Context.class)));
+        assertEquals(MISSING_REQUIRED_QUERY_PARAMETER + ISBN, exception.getMessage());
     }
 
 

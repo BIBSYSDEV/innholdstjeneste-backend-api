@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.GatewayResponseSerializingException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -16,6 +17,7 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocument> {
 
     public static final String ISBN = "isbn";
+    public static final String MISSING_REQUIRED_QUERY_PARAMETER = "Missing required query parameter: ";
     private final DBClient dbClient;
 
     @JacocoGenerated
@@ -35,7 +37,9 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
 
     @Override
     protected void validateRequest(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-
+        if (requestInfo.getQueryParameter(ISBN) == null) {
+            throw new BadRequestException(MISSING_REQUIRED_QUERY_PARAMETER + ISBN);
+        }
     }
 
     /**
@@ -49,16 +53,11 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
     @Override
     protected ContentsDocument processInput(Void input, RequestInfo requestInfo, Context context)
             throws ApiGatewayException {
-        String isbn = requestInfo.getQueryParameter(ISBN);
-        System.out.println("ISBN from queryParam: " + isbn);
-        String contents = dbClient.getContents(isbn);
-        System.out.println("contents from DynamoDB: " + contents);
+        var isbn = requestInfo.getQueryParameter(ISBN);
+        var contents = dbClient.getContents(isbn);
         try {
-            ContentsDocument response = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-            System.out.println("Laget en ResponseObject :" + response.toString());
-            return response;
+             return dtoObjectMapper.readValue(contents, ContentsDocument.class);
         } catch (JsonProcessingException e) {
-            System.out.println("final exception: " + e.getMessage());
             throw new GatewayResponseSerializingException(e);
         }
     }
