@@ -26,14 +26,11 @@ import java.net.HttpURLConnection;
 public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, ContentsDocument> {
 
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to UpdateContentsApiHandler";
-    public static final String CONTENTS_CREATED = "contents created";
-    public static final String CONTENTS_UPDATED = "contents updated";
     public static final String FAILED_AFTER_PERSISTING = "failed after persisting: ";
     public static final int FOURTH_OF_A_SECOND = 250;
 
-    private final DBClient dynamoDBClient;
+    private final DBClient dbClient;
     private final StorageClient storageClient;
-    private final transient Logger logger = LoggerFactory.getLogger(UpdateContentsApiHandler.class);
 
     @JacocoGenerated
     public UpdateContentsApiHandler() {
@@ -49,13 +46,13 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      * Constructor for injecting used in testing.
      *
      * @param environment    environment
-     * @param dynamoDBClient dynamoDBclient
+     * @param dbClient dynamoDBclient
      * @param storageClient  storageClient
      */
-    public UpdateContentsApiHandler(Environment environment, DBClient dynamoDBClient,
+    public UpdateContentsApiHandler(Environment environment, DBClient dbClient,
                                     StorageClient storageClient) {
         super(ContentsRequest.class, environment);
-        this.dynamoDBClient = dynamoDBClient;
+        this.dbClient = dbClient;
         this.storageClient = storageClient;
     }
 
@@ -86,9 +83,9 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                                             Context context) throws ApiGatewayException {
 
         var contentsDocument = input.getContents();
-        storageClient.handleFiles(contentsDocument);
         try {
-            var contents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+            storageClient.handleFiles(contentsDocument);
+            var contents = dbClient.getContents(contentsDocument.getIsbn());
             if (isEmpty(contents)) {
                 return createContents(contentsDocument);
             } else {
@@ -97,9 +94,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         } catch (NotFoundException e) {
             return createContents(contentsDocument);
         } catch (Exception e) {
-            var msg = FAILED_AFTER_PERSISTING + e.getMessage();
-            logger.error(msg, e);
-            throw new ConflictException(msg);
+            throw new ConflictException(FAILED_AFTER_PERSISTING + e.getMessage());
         }
     }
 
@@ -107,13 +102,12 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             NotFoundException, GatewayResponseSerializingException {
 
         try {
-            dynamoDBClient.createContents(contentsDocument);
+            dbClient.createContents(contentsDocument);
             this.waitAMoment(FOURTH_OF_A_SECOND);
-            var createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+            var createdContents = dbClient.getContents(contentsDocument.getIsbn());
             if (isEmpty(createdContents)) {
                 throw new NotFoundException("Contents with ISBN <" + contentsDocument.getIsbn() + "> not found after creation");
             }
-            logger.info(CONTENTS_CREATED);
             return dtoObjectMapper.readValue(createdContents, ContentsDocument.class);
         } catch (JsonProcessingException ex) {
             throw new GatewayResponseSerializingException(ex);
@@ -122,11 +116,10 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
     private ContentsDocument updateContents(ContentsDocument contentsDocument) throws CommunicationException,
             GatewayResponseSerializingException, NotFoundException {
-        dynamoDBClient.updateContents(contentsDocument);
-        this.waitAMoment(FOURTH_OF_A_SECOND);
-        var updatedContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
         try {
-            logger.info(CONTENTS_UPDATED);
+            dbClient.updateContents(contentsDocument);
+            this.waitAMoment(FOURTH_OF_A_SECOND);
+            var updatedContents = dbClient.getContents(contentsDocument.getIsbn());
             return dtoObjectMapper.readValue(updatedContents, ContentsDocument.class);
         } catch (JsonProcessingException ex) {
             throw new GatewayResponseSerializingException(ex);

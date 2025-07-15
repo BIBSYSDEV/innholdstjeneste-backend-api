@@ -75,8 +75,8 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     @Override
     protected ContentsDocument processInput(ContentsRequest input, RequestInfo requestInfo,
                                             Context context) throws ApiGatewayException {
+        var contentsDocument = input.getContents();
         try {
-            var contentsDocument = input.getContents();
             storageClient.handleFiles(contentsDocument);
             dynamoDBClient.createContents(contentsDocument);
             var createContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
