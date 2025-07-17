@@ -1,78 +1,77 @@
 package no.unit.bibs.contents;
 
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.amazonaws.services.lambda.runtime.Context;
-
-import java.net.HttpURLConnection;
-import java.nio.file.Path;
-import java.util.Map;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-import nva.commons.core.ioutils.IoUtils;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.core.Environment;
+import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
+import java.net.HttpURLConnection;
+import java.nio.file.Path;
+
+import static no.unit.bibs.contents.GetContentsApiHandler.ISBN;
+import static no.unit.bibs.contents.GetContentsApiHandler.MISSING_REQUIRED_QUERY_PARAMETER;
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class GetContentsApiHandlerTest {
 
     public static final String SAMPLE_SEARCH_TERM = "searchTerm";
-    private Environment environment;
-    private GetContentsApiHandler getContentsApiHandler;
-    private DynamoDbClient client;
+    public static final String COGNITO_AUTHORIZER_URLS = "COGNITO_AUTHORIZER_URLS";
+    private RequestInfo requestInfo;
+    private DBClient dbClient;
+    private GetContentsApiHandler mockedApiHandler;
 
-    private void initEnvironment() {
-        environment = mock(Environment.class);
-        client = mock(DynamoDbClient.class);
-    }
 
     @BeforeEach
     public void init() {
-        initEnvironment();
-        getContentsApiHandler = new GetContentsApiHandler(environment, new DynamoDBClient(client));
+        requestInfo = mock(RequestInfo.class);
+        dbClient = mock(DBClient.class);
+        var environment = mock(Environment.class);
+
+        when(environment.readEnv(ALLOWED_ORIGIN_ENV))
+            .thenReturn("*");
+        when(environment.readEnv(COGNITO_AUTHORIZER_URLS))
+            .thenReturn("https://test.cognito.auth.url");
+
+        mockedApiHandler = new GetContentsApiHandler(environment, dbClient);
     }
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        Integer statusCode = getContentsApiHandler.getSuccessStatusCode(null, null);
-        assertEquals(statusCode, HttpURLConnection.HTTP_OK);
+        var statusCode = mockedApiHandler.getSuccessStatusCode(null, null);
+        assertEquals(HttpURLConnection.HTTP_OK, statusCode);
     }
 
     @Test
     void handlerReturnsContentsDocumentByGivenTerm() throws ApiGatewayException, JsonProcessingException {
-        DynamoDBClient dynamoDBClient = mock(DynamoDBClient.class);
-        var handler = new GetContentsApiHandler(environment, dynamoDBClient);
-        String contents = IoUtils.stringFromResources(Path.of(DynamoDBClientTest.GET_CONTENTS_JSON));
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        when(dynamoDBClient.getContents(SAMPLE_SEARCH_TERM)).thenReturn(contents);
-        var actual = handler.processInput(null, getRequestInfo(), mock(Context.class));
+        var contents = IoUtils.stringFromResources(Path.of(DBClientTest.GET_CONTENTS_JSON));
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+
+        when(requestInfo.getQueryParameter(anyString()))
+            .thenReturn(SAMPLE_SEARCH_TERM);
+        when(dbClient.getContents(anyString()))
+            .thenReturn(contents);
+
+        var actual = mockedApiHandler.processInput(mock(Void.class), requestInfo, mock(Context.class));
         assertEquals(contentsDocument, actual);
     }
 
     @Test
     void handlerReturnsBadRequestExceptionWhenMissingIsbn() {
-        DynamoDBClient dynamoDBClient = mock(DynamoDBClient.class);
-        var handler = new GetContentsApiHandler(environment, dynamoDBClient);
-        Exception exception = assertThrows(BadRequestException.class, () -> {
-            handler.processInput(null, new RequestInfo(), mock(Context.class));
-        });
-        assertTrue(exception.getMessage().contains(GetContentsApiHandler.ISBN));
+        var exception = assertThrows(BadRequestException.class,
+            () -> mockedApiHandler.validateRequest(mock(Void.class), requestInfo, mock(Context.class)));
+        assertEquals(MISSING_REQUIRED_QUERY_PARAMETER + ISBN, exception.getMessage());
     }
 
-
-    private RequestInfo getRequestInfo() {
-        var requestInfo = new RequestInfo();
-        requestInfo.setQueryParameters(Map.of(GetContentsApiHandler.ISBN, SAMPLE_SEARCH_TERM));
-        return requestInfo;
-    }
 
 }

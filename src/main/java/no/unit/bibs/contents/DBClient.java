@@ -2,6 +2,7 @@ package no.unit.bibs.contents;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
+import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -23,14 +24,14 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
+import static java.util.Objects.isNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 
-public class DynamoDBClient {
+public class DBClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(DynamoDBClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(DBClient.class);
 
     public static final String AWS_REGION = "AWS_REGION";
     public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
@@ -45,14 +46,14 @@ public class DynamoDBClient {
      * Creates a new DynamoDBClient.
      */
     @JacocoGenerated
-    public DynamoDBClient(Environment environment) {
+    public DBClient(Environment environment) {
         initDynamoDbClient(environment);
     }
 
     /**
      * Creates a new DynamoDBClient.
      */
-    public DynamoDBClient(DynamoDbClient dbClient) {
+    public DBClient(DynamoDbClient dbClient) {
         this.dbClient = dbClient;
     }
 
@@ -76,15 +77,20 @@ public class DynamoDBClient {
      */
     public void createContents(ContentsDocument document) throws CommunicationException {
         try {
-            PutItemRequest putItemRequest = PutItemRequest
+            var putItemRequest = PutItemRequest
                     .builder()
                     .tableName(tableName)
                     .item(this.generateItemMap(document))
                     .build();
-            dbClient.putItem(putItemRequest);
-            logger.info("contents created");
+            var response = dbClient.putItem(putItemRequest);
+            if (isNull(response.sdkHttpResponse())) {
+                throw new BadGatewayException("No response from DynamoDB");
+            }
+            if (!response.sdkHttpResponse().isSuccessful()) {
+                throw new BadGatewayException("Failed to create ContentsDocument: " + response.sdkHttpResponse().statusCode());
+            }
+            logger.info("ContentsDocument with ISBN {} created successfully.", document.getIsbn());
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
             throw new CommunicationException("Creation error: " + e.getMessage(), e);
         }
     }
@@ -107,7 +113,7 @@ public class DynamoDBClient {
         conditionalAddForCreate(itemMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL, false);
         conditionalAddForCreate(itemMap, document.getAudioFile(), ContentsDocument.AUDIO_FILE, false);
         itemMap.put(ContentsDocument.SOURCE, AttributeValue.builder().s(document.getSource()).build());
-        if (Objects.isNull(document.getCreated())) {
+        if (isNull(document.getCreated())) {
             itemMap.put(ContentsDocument.CREATED, AttributeValue.builder().s(Instant.now().toString()).build());
         } else {
             itemMap.put(ContentsDocument.CREATED, AttributeValue.builder().s(document.getCreated().toString()).build());

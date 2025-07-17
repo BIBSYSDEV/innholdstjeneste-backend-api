@@ -1,21 +1,7 @@
 package no.unit.bibs.contents;
 
-import static no.unit.nva.hamcrest.PropertyValuePair.EMPTY_STRING;
-import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
-import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.net.HttpURLConnection;
-import java.nio.file.Path;
-
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -24,6 +10,21 @@ import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.HttpURLConnection;
+import java.nio.file.Path;
+import java.util.Map;
+
+import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static no.unit.nva.hamcrest.PropertyValuePair.EMPTY_STRING;
+import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class CreateContentsApiHandlerTest {
 
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
@@ -31,8 +32,9 @@ public class CreateContentsApiHandlerTest {
     private Environment environment;
     private CreateContentsApiHandler handler;
     private Context context;
-    private DynamoDBClient dynamoDBClient;
+    private DBClient dbClient;
     private StorageClient storageClient;
+    private RequestInfo requestInfo;
 
 
     /**
@@ -42,53 +44,67 @@ public class CreateContentsApiHandlerTest {
     public void init() {
         environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
-        dynamoDBClient = mock(DynamoDBClient.class);
+        when(environment.readEnv("DYNAMODB_TABLE_NAME_ENV"))
+            .thenReturn("TEST_TABLE_NAME");
+        when(environment.readEnv("S3_BUCKET_NAME_ENV"))
+            .thenReturn("TEST_BUCKET_NAME");
+        when(environment.readEnv("COGNITO_AUTHORIZER_URLS"))
+            .thenReturn("https://test.cognito.auth.url");
+        when(environment.readEnv("COGNITO_AUTHORIZER_NAME"))
+            .thenReturn("testCognitoAuthorizerName");
+
+        requestInfo = mock(RequestInfo.class);
+        when(requestInfo.getQueryParameters()).thenReturn(Map.of("isbn", TEST_ISBN));
+
+        context = mock(Context.class);
+        dbClient = mock(DBClient.class);
         storageClient = mock(StorageClient.class);
-        handler = new CreateContentsApiHandler(environment, dynamoDBClient, storageClient);
-        this.context = mock(Context.class);
+        handler = new CreateContentsApiHandler(environment, dbClient, storageClient);
     }
 
     @Test
     void getSuccessStatusCodeReturnsOK() {
-        CreateContentsApiHandler handler = new CreateContentsApiHandler(environment, dynamoDBClient, storageClient);
-        Integer statusCode = handler.getSuccessStatusCode(null, null);
-        assertEquals(statusCode, HttpURLConnection.HTTP_CREATED);
+        var statusCode = handler.getSuccessStatusCode(null, null);
+        assertEquals(HttpURLConnection.HTTP_CREATED, statusCode);
     }
 
     @Test
     void handlerReturnsSearchResultsWhenQueryIsSingleTerm() throws ApiGatewayException, JsonProcessingException {
-        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, storageClient);
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        doNothing().when(dynamoDBClient).createContents(contentsDocument);
-        when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
-        ContentsRequest request = new ContentsRequest(contentsDocument);
-        var actual = handler.processInput(request, new RequestInfo(), mock(Context.class));
+
+        var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        doNothing().when(dbClient).createContents(contentsDocument);
+        when(dbClient.getContents(anyString())).thenReturn(contents);
+        var request = new ContentsRequest(contentsDocument);
+        var actual = handler.processInput(request, requestInfo, context);
         assertEquals(contentsDocument, actual);
     }
 
+    /**
+     * Test for handlerReturnsErrorWithEmptyContentsDocument.
+     */
     @Test
-    void handlerReturnsErrorWhithEmptyContentsDocument() throws ApiGatewayException, JsonProcessingException {
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        contents = contents.replace(TEST_ISBN, EMPTY_STRING);
-        ContentsDocument contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        doNothing().when(dynamoDBClient).createContents(contentsDocument);
-        when(dynamoDBClient.getContents(anyString())).thenReturn(contents);
-        ContentsRequest request = new ContentsRequest(contentsDocument);
-        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, storageClient);
-        Exception exception = assertThrows(BadRequestException.class, () -> {
-            handler.processInput(request, new RequestInfo(), mock(Context.class));
-        });
+    void handlerReturnsErrorWithEmptyContentsDocument() throws ApiGatewayException, JsonProcessingException {
+        var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT))
+            .replace(TEST_ISBN, EMPTY_STRING);
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        doNothing()
+            .when(dbClient)
+            .createContents(contentsDocument);
+        when(dbClient.getContents(anyString()))
+            .thenReturn(contents);
+        var request = new ContentsRequest(contentsDocument);
+        var handler = new CreateContentsApiHandler(environment, dbClient, storageClient);
+        var exception = assertThrows(BadRequestException.class,
+            () -> handler.processInput(request, requestInfo, context));
         assertTrue(exception.getMessage().contains(CreateContentsApiHandler.COULD_NOT_INDEX_RECORD_PROVIDED));
     }
 
     @Test
-    void handlerThrowsExceptionWithEmptyRequest()  {
-        var handler = new CreateContentsApiHandler(environment, dynamoDBClient, storageClient);
-        Exception exception = assertThrows(BadRequestException.class, () -> {
-            handler.processInput(null, new RequestInfo(), mock(Context.class));
-        });
-        System.out.println();
+    void handlerThrowsExceptionWithEmptyRequest() {
+        var exception =
+            assertThrows(BadRequestException.class,
+                () -> handler.validateRequest(null, requestInfo, context));
         assertTrue(exception.getMessage().contains(CreateContentsApiHandler.NO_PARAMETERS_GIVEN_TO_HANDLER));
     }
 
