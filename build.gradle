@@ -29,9 +29,9 @@ dependencies {
     compileOnly group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.1.1'
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.19.0'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.19.0'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.19.0'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.19.2'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.19.2'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.19.2'
     implementation group: 'software.amazon.awssdk', name: 'dynamodb', version: '2.31.2'
     implementation group: 'software.amazon.awssdk', name: 's3', version: '2.31.2'
     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
