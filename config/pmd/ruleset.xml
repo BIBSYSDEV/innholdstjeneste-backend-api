@@ -62,6 +62,13 @@
 
   </rule>
 
+  <rule ref="category/java/codestyle.xml/UseExplicitTypes">
+    <properties>
+      <property name="allowLiterals" value="true" />
+      <property name="allowCtors" value="true" />
+    </properties>
+  </rule>
+
 
   <rule ref="category/java/performance.xml"/>
 

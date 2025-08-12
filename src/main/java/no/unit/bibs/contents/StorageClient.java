@@ -1,18 +1,23 @@
 package no.unit.bibs.contents;
 
+import no.unit.bibs.contents.document.DocumentDao;
+import no.unit.bibs.contents.document.DocumentDto;
+import nva.commons.core.Environment;
+import nva.commons.core.JacocoGenerated;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import nva.commons.core.Environment;
-import nva.commons.core.JacocoGenerated;
-import nva.commons.core.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static nva.commons.core.StringUtils.isNotEmpty;
 
 public class StorageClient {
 
@@ -54,7 +59,7 @@ public class StorageClient {
     }
 
     private boolean isStringBase64Encoded(String input) {
-        if (StringUtils.isNotEmpty(input)) {
+        if (isNotEmpty(input)) {
             Pattern base64Pattern = Pattern.compile(
                 "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=|[A-Za-z0-9+\\/]{4})$");
             Matcher matcher = base64Pattern.matcher(input);
@@ -77,14 +82,14 @@ public class StorageClient {
      */
     @JacocoGenerated
     private String decodeBase64Attributes(String isbn, String input, String type, String subtype,
-                                                   String fileExtension, String mimeType) {
+                                          String fileExtension, String mimeType) {
         return putFileS3(
-                isbn,
-                Base64.getDecoder().decode(input),
-                type,
-                subtype,
-                fileExtension,
-                mimeType);
+            isbn,
+            Base64.getDecoder().decode(input),
+            type,
+            subtype,
+            fileExtension,
+            mimeType);
     }
 
     /**
@@ -101,30 +106,31 @@ public class StorageClient {
     @JacocoGenerated
     private String sendToS3Bucket(String isbn, String input, String type, String subtype, String fileExtension,
                                   String mimeType) {
-        if (StringUtils.isNotEmpty(input)) {
-            if (isStringBase64Encoded(input)) {
-                return decodeBase64Attributes(
-                    isbn,
-                    input,
-                    type,
-                    subtype,
-                    fileExtension,
-                    mimeType);
-            } else {
-                try {
-                    if (isDownloadableFile(input)) {
-                        return putFileS3(
-                            isbn,
-                            input,
-                            type,
-                            subtype,
-                            fileExtension,
-                            mimeType
-                        );
-                    }
-                } catch (IOException e) {
-                    logger.error(ERROR_STORING_FILE + e.getMessage(), e);
+        if (!isNotEmpty(input)) {
+            return null;
+        }
+        if (isStringBase64Encoded(input)) {
+            return decodeBase64Attributes(
+                isbn,
+                input,
+                type,
+                subtype,
+                fileExtension,
+                mimeType);
+        } else {
+            try {
+                if (isDownloadableFile(input)) {
+                    return putFileS3(
+                        isbn,
+                        input,
+                        type,
+                        subtype,
+                        fileExtension,
+                        mimeType
+                    );
                 }
+            } catch (IOException e) {
+                logger.error(ERROR_STORING_FILE + "{}", e.getMessage(), e);
             }
         }
         return null;
@@ -162,7 +168,7 @@ public class StorageClient {
         String imageOriginal = contentsDocument.getImageOriginal();
         String imageLarge = contentsDocument.getImageLarge();
 
-        if (StringUtils.isNotEmpty(imageSmall)) {
+        if (isNotEmpty(imageSmall)) {
             String objectKey = sendToS3Bucket(
                 contentsDocument.getIsbn(),
                 imageSmall,
@@ -174,7 +180,7 @@ public class StorageClient {
             updateContentDocumentWithObjectKey(contentsDocument, objectKey, SMALL);
         }
 
-        if (StringUtils.isNotEmpty(imageOriginal)) {
+        if (isNotEmpty(imageOriginal)) {
             String objectKey = sendToS3Bucket(
                 contentsDocument.getIsbn(),
                 imageOriginal,
@@ -186,7 +192,7 @@ public class StorageClient {
             updateContentDocumentWithObjectKey(contentsDocument, objectKey, ORIGINAL);
         }
 
-        if (StringUtils.isNotEmpty(imageLarge)) {
+        if (isNotEmpty(imageLarge)) {
             String objectKey = sendToS3Bucket(contentsDocument.getIsbn(),
                 imageLarge,
                 IMAGES,
@@ -198,7 +204,7 @@ public class StorageClient {
         }
 
         String audioFile = contentsDocument.getAudioFile();
-        if (StringUtils.isNotEmpty(audioFile)) {
+        if (isNotEmpty(audioFile)) {
             String objectKey = sendToS3Bucket(contentsDocument.getIsbn(),
                 audioFile,
                 AUDIO,
@@ -210,10 +216,55 @@ public class StorageClient {
         }
     }
 
+    /**
+     * Handles files in DocumentDto and returns a DocumentDao.Builder with updated file URLs.
+     *
+     * @param dto DocumentDto containing file URLs
+     * @return DocumentDao.Builder with updated file URLs
+     */
+    public DocumentDao.Builder handleFiles(DocumentDto dto) {
+
+        var builder = dto.toDaoBuilder();
+
+        if (isNotEmpty(dto.imageSmall())) {
+            var keyValue = sendToS3Bucket
+                (
+                    dto.isbn(), dto.imageSmall(),
+                    IMAGES, SMALL, FILE_EXTENSION_JPG, MIME_TYPE_IMAGE_JPG
+                );
+            builder.imageSmall(keyValue);
+        }
+        if (isNotEmpty(dto.imageOriginal())) {
+            var keyValue = sendToS3Bucket
+                (
+                    dto.isbn(), dto.imageOriginal(),
+                    IMAGES, ORIGINAL, FILE_EXTENSION_JPG, MIME_TYPE_IMAGE_JPG
+                );
+            builder.imageOriginal(keyValue);
+        }
+        if (isNotEmpty(dto.imageLarge())) {
+            var keyValue = sendToS3Bucket
+                (
+                    dto.isbn(), dto.imageLarge(),
+                    IMAGES, LARGE, FILE_EXTENSION_JPG, MIME_TYPE_IMAGE_JPG
+                );
+            builder.imageLarge(keyValue);
+        }
+        if (isNotEmpty(dto.audioFile())) {
+            var keyValue = sendToS3Bucket
+                (
+                    dto.isbn(), dto.audioFile(),
+                    AUDIO, MP3, FILE_EXTENSION_MP3, MIME_TYPE_AUDIO_MP3
+                );
+            builder.audioFile(keyValue);
+        }
+        return builder;
+    }
+
     @JacocoGenerated
     private boolean isDownloadableFile(String fileUrl) throws IOException {
-        if (StringUtils.isNotEmpty(fileUrl) && fileUrl.startsWith(HTTP_PREFIX)) {
-            URL url = new URL(fileUrl);
+        if (isNotEmpty(fileUrl) && fileUrl.startsWith(HTTP_PREFIX)) {
+            var url = URI.create(fileUrl).toURL();
             HttpURLConnection.setFollowRedirects(true);
             HttpURLConnection huc = (HttpURLConnection) url.openConnection();
             huc.setRequestMethod("HEAD");
@@ -233,10 +284,10 @@ public class StorageClient {
 
         String objectKey = String.format(OBJECT_KEY_TEMPLATE, type, subtype, firstLinkPart, secondLinkPart, fileName);
         s3Connection.uploadFile(
-                bytesArray,
-                objectKey,
-                fileName,
-                mimeType
+            bytesArray,
+            objectKey,
+            fileName,
+            mimeType
         );
         return objectKey;
     }
@@ -247,7 +298,8 @@ public class StorageClient {
         String fileName = String.format(FILE_NAME_TEMPLATE, isbn, fileExtension);
         URL downloadUrl;
         try {
-            downloadUrl = new URL(url);
+            downloadUrl = URI.create(url).toURL();
+
         } catch (MalformedURLException e) {
             logger.error(String.format(ERROR_DOWNLOADING_FILE, isbn, url, fileName, type, e.getMessage()));
             throw e;
