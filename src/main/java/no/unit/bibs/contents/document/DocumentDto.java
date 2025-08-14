@@ -64,6 +64,12 @@ public record DocumentDto(
             .created(created);
     }
 
+    /**
+     * Converts null to blank string.
+     *
+     * @param value the value to convert
+     * @return empty string if value is null, otherwise the original value
+     */
     private String n2b(String value) {
         return value == null ? "" : value;
     }
