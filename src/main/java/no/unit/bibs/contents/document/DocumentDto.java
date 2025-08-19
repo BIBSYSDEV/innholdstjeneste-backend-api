@@ -26,7 +26,7 @@ public record DocumentDto(
     Instant modified,
     Instant created) implements JsonSerializable {
 
-    boolean isValid() {
+    public boolean isValid() {
         if (isBlank(isbn) || isBlank(source)) {
             return false;
         }

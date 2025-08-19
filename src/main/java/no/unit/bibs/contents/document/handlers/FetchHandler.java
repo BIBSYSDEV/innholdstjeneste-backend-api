@@ -12,7 +12,8 @@ import nva.commons.core.JacocoGenerated;
 import java.net.HttpURLConnection;
 
 public class FetchHandler extends ApiGatewayHandler<Void, DocumentDto> {
-    public static final String ISBN = "isbn";
+    public static final String ISBN_PARAM_NAME = "isbn";
+
     private final DocumentService documentService;
 
     @JacocoGenerated
@@ -32,12 +33,12 @@ public class FetchHandler extends ApiGatewayHandler<Void, DocumentDto> {
 
     @Override
     protected void validateRequest(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        requestInfo.getQueryParameter(ISBN);
+        requestInfo.getQueryParameter(ISBN_PARAM_NAME);
     }
 
     @Override
     protected DocumentDto processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        return documentService.fetch(requestInfo.getQueryParameter(ISBN));
+        return documentService.fetch(requestInfo.getQueryParameter(ISBN_PARAM_NAME));
     }
 
     @Override

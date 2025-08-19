@@ -15,10 +15,13 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @JacocoGenerated
 public class DocumentClient {
 
-    static final String AWS_REGION = "AWS_REGION";
-    static final String TABLE_NAME = "TABLE_NAME";
 
-    DynamoDbTable<DocumentDao> customerTable;
+    /* package */
+    static final String AWS_REGION_ENV = "AWS_REGION";
+    /* package */
+    static final String TABLE_NAME_ENV = "TABLE_NAME";
+
+    private final DynamoDbTable<DocumentDao> customerTable;
 
     public DocumentClient() {
         this(new Environment());
@@ -26,8 +29,8 @@ public class DocumentClient {
 
     public DocumentClient(Environment environment) {
         this(
-            environment.readEnv(TABLE_NAME),
-            environment.readEnv(AWS_REGION)
+            environment.readEnv(TABLE_NAME_ENV),
+            environment.readEnv(AWS_REGION_ENV)
         );
     }
 

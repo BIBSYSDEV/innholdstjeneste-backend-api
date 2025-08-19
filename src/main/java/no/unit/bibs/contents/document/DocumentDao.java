@@ -10,6 +10,7 @@ import java.time.Instant;
 
 import static no.unit.bibs.contents.StringHelper.isValidHtmlEscapeCode;
 
+@SuppressWarnings("PMD.TooManyFields")
 @DynamoDbImmutable(builder = DocumentDao.Builder.class)
 public record DocumentDao(
     String title,
@@ -35,23 +36,23 @@ public record DocumentDao(
 
     private DocumentDao(Builder builder) {
         this(
-            builder.title,
-            builder.author,
-            builder.dateOfPublication,
-            builder.isbn,
-            builder.descriptionShort,
-            builder.descriptionLong,
-            builder.tableOfContents,
-            builder.promotional,
-            builder.summary,
-            builder.review,
-            builder.imageSmall,
-            builder.imageLarge,
-            builder.imageOriginal,
-            builder.audioFile,
-            builder.source,
-            builder.modified,
-            builder.created
+            builder.titleText,
+            builder.authorName,
+            builder.publicationDate,
+            builder.isbnValue,
+            builder.shortDescription,
+            builder.longDescription,
+            builder.toc,
+            builder.promotionalText,
+            builder.summaryText,
+            builder.reviewText,
+            builder.imageSmallUri,
+            builder.imageLargeUri,
+            builder.imageOriginalUri,
+            builder.audioFileUri,
+            builder.sourceText,
+            builder.modifiedDate,
+            builder.createdDate
         );
     }
 
@@ -81,123 +82,124 @@ public record DocumentDao(
         return new Builder();
     }
 
+
     public static class Builder {
-        private String title;
-        private String author;
-        private String dateOfPublication;
-        private String isbn;
-        private String descriptionShort;
-        private String descriptionLong;
-        private String tableOfContents;
-        private String promotional;
-        private String summary;
-        private String review;
-        private String imageSmall;
-        private String imageLarge;
-        private String imageOriginal;
-        private String audioFile;
-        private String source;
-        private Instant modified;
-        private Instant created;
+        private String titleText;
+        private String authorName;
+        private String publicationDate;
+        private String isbnValue;
+        private String shortDescription;
+        private String longDescription;
+        private String toc;
+        private String promotionalText;
+        private String summaryText;
+        private String reviewText;
+        private String imageSmallUri;
+        private String imageLargeUri;
+        private String imageOriginalUri;
+        private String audioFileUri;
+        private String sourceText;
+        private Instant modifiedDate;
+        private Instant createdDate;
 
         public Builder title(String title) {
-            this.title =  isValidHtmlEscapeCode(title)
+            this.titleText =  isValidHtmlEscapeCode(title)
                 ? title
                 : StringEscapeUtils.unescapeHtml4(title);
             return this;
         }
 
         public Builder author(String author) {
-            this.author = isValidHtmlEscapeCode(author)
+            this.authorName = isValidHtmlEscapeCode(author)
                 ? author
                 : StringEscapeUtils.unescapeHtml4(author);
             return this;
         }
 
         public Builder dateOfPublication(String dateOfPublication) {
-            this.dateOfPublication = dateOfPublication;
+            this.publicationDate = dateOfPublication;
             return this;
         }
 
         public Builder isbn(String isbn) {
-            this.isbn = isbn;
+            this.isbnValue = isbn;
             return this;
         }
 
         public Builder descriptionShort(String descriptionShort) {
-            this.descriptionShort = isValidHtmlEscapeCode(descriptionShort)
+            this.shortDescription = isValidHtmlEscapeCode(descriptionShort)
                 ? descriptionShort
                 : StringEscapeUtils.unescapeHtml4(descriptionShort);
             return this;
         }
 
         public Builder descriptionLong(String descriptionLong) {
-            this.descriptionLong = isValidHtmlEscapeCode(descriptionLong)
+            this.longDescription = isValidHtmlEscapeCode(descriptionLong)
                 ? descriptionLong
                 : StringEscapeUtils.unescapeHtml4(descriptionLong);
             return this;
         }
 
         public Builder tableOfContents(String tableOfContents) {
-            this.tableOfContents = isValidHtmlEscapeCode(tableOfContents)
+            this.toc = isValidHtmlEscapeCode(tableOfContents)
                 ? tableOfContents
                 : StringEscapeUtils.unescapeHtml4(tableOfContents);
             return this;
         }
 
         public Builder promotional(String promotional) {
-            this.promotional = isValidHtmlEscapeCode(promotional)
+            this.promotionalText = isValidHtmlEscapeCode(promotional)
                 ? promotional
                 : StringEscapeUtils.unescapeHtml4(promotional);
             return this;
         }
 
         public Builder summary(String summary) {
-            this.summary = isValidHtmlEscapeCode(summary)
+            this.summaryText = isValidHtmlEscapeCode(summary)
                 ? summary
                 : StringEscapeUtils.unescapeHtml4(summary);
             return this;
         }
 
         public Builder review(String review) {
-            this.review = isValidHtmlEscapeCode(review)
+            this.reviewText = isValidHtmlEscapeCode(review)
                 ? review
                 : StringEscapeUtils.unescapeHtml4(review);
             return this;
         }
 
         public Builder imageSmall(String imageSmall) {
-            this.imageSmall = imageSmall;
+            this.imageSmallUri = imageSmall;
             return this;
         }
 
         public Builder imageLarge(String imageLarge) {
-            this.imageLarge = imageLarge;
+            this.imageLargeUri = imageLarge;
             return this;
         }
 
         public Builder imageOriginal(String imageOriginal) {
-            this.imageOriginal = imageOriginal;
+            this.imageOriginalUri = imageOriginal;
             return this;
         }
 
         public Builder audioFile(String audioFile) {
-            this.audioFile = audioFile;
+            this.audioFileUri = audioFile;
             return this;
         }
 
         public Builder source(String source) {
-            this.source = source;
+            this.sourceText = source;
             return this;
         }
 
         public Builder modified(Instant modified) {
-            this.modified = modified;
+            this.modifiedDate = modified;
             return this;
         }
 
         public Builder created(Instant created) {
-            this.created = created;
+            this.createdDate = created;
             return this;
         }
 

@@ -13,7 +13,7 @@ import java.net.HttpURLConnection;
 import java.nio.file.Path;
 
 import static no.unit.bibs.contents.StorageClientTest.CREATE_CONTENTS_EVENT;
-import static no.unit.bibs.contents.document.handlers.FetchHandler.ISBN;
+import static no.unit.bibs.contents.document.handlers.FetchHandler.ISBN_PARAM_NAME;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.ioutils.IoUtils.stringFromResources;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -45,7 +45,7 @@ class FetchDocumentTest extends DocumentTestBase {
     @Test
     void validateRequestThrowsBadRequestExceptionWhenInputIsNull() throws BadRequestException {
         var mockedInfo = mock(RequestInfo.class);
-        when(mockedInfo.getQueryParameter(ISBN)).thenThrow(BadRequestException.class);
+        when(mockedInfo.getQueryParameter(ISBN_PARAM_NAME)).thenThrow(BadRequestException.class);
         assertThrows(BadRequestException.class,
             () -> testHandler.validateRequest(null, mockedInfo, mockedContext));
     }

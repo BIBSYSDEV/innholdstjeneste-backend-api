@@ -73,10 +73,10 @@ class UpdateDocumentTest extends DocumentTestBase {
         );
 
         var actual = testHandler.processInput(new DocumentRequest(documentDto), mockedRequestInfo, mockedContext);
-        assertEquals(documentDto.isbn(), actual.isbn());
-        assertEquals(documentDto.title(), actual.title());
-        assertEquals(documentDto.author(), actual.author());
-        assertNotNull(actual.modified());
+        assertEquals(documentDto.isbnValue(), actual.isbnValue());
+        assertEquals(documentDto.titleValue(), actual.titleValue());
+        assertEquals(documentDto.authorName(), actual.authorName());
+        assertNotNull(actual.modifiedValue());
     }
 
 }

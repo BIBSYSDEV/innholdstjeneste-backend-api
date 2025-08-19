@@ -14,7 +14,7 @@ import java.net.HttpURLConnection;
 
 public class CreateHandler extends ApiGatewayHandler<DocumentRequest, DocumentDto> {
 
-    DocumentService documentService;
+    private final DocumentService documentService;
 
     @JacocoGenerated
     public CreateHandler() {

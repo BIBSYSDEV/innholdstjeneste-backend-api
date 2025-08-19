@@ -11,6 +11,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DocumentServiceTest extends DocumentTestBase {
 
+    private static final String BLANK = "";
+    private static final String EXAMPLE_AUTHOR = "Test Author";
+    private static final String EXAMPLE_DESCRIPTION_SHORT = "Kort beskrivelse";
+    private static final String EXAMPLE_ISBN = "978-3-16-148410-0";
+    private static final String EXAMPLE_SMALL_JPG = "http://example.com/small.jpg";
+    private static final String EXAMPLE_SOURCE = "http://example.com/source";
+    private static final String EXAMPLE_TABLE_OF_CONTENTS = "Innholdsfortegnelse";
+    private static final String EXAMPLE__TITLE = "Test Title";
+
     @BeforeEach
     void setUp() throws JsonProcessingException, BadRequestException {
         init();
@@ -19,9 +28,9 @@ class DocumentServiceTest extends DocumentTestBase {
     @Test
     void isValidReturnsTrueWhenImageIsIncluded() {
         var document = DocumentDao.builder()
-            .isbn("978-3-16-148410-0")
-            .source("http://example.com/source")
-            .imageSmall("http://example.com/small.jpg")
+            .isbn(EXAMPLE_ISBN)
+            .source(EXAMPLE_SOURCE)
+            .imageSmall(EXAMPLE_SMALL_JPG)
             .build()
             .toDto();
         assertTrue(document.isValid());
@@ -30,9 +39,9 @@ class DocumentServiceTest extends DocumentTestBase {
     @Test
     void isValidReturnsTrueWhenDescriptionIsIncluded() {
         var document = DocumentDao.builder()
-            .isbn("978-3-16-148410-0")
-            .source("http://example.com/source")
-            .descriptionShort("Kort beskrivelse")
+            .isbn(EXAMPLE_ISBN)
+            .source(EXAMPLE_SOURCE)
+            .descriptionShort(EXAMPLE_DESCRIPTION_SHORT)
             .build()
             .toDto();
         assertTrue(document.isValid());
@@ -41,8 +50,8 @@ class DocumentServiceTest extends DocumentTestBase {
     @Test
     void isValidReturnsFalseWhenNoDescriptionOrImages() {
         var document = DocumentDao.builder()
-            .isbn("978-3-16-148410-0")
-            .source("http://example.com/source")
+            .isbn(EXAMPLE_ISBN)
+            .source(EXAMPLE_SOURCE)
             .build()
             .toDto();
         assertFalse(document.isValid());
@@ -51,11 +60,11 @@ class DocumentServiceTest extends DocumentTestBase {
     @Test
     void isValidReturnsTrueWhenAllFieldsAreValid() {
         var document = DocumentDao.builder()
-            .isbn("978-3-16-148410-0")
-            .source("http://example.com/source")
-            .descriptionShort("Kort beskrivelse")
-            .imageSmall("http://example.com/small.jpg")
-            .tableOfContents("Innholdsfortegnelse")
+            .isbn(EXAMPLE_ISBN)
+            .source(EXAMPLE_SOURCE)
+            .descriptionShort(EXAMPLE_DESCRIPTION_SHORT)
+            .imageSmall(EXAMPLE_SMALL_JPG)
+            .tableOfContents(EXAMPLE_TABLE_OF_CONTENTS)
             .build()
             .toDto();
         assertTrue(document.isValid());
@@ -64,11 +73,11 @@ class DocumentServiceTest extends DocumentTestBase {
     @Test
     void escapedStringIsHandledAndIsValidReturnsTrue() {
         var document = DocumentDao.builder()
-            .isbn("978-3-16-148410-0")
-            .source("http://example.com/source")
+            .isbn(EXAMPLE_ISBN)
+            .source(EXAMPLE_SOURCE)
             .descriptionShort("Tro, h&aring;p &amp; kj&oslash;rlighet")
             .descriptionLong("Tro, h&aring;p &amp; kj&oslash;rlighet")
-            .imageSmall("http://example.com/small.jpg")
+            .imageSmall(EXAMPLE_SMALL_JPG)
             .title("Dette er en &AElig;&Oslash;&Aring; test")
             .author("&AElig;sops fabler")
             .promotional("Tro, h&aring;p &amp; kj&oslash;rlighet")
@@ -83,9 +92,9 @@ class DocumentServiceTest extends DocumentTestBase {
     @Test
     void validateDocumentThrowsExceptionWhenIsbnIsBlank() {
         var document = DocumentDao.builder()
-            .isbn("")
-            .title("Test Title")
-            .author("Test Author")
+            .isbn(BLANK)
+            .title(EXAMPLE__TITLE)
+            .author(EXAMPLE_AUTHOR)
             .build()
             .toDto();
         assertThrows(BadRequestException.class, () -> documentService.validateDocument(document));
@@ -94,9 +103,9 @@ class DocumentServiceTest extends DocumentTestBase {
     @Test
     void validateDocumentThrowsExceptionWhenTitleIsBlank() {
         var document = DocumentDao.builder()
-            .isbn("978-3-16-148410-0")
-            .title("")
-            .author("Test Author")
+            .isbn(EXAMPLE_ISBN)
+            .title(BLANK)
+            .author(EXAMPLE_AUTHOR)
             .build()
             .toDto();
         assertThrows(BadRequestException.class, () -> documentService.validateDocument(document));
@@ -105,9 +114,9 @@ class DocumentServiceTest extends DocumentTestBase {
     @Test
     void validateDocumentThrowsExceptionWhenAuthorIsBlank() {
         var document = DocumentDao.builder()
-            .isbn("978-3-16-148410-0")
-            .title("Test Title")
-            .author("")
+            .isbn(EXAMPLE_ISBN)
+            .title(EXAMPLE__TITLE)
+            .author(BLANK)
             .build()
             .toDto();
         assertThrows(BadRequestException.class, () -> documentService.validateDocument(document));

@@ -52,11 +52,11 @@ class CreateDocumentTest extends DocumentTestBase {
 
 
         var actual = testHandler.processInput(new DocumentRequest(documentDto), mockedRequestInfo, mockedContext);
-        assertEquals(documentDto.isbn(), actual.isbn());
-        assertEquals(documentDto.title(), actual.title());
-        assertEquals(documentDto.author(), actual.author());
+        assertEquals(documentDto.isbnValue(), actual.isbnValue());
+        assertEquals(documentDto.titleValue(), actual.titleValue());
+        assertEquals(documentDto.authorName(), actual.authorName());
         assertNotEquals(null, actual.created());
-        assertNotEquals(null, actual.modified());
+        assertNotEquals(null, actual.modifiedValue());
     }
 
 

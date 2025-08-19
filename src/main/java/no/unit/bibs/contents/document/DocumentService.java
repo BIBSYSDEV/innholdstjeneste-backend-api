@@ -11,6 +11,8 @@ import static java.util.Objects.isNull;
 
 
 public class DocumentService {
+    private static final String DOCUMENT_IS_NOT_VALID = "Document is not valid: ";
+
     private final DocumentClient client;
     private final StorageClient storageClient;
 
@@ -67,7 +69,7 @@ public class DocumentService {
 
     public void validateDocument(DocumentDto document) throws BadRequestException {
         if (isNull(document) || !document.isValid()) {
-            throw new BadRequestException("Document is not valid: " + document);
+            throw new BadRequestException(DOCUMENT_IS_NOT_VALID + document);
         }
     }
 
