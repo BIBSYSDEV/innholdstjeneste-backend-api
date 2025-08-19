@@ -2,7 +2,6 @@ package no.unit.bibs.contents;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
-import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -19,14 +18,13 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
-import static java.util.Objects.isNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 
@@ -41,7 +39,7 @@ public class DBClient {
     public static final String PRIMARYKEY_ISBN = "isbn";
 
     private static String tableName;
-    private DynamoDbClient dynamoDbClient;
+    private DynamoDbClient dbClient;
 
     /**
      * Creates a new DynamoDBClient.
@@ -54,17 +52,17 @@ public class DBClient {
     /**
      * Creates a new DynamoDBClient.
      */
-    public DBClient(DynamoDbClient dynamoDbClient) {
-        this.dynamoDbClient = dynamoDbClient;
+    public DBClient(DynamoDbClient dbClient) {
+        this.dbClient = dbClient;
     }
 
     @JacocoGenerated
     private void initDynamoDbClient(Environment environment) {
         try {
             tableName = environment.readEnv(TABLE_NAME);
-            dynamoDbClient = DynamoDbClient.builder()
-                .region(Region.of(environment.readEnv(AWS_REGION)))
-                .build();
+            dbClient = DynamoDbClient.builder()
+                    .region(Region.of(environment.readEnv(AWS_REGION)))
+                    .build();
         } catch (Exception e) {
             logger.error(CANNOT_CONNECT_TO_DYNAMO_DB, e);
         }
@@ -74,31 +72,27 @@ public class DBClient {
      * Adds or insert a document to dynamoDB.
      *
      * @param document the document to be inserted
+     * @throws CommunicationException when something goes wrong
      */
-    public void createContents(ContentsDocument document) throws BadGatewayException {
-//        try {
+    public void createContents(ContentsDocument document) throws CommunicationException {
+        try {
             var putItemRequest = PutItemRequest
-                .builder()
-                .tableName(tableName)
-                .item(this.generateItemMap(document))
-                .build();
-            var response = dynamoDbClient.putItem(putItemRequest);
-//        } catch (Exception e) {
-//            throw new CommunicationException("Creation error: " + e.getMessage(), e);
-//        }
-        if (isNull(response.sdkHttpResponse())) {
-            throw new BadGatewayException("No response from DynamoDB");
+                    .builder()
+                    .tableName(tableName)
+                    .item(this.generateItemMap(document))
+                    .build();
+            var response = dbClient.putItem(putItemRequest);
+            logger.info(response.toString());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new CommunicationException("Creation error: " + e.getMessage(), e);
         }
-        if (!response.sdkHttpResponse().isSuccessful()) {
-            throw new BadGatewayException("Failed to create ContentsDocument: " + response.sdkHttpResponse().statusCode());
-        }
-        logger.info("ContentsDocument with ISBN {} created successfully.", document.getIsbn());
     }
 
     private Map<String, AttributeValue> generateItemMap(ContentsDocument document) {
         Map<String, AttributeValue> itemMap = new HashMap<>();
         itemMap.put(ContentsDocument.ISBN,
-            AttributeValue.builder().s(document.getIsbn().toUpperCase(Locale.getDefault())).build());
+                AttributeValue.builder().s(document.getIsbn().toUpperCase(Locale.getDefault())).build());
         conditionalAddForCreate(itemMap, document.getTitle(), ContentsDocument.TITLE, true);
         conditionalAddForCreate(itemMap, document.getDateOfPublication(), ContentsDocument.DATE_OF_PUBLICATION, false);
         conditionalAddForCreate(itemMap, document.getAuthor(), ContentsDocument.AUTHOR, true);
@@ -113,7 +107,7 @@ public class DBClient {
         conditionalAddForCreate(itemMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL, false);
         conditionalAddForCreate(itemMap, document.getAudioFile(), ContentsDocument.AUDIO_FILE, false);
         itemMap.put(ContentsDocument.SOURCE, AttributeValue.builder().s(document.getSource()).build());
-        if (isNull(document.getCreated())) {
+        if (Objects.isNull(document.getCreated())) {
             itemMap.put(ContentsDocument.CREATED, AttributeValue.builder().s(Instant.now().toString()).build());
         } else {
             itemMap.put(ContentsDocument.CREATED, AttributeValue.builder().s(document.getCreated().toString()).build());
@@ -129,14 +123,14 @@ public class DBClient {
      * @throws NotFoundException contentsDocument not found
      */
     public String getContents(String isbn) throws NotFoundException {
-        Map<String, AttributeValue> keyToGet = new HashMap<>();
+        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
         keyToGet.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(isbn).build());
         GetItemRequest request = GetItemRequest.builder()
-            .key(keyToGet)
-            .tableName(tableName)
-            .build();
+                .key(keyToGet)
+                .tableName(tableName)
+                .build();
         try {
-            var itemResponse = dynamoDbClient.getItem(request);
+            GetItemResponse itemResponse = dbClient.getItem(request);
             if (itemResponse != null) {
                 Map<String, AttributeValue> returnedItem = itemResponse.item();
                 if (returnedItem != null && !returnedItem.isEmpty()) {
@@ -155,24 +149,23 @@ public class DBClient {
      * Updates the contentsDocument identified by its isbn.
      *
      * @param document contentsDocument to update
-     * @return
      * @throws CommunicationException exception while connecting to database
      */
-    protected UpdateItemResponse updateContents(ContentsDocument document) throws CommunicationException {
+    protected void updateContents(ContentsDocument document) throws CommunicationException {
         try {
-            Map<String, AttributeValue> keyToUpdate = new HashMap<>();
+            HashMap<String, AttributeValue> keyToUpdate = new HashMap<>();
             keyToUpdate.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(document.getIsbn()).build());
             Map<String, AttributeValueUpdate> attributeUpdates = this.findValuesToUpdate(document);
             UpdateItemRequest updateItemRequest = UpdateItemRequest
-                .builder()
-                .key(keyToUpdate)
-                .tableName(tableName)
-                .returnValues("ALL_NEW")
-                .attributeUpdates(attributeUpdates)
-                .build();
-            return dynamoDbClient.updateItem(updateItemRequest);
-
+                    .builder()
+                    .key(keyToUpdate)
+                    .tableName(tableName)
+                    .attributeUpdates(attributeUpdates)
+                    .build();
+            dbClient.updateItem(updateItemRequest);
+            logger.info("contents updated");
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             throw new CommunicationException("Update error: " + e.getMessage(), e);
         }
     }
@@ -180,8 +173,8 @@ public class DBClient {
     protected String parseAttributeValueMap(Map<String, AttributeValue> returnedItem) throws JsonProcessingException {
         Map<String, String> item = new HashMap<>();
         returnedItem.keySet()
-            .forEach(key -> item.put(key,
-                returnedItem.get(key).getValueForField("S", String.class).orElse(null)));
+                .forEach(key -> item.put(key,
+                        returnedItem.get(key).getValueForField("S", String.class).orElse(null)));
         return dtoObjectMapper.writeValueAsString(item);
     }
 
@@ -190,20 +183,20 @@ public class DBClient {
         this.conditionalAddForUpdate(updateValueMap, document.getTitle(), ContentsDocument.TITLE, true);
         this.conditionalAddForUpdate(updateValueMap, document.getAuthor(), ContentsDocument.AUTHOR, true);
         this.conditionalAddForUpdate(updateValueMap, document.getDateOfPublication(),
-            ContentsDocument.DATE_OF_PUBLICATION, false);
+                ContentsDocument.DATE_OF_PUBLICATION, false);
         this.conditionalAddForUpdate(updateValueMap, document.getDescriptionShort(), ContentsDocument.DESCRIPTION_SHORT,
-            true);
+                true);
         this.conditionalAddForUpdate(updateValueMap, document.getDescriptionLong(), ContentsDocument.DESCRIPTION_LONG,
-            true);
+                true);
         this.conditionalAddForUpdate(updateValueMap, document.getTableOfContents(), ContentsDocument.TABLE_OF_CONTENTS,
-            true);
+                true);
         this.conditionalAddForUpdate(updateValueMap, document.getPromotional(), ContentsDocument.PROMOTIONAL, true);
         this.conditionalAddForUpdate(updateValueMap, document.getSummary(), ContentsDocument.SUMMARY, true);
         this.conditionalAddForUpdate(updateValueMap, document.getReview(), ContentsDocument.REVIEW, true);
         this.conditionalAddForUpdate(updateValueMap, document.getImageSmall(), ContentsDocument.IMAGE_SMALL, false);
         this.conditionalAddForUpdate(updateValueMap, document.getImageLarge(), ContentsDocument.IMAGE_LARGE, false);
         this.conditionalAddForUpdate(updateValueMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL,
-            false);
+                false);
         this.conditionalAddForUpdate(updateValueMap, document.getAudioFile(), ContentsDocument.AUDIO_FILE, false);
         AttributeValue attributeValue = AttributeValue.builder().s(Instant.now().toString()).build();
         updateValueMap.put(ContentsDocument.MODIFIED, AttributeValueUpdate.builder().value(attributeValue).build());
