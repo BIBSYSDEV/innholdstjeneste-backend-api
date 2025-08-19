@@ -17,20 +17,13 @@ public class FetchHandler extends ApiGatewayHandler<Void, DocumentDto> {
 
     @JacocoGenerated
     public FetchHandler() {
-        this(new DocumentService());
-    }
-
-
-    public FetchHandler(DocumentService documentService) {
-        super(Void.class, new Environment());
-        this.documentService = documentService;
+        this(new DocumentService(), new Environment());
     }
 
     public FetchHandler(DocumentService documentService, Environment environment) {
         super(Void.class, environment);
         this.documentService = documentService;
     }
-
 
     @Override
     protected void validateRequest(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {

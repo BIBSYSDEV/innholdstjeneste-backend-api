@@ -3,6 +3,7 @@ package no.unit.bibs.contents.document.handlers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.document.DocumentDao;
 import no.unit.bibs.contents.document.DocumentDto;
+import no.unit.bibs.contents.document.DocumentRequest;
 import no.unit.bibs.contents.document.DocumentTestBase;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
 import nva.commons.apigateway.exceptions.BadRequestException;
@@ -39,9 +40,8 @@ class UpdateDocumentTest extends DocumentTestBase {
     }
 
     @Test
-    void validateRequestThrowsBadRequestExceptionWhenInputIsNull() throws JsonProcessingException {
-        var dto = dtoObjectMapper.readValue(RESOURCE_PATH, DocumentDto.class);
-        assertThrows(ApiGatewayException.class, () -> testHandler.validateRequest(null, mockedRequestInfo, mockedContext));
+    void validateRequestThrowsBadRequestExceptionWhenInputIsNull() {
+        assertThrows(BadRequestException.class, () -> testHandler.validateRequest(new DocumentRequest(null), mockedRequestInfo, mockedContext));
     }
 
     @Test
@@ -52,8 +52,8 @@ class UpdateDocumentTest extends DocumentTestBase {
             .author("Test Author")
             .build().toDto();
 
-        assertThrows(ApiGatewayException.class, () ->
-            testHandler.validateRequest(invalidDocumentDto, mockedRequestInfo, mockedContext));
+        assertThrows(BadRequestException.class, () ->
+            testHandler.validateRequest(new DocumentRequest(invalidDocumentDto), mockedRequestInfo, mockedContext));
     }
 
     @Test
@@ -62,7 +62,7 @@ class UpdateDocumentTest extends DocumentTestBase {
             stringFromResources(Path.of(CREATE_CONTENTS_EVENT)),
             DocumentDto.class
         );
-        testHandler.validateRequest(documentDto, mockedRequestInfo, mockedContext);
+        testHandler.validateRequest(new DocumentRequest(documentDto), mockedRequestInfo, mockedContext);
     }
 
     @Test
@@ -72,7 +72,7 @@ class UpdateDocumentTest extends DocumentTestBase {
             DocumentDto.class
         );
 
-        var actual = testHandler.processInput(documentDto, mockedRequestInfo, mockedContext);
+        var actual = testHandler.processInput(new DocumentRequest(documentDto), mockedRequestInfo, mockedContext);
         assertEquals(documentDto.isbn(), actual.isbn());
         assertEquals(documentDto.title(), actual.title());
         assertEquals(documentDto.author(), actual.author());

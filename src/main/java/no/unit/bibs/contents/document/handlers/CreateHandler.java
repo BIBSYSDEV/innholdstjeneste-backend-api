@@ -18,13 +18,7 @@ public class CreateHandler extends ApiGatewayHandler<DocumentRequest, DocumentDt
 
     @JacocoGenerated
     public CreateHandler() {
-        this(new DocumentService());
-    }
-
-
-    public CreateHandler(DocumentService documentService) {
-        super(DocumentRequest.class, new Environment());
-        this.documentService = documentService;
+        this(new DocumentService(), new Environment());
     }
 
     public CreateHandler(DocumentService documentService, Environment environment) {
@@ -37,12 +31,10 @@ public class CreateHandler extends ApiGatewayHandler<DocumentRequest, DocumentDt
         documentService.validateDocument(input.contents());
     }
 
-
     @Override
     protected DocumentDto processInput(DocumentRequest input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         return documentService.create(input.contents());
     }
-
 
     @Override
     protected Integer getSuccessStatusCode(DocumentRequest input, DocumentDto output) {

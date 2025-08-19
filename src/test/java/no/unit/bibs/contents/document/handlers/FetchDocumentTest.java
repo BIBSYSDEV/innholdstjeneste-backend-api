@@ -13,11 +13,11 @@ import java.net.HttpURLConnection;
 import java.nio.file.Path;
 
 import static no.unit.bibs.contents.StorageClientTest.CREATE_CONTENTS_EVENT;
+import static no.unit.bibs.contents.document.handlers.FetchHandler.ISBN;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.ioutils.IoUtils.stringFromResources;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -43,15 +43,17 @@ class FetchDocumentTest extends DocumentTestBase {
     }
 
     @Test
-    void validateRequestThrowsBadRequestExceptionWhenInputIsNull() {
-        assertThrows(ApiGatewayException.class,
-            () -> testHandler.validateRequest(null, mock(RequestInfo.class), mockedContext));
+    void validateRequestThrowsBadRequestExceptionWhenInputIsNull() throws BadRequestException {
+        var mockedInfo = mock(RequestInfo.class);
+        when(mockedInfo.getQueryParameter(ISBN)).thenThrow(BadRequestException.class);
+        assertThrows(BadRequestException.class,
+            () -> testHandler.validateRequest(null, mockedInfo, mockedContext));
     }
 
     @Test
     void validateOKWhenQueryIsValid() {
         assertDoesNotThrow(
-            () -> testHandler.validateRequest(null,mockedRequestInfo,mockedContext)
+            () -> testHandler.validateRequest(null, mockedRequestInfo, mockedContext)
         );
     }
 

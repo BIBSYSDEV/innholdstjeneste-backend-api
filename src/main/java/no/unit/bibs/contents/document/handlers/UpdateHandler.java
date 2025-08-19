@@ -18,19 +18,15 @@ public class UpdateHandler extends ApiGatewayHandler<DocumentRequest, DocumentDt
 
     @JacocoGenerated
     public UpdateHandler() {
-        this(new DocumentService());
+        this(new DocumentService(), new Environment());
     }
 
-    public UpdateHandler(DocumentService documentService) {
-        super(DocumentRequest.class, new Environment());
-        this.documentService = documentService;
-    }
 
     public UpdateHandler(DocumentService documentService, Environment environment) {
         super(DocumentRequest.class, environment);
         this.documentService = documentService;
-    } 
-    
+    }
+
     @Override
     protected void validateRequest(DocumentRequest input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
         documentService.validateDocument(input.contents());
