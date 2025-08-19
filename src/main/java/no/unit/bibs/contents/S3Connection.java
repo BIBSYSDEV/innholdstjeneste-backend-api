@@ -74,7 +74,6 @@ public class S3Connection {
      * @param mimeType    mimeType
      */
     @JacocoGenerated
-    @SuppressWarnings("PMD.AssignmentInOperand")
     protected void uploadFile(byte[] bytesArray, String objectName, String filename, String mimeType) {
         try {
             PutObjectRequest putObjectRequest = createPutObjectRequest(objectName, filename, mimeType);

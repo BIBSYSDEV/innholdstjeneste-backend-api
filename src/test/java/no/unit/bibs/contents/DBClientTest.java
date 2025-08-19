@@ -3,6 +3,7 @@ package no.unit.bibs.contents;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
+import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;

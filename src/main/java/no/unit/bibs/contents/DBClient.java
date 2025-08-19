@@ -2,7 +2,6 @@ package no.unit.bibs.contents;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
-import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -24,8 +23,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
-import static java.util.Objects.isNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 
@@ -33,11 +32,11 @@ public class DBClient {
 
     private static final Logger logger = LoggerFactory.getLogger(DBClient.class);
 
-    public static final String AWS_REGION = "AWS_REGION";
-    public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
-    public static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
-    public static final String TABLE_NAME = "TABLE_NAME";
-    public static final String PRIMARYKEY_ISBN = "isbn";
+    static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
+    static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
+    static final String AWS_REGION = "AWS_REGION";
+    static final String TABLE_NAME = "TABLE_NAME";
+    static final String PRIMARYKEY_ISBN = "isbn";
 
     private static String tableName;
     private DynamoDbClient dbClient;
@@ -83,14 +82,9 @@ public class DBClient {
                     .item(this.generateItemMap(document))
                     .build();
             var response = dbClient.putItem(putItemRequest);
-            if (isNull(response.sdkHttpResponse())) {
-                throw new BadGatewayException("No response from DynamoDB");
-            }
-            if (!response.sdkHttpResponse().isSuccessful()) {
-                throw new BadGatewayException("Failed to create ContentsDocument: " + response.sdkHttpResponse().statusCode());
-            }
-            logger.info("ContentsDocument with ISBN {} created successfully.", document.getIsbn());
+            logger.info(response.toString());
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             throw new CommunicationException("Creation error: " + e.getMessage(), e);
         }
     }
@@ -113,7 +107,7 @@ public class DBClient {
         conditionalAddForCreate(itemMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL, false);
         conditionalAddForCreate(itemMap, document.getAudioFile(), ContentsDocument.AUDIO_FILE, false);
         itemMap.put(ContentsDocument.SOURCE, AttributeValue.builder().s(document.getSource()).build());
-        if (isNull(document.getCreated())) {
+        if (Objects.isNull(document.getCreated())) {
             itemMap.put(ContentsDocument.CREATED, AttributeValue.builder().s(Instant.now().toString()).build());
         } else {
             itemMap.put(ContentsDocument.CREATED, AttributeValue.builder().s(document.getCreated().toString()).build());

@@ -9,7 +9,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.time.Instant;
 import java.util.Objects;
 
-@SuppressWarnings("PMD.TooManyFields")
+/**
+ * Represents a document containing bibliographic information about a book or other content.
+ * This class implements JsonSerializable to allow for JSON serialization and deserialization.
+ */
 public class ContentsDocument implements JsonSerializable {
 
     public static final String TITLE = "title";

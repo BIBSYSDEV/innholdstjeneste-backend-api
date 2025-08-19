@@ -8,7 +8,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -20,7 +20,6 @@ public class S3ConnectionTest {
     S3Presigner s3Presigner;
     S3Client s3Client;
     S3Connection s3Connection;
-    private String bucketName = "bucketname";
 
     public static final String SAMPLE_PRESIGNED_S3_WRITE_URL = "https://sampleurl.com/upload?test=test";
     private static final String SAMPLE_OBJECT_NAME = "testobjectname";
@@ -34,13 +33,14 @@ public class S3ConnectionTest {
     public void init() {
         s3Client = mock(S3Client.class);
         s3Presigner = mock(S3Presigner.class);
-        s3Connection = new S3Connection(s3Client, s3Presigner, bucketName);
+        s3Connection = new S3Connection(s3Client, s3Presigner, "bucketName");
     }
 
     @Test
     void generatePresignedWriteUrl() throws MalformedURLException {
         var presignedPutObjectRequest = mock(PresignedPutObjectRequest.class);
-        when(presignedPutObjectRequest.url()).thenReturn(new URL(SAMPLE_PRESIGNED_S3_WRITE_URL));
+        when(presignedPutObjectRequest.url())
+            .thenReturn(URI.create(SAMPLE_PRESIGNED_S3_WRITE_URL).toURL());
         when(s3Presigner.presignPutObject((PutObjectPresignRequest) any()))
                 .thenReturn(presignedPutObjectRequest);
         var url = s3Connection
