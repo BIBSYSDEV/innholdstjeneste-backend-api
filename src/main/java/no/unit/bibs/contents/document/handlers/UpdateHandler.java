@@ -18,9 +18,13 @@ public class UpdateHandler extends ApiGatewayHandler<DocumentRequest, DocumentDt
 
     @JacocoGenerated
     public UpdateHandler() {
-        this(new DocumentService(), new Environment());
+        this(new Environment());
     }
 
+    @JacocoGenerated
+    public UpdateHandler(Environment environment) {
+        this(new DocumentService(environment), environment);
+    }
 
     public UpdateHandler(DocumentService documentService, Environment environment) {
         super(DocumentRequest.class, environment);

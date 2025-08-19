@@ -17,7 +17,12 @@ public class FetchHandler extends ApiGatewayHandler<Void, DocumentDto> {
 
     @JacocoGenerated
     public FetchHandler() {
-        this(new DocumentService(), new Environment());
+        this(new Environment());
+    }
+
+    @JacocoGenerated
+    public FetchHandler(Environment environment) {
+        this(new DocumentService(environment), environment);
     }
 
     public FetchHandler(DocumentService documentService, Environment environment) {
@@ -32,7 +37,7 @@ public class FetchHandler extends ApiGatewayHandler<Void, DocumentDto> {
 
     @Override
     protected DocumentDto processInput(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        return this.documentService.fetch(requestInfo.getQueryParameter(ISBN));
+        return documentService.fetch(requestInfo.getQueryParameter(ISBN));
     }
 
     @Override

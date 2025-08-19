@@ -18,7 +18,12 @@ public class CreateHandler extends ApiGatewayHandler<DocumentRequest, DocumentDt
 
     @JacocoGenerated
     public CreateHandler() {
-        this(new DocumentService(), new Environment());
+        this(new Environment());
+    }
+
+    @JacocoGenerated
+    public CreateHandler(Environment environment) {
+        this(new DocumentService(environment), environment);
     }
 
     public CreateHandler(DocumentService documentService, Environment environment) {
