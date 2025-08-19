@@ -53,7 +53,7 @@ public class DocumentService {
     }
 
     public DocumentDto create(DocumentDto dto) throws BadRequestException {
-        validateDocument(dto);      // this is typically called separately before update, but we cannot assume it.
+        validateDocument(dto);      // this is typically called separately before create, but we cannot assume it.
         var timeStamp = Instant.now();
         var dao = storageClient
             .handleFiles(dto)

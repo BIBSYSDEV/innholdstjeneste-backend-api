@@ -8,15 +8,15 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-import static no.unit.bibs.contents.DBClient.AWS_REGION;
-import static no.unit.bibs.contents.DBClient.TABLE_NAME;
-
 /**
  * DocumentClient is responsible for interacting with the database to perform operations
  * related to documents, such as fetching, updating, and creating documents.
  */
 @JacocoGenerated
 public class DocumentClient {
+
+    static final String AWS_REGION = "AWS_REGION";
+    static final String TABLE_NAME = "TABLE_NAME";
 
     DynamoDbTable<DocumentDao> customerTable;
 

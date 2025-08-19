@@ -32,11 +32,11 @@ public class DBClient {
 
     private static final Logger logger = LoggerFactory.getLogger(DBClient.class);
 
-    public static final String AWS_REGION = "AWS_REGION";
-    public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
-    public static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
-    public static final String TABLE_NAME = "TABLE_NAME";
-    public static final String PRIMARYKEY_ISBN = "isbn";
+    static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
+    static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
+    static final String AWS_REGION = "AWS_REGION";
+    static final String TABLE_NAME = "TABLE_NAME";
+    static final String PRIMARYKEY_ISBN = "isbn";
 
     private static String tableName;
     private DynamoDbClient dbClient;

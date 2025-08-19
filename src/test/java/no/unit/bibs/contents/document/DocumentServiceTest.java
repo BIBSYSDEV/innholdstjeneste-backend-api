@@ -17,40 +17,39 @@ class DocumentServiceTest extends DocumentTestBase {
     }
 
     @Test
-    void isValidReturnsFalseWhenIsbnIsBlank() {
-        var document = DocumentDao.builder()
-            .isbn("")
-            .title("Test Title")
-            .author("Test Author")
-            .build()
-            .toDto();
-        assertThrows(BadRequestException.class, () -> documentService.validateDocument(document));
-    }
-
-    @Test
-    void isValidReturnsFalseWhenTitleIsBlank() {
+    void isValidReturnsTrueWhenImageIsIncluded() {
         var document = DocumentDao.builder()
             .isbn("978-3-16-148410-0")
-            .title("")
-            .author("Test Author")
+            .source("http://example.com/source")
+            .imageSmall("http://example.com/small.jpg")
             .build()
             .toDto();
-        assertThrows(BadRequestException.class, () -> documentService.validateDocument(document));
+        assertTrue(document.isValid());
     }
 
     @Test
-    void isValidReturnsFalseWhenAuthorIsBlank() {
+    void isValidReturnsTrueWhenDescriptionIsIncluded() {
         var document = DocumentDao.builder()
             .isbn("978-3-16-148410-0")
-            .title("Test Title")
-            .author("")
+            .source("http://example.com/source")
+            .descriptionShort("Kort beskrivelse")
             .build()
             .toDto();
-        assertThrows(BadRequestException.class, () -> documentService.validateDocument(document));
+        assertTrue(document.isValid());
     }
 
     @Test
-    void isValidReturnsTrueWhenAllFieldsAreValid() throws BadRequestException {
+    void isValidReturnsFalseWhenNoDescriptionOrImages() {
+        var document = DocumentDao.builder()
+            .isbn("978-3-16-148410-0")
+            .source("http://example.com/source")
+            .build()
+            .toDto();
+        assertFalse(document.isValid());
+    }
+
+    @Test
+    void isValidReturnsTrueWhenAllFieldsAreValid() {
         var document = DocumentDao.builder()
             .isbn("978-3-16-148410-0")
             .source("http://example.com/source")
@@ -63,40 +62,7 @@ class DocumentServiceTest extends DocumentTestBase {
     }
 
     @Test
-    void isValidReturnsTrueWhenDescriptionMissing() throws BadRequestException {
-        var document = DocumentDao.builder()
-            .isbn("978-3-16-148410-0")
-            .source("http://example.com/source")
-            .imageSmall("http://example.com/small.jpg")
-            .build()
-            .toDto();
-        assertTrue(document.isValid());
-
-    }
-
-    @Test
-    void isValidReturnsTrueWhenImageMissing() throws BadRequestException {
-        var document = DocumentDao.builder()
-            .isbn("978-3-16-148410-0")
-            .source("http://example.com/source")
-            .descriptionShort("Kort beskrivelse")
-            .build()
-            .toDto();
-        assertTrue(document.isValid());
-    }
-
-
-    @Test
-    void isValidReturnsFalseWhenBothMissing() throws BadRequestException {
-        var document = DocumentDao.builder()
-            .isbn("978-3-16-148410-0")
-            .source("http://example.com/source")
-            .build()
-            .toDto();
-        assertFalse(document.isValid());
-    }
-    @Test
-    void isValidReturnsFalseWhenIsbnIsInvalid() {
+    void escapedStringIsHandledAndIsValidReturnsTrue() {
         var document = DocumentDao.builder()
             .isbn("978-3-16-148410-0")
             .source("http://example.com/source")
@@ -114,5 +80,36 @@ class DocumentServiceTest extends DocumentTestBase {
         assertTrue(document.isValid());
     }
 
+    @Test
+    void validateDocumentThrowsExceptionWhenIsbnIsBlank() {
+        var document = DocumentDao.builder()
+            .isbn("")
+            .title("Test Title")
+            .author("Test Author")
+            .build()
+            .toDto();
+        assertThrows(BadRequestException.class, () -> documentService.validateDocument(document));
+    }
 
+    @Test
+    void validateDocumentThrowsExceptionWhenTitleIsBlank() {
+        var document = DocumentDao.builder()
+            .isbn("978-3-16-148410-0")
+            .title("")
+            .author("Test Author")
+            .build()
+            .toDto();
+        assertThrows(BadRequestException.class, () -> documentService.validateDocument(document));
+    }
+
+    @Test
+    void validateDocumentThrowsExceptionWhenAuthorIsBlank() {
+        var document = DocumentDao.builder()
+            .isbn("978-3-16-148410-0")
+            .title("Test Title")
+            .author("")
+            .build()
+            .toDto();
+        assertThrows(BadRequestException.class, () -> documentService.validateDocument(document));
+    }
 }
