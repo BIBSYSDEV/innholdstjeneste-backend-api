@@ -108,7 +108,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                 throw new NotFoundException("Contents with ISBN <" + contentsDocument.getIsbn() + "> not found after creation");
             }
             return dtoObjectMapper.readValue(createdContents, ContentsDocument.class);
-        } catch (JsonProcessingException | BadGatewayException ex) {
+        } catch (JsonProcessingException | CommunicationException ex) {
             throw new GatewayResponseSerializingException(ex);
         }
     }
@@ -116,8 +116,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     private ContentsDocument updateContents(ContentsDocument contentsDocument) throws CommunicationException,
             GatewayResponseSerializingException, NotFoundException {
         try {
-            var returnvalue = dbClient.updateContents(contentsDocument);
-
+            dbClient.updateContents(contentsDocument);
             this.waitAMoment(FOURTH_OF_A_SECOND);
             var updatedContents = dbClient.getContents(contentsDocument.getIsbn());
             return dtoObjectMapper.readValue(updatedContents, ContentsDocument.class);
