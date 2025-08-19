@@ -27,20 +27,17 @@ public record DocumentDto(
     Instant created) implements JsonSerializable {
 
     boolean isValid() {
-        if (isBlank(isbn)) {
+        if (isBlank(isbn) || isBlank(source)) {
             return false;
         }
-        if (isBlank(source)) {
-            return false;
-        }
-        var anyDescription = n2b(descriptionShort)
-            + n2b(descriptionLong)
-            + n2b(tableOfContents)
-            + n2b(author)
-            + n2b(summary)
-            + n2b(review)
-            + n2b(promotional);
-        var anyImage = n2b(imageSmall) + n2b(imageLarge) + n2b(imageOriginal);
+        var anyDescription = nullToBlank(descriptionShort)
+            + nullToBlank(descriptionLong)
+            + nullToBlank(tableOfContents)
+            + nullToBlank(author)
+            + nullToBlank(summary)
+            + nullToBlank(review)
+            + nullToBlank(promotional);
+        var anyImage = nullToBlank(imageSmall) + nullToBlank(imageLarge) + nullToBlank(imageOriginal);
         return isNotBlank(anyDescription) || isNotBlank(anyImage);
     }
 
@@ -70,7 +67,7 @@ public record DocumentDto(
      * @param value the value to convert
      * @return empty string if value is null, otherwise the original value
      */
-    private String n2b(String value) {
+    private String nullToBlank(String value) {
         return value == null ? "" : value;
     }
 
