@@ -20,7 +20,7 @@ phases:
       - gradle --version
       - aws --version
       - cfn-lint -v
-      - cfn_nag -v
+      - sam --version
 
       # Lint
       - cfn-lint # uses .cfnlintrc
