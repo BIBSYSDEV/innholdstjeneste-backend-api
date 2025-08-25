@@ -116,7 +116,7 @@ public class S3Connection {
                     String.format(CONTENT_DISPOSITION_FILENAME_TEMPLATE, filename));
         }
 
-        if (mimeType != null && !mimeType.isEmpty() && mimeType.contains("/")) {
+        if (mimeType != null && mimeType.contains("/")) {
             metadata.put(HttpHeaders.CONTENT_TYPE, mimeType);
         }
 

@@ -21,6 +21,7 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
     private final DBClient dbClient;
 
     @JacocoGenerated
+    @SuppressWarnings("unused")
     public GetContentsApiHandler() {
         this(new Environment());
     }

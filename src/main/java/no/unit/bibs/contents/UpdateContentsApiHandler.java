@@ -31,6 +31,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     private final StorageClient storageClient;
 
     @JacocoGenerated
+    @SuppressWarnings("unused")
     public UpdateContentsApiHandler() {
         this(new Environment());
     }

@@ -26,6 +26,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
 
     @JacocoGenerated
+    @SuppressWarnings("unused")
     public CreateContentsApiHandler() {
         this(new Environment());
     }

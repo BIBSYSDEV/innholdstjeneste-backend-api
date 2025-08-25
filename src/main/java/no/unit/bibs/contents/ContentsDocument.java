@@ -199,10 +199,9 @@ public class ContentsDocument implements JsonSerializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ContentsDocument)) {
+        if (!(o instanceof ContentsDocument that)) {
             return false;
         }
-        ContentsDocument that = (ContentsDocument) o;
         return Objects.equals(author, that.author)
                 && Objects.equals(title, that.title)
                 && Objects.equals(dateOfPublication, that.dateOfPublication)
