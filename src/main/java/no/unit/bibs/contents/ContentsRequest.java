@@ -48,9 +48,6 @@ public class ContentsRequest {
 
         private ContentsDocument contents;
 
-        public Builder() {
-        }
-
         public ContentsRequest.Builder withContents(ContentsDocument contents) {
             this.contents = contents;
             return this;

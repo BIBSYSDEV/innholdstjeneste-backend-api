@@ -2,8 +2,8 @@ package no.unit.bibs.contents;
 
 import java.net.URL;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.ws.rs.core.HttpHeaders;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -74,7 +74,6 @@ public class S3Connection {
      * @param mimeType    mimeType
      */
     @JacocoGenerated
-    @SuppressWarnings("PMD.AssignmentInOperand")
     protected void uploadFile(byte[] bytesArray, String objectName, String filename, String mimeType) {
         try {
             PutObjectRequest putObjectRequest = createPutObjectRequest(objectName, filename, mimeType);
@@ -111,7 +110,7 @@ public class S3Connection {
 
     private PutObjectRequest createPutObjectRequest(String objectName, String filename, String mimeType) {
 
-        Map<String, String> metadata = new HashMap<>();
+        Map<String, String> metadata = new ConcurrentHashMap<>();
         if (filename != null && !filename.isEmpty()) {
             metadata.put(HttpHeaders.CONTENT_DISPOSITION,
                     String.format(CONTENT_DISPOSITION_FILENAME_TEMPLATE, filename));

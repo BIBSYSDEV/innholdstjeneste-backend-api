@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.time.Instant;
 import java.util.Objects;
 
-@SuppressWarnings("PMD.TooManyFields")
 public class ContentsDocument implements JsonSerializable {
 
     public static final String TITLE = "title";
