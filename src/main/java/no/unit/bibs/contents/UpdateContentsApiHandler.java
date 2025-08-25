@@ -116,8 +116,9 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         }
     }
 
-    private ContentsDocument updateContents(ContentsDocument contentsDocument) throws CommunicationException,
-            GatewayResponseSerializingException, NotFoundException {
+    private ContentsDocument updateContents(ContentsDocument contentsDocument)
+        throws CommunicationException, GatewayResponseSerializingException, NotFoundException {
+
         try {
             dbClient.updateContents(contentsDocument);
             this.waitAMoment(FOURTH_OF_A_SECOND);

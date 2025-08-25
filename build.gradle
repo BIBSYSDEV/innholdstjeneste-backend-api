@@ -3,7 +3,7 @@ plugins {
     id 'checkstyle'
     id 'pmd'
     id 'jacoco'
-    id 'maven-publish'
+    id 'nebula.lint' version '20.6.2'
 }
 
 group 'no.unit.bibs'
@@ -48,13 +48,19 @@ dependencies {
 
 }
 
+gradleLint {
+    rules = ['all-dependency']
+    reportFormat = 'html'
+    reportOnlyFixableViolations = true
+}
+
 test {
 
     useJUnitPlatform()
     failFast = true
     finalizedBy jacocoTestReport
     testLogging {
-        events "PASSED", "SKIPPED", "FAILED"
+        events "SKIPPED", "FAILED"
         showStandardStreams = true
     }
     environment("FOO", "bar")
@@ -63,9 +69,8 @@ test {
 
 jar.enabled = false
 
-
 pmd {
-    toolVersion = '7.14.0'
+    toolVersion = '7.16.0'
     ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
     ruleSets = []
     ignoreFailures = false
@@ -73,26 +78,21 @@ pmd {
 }
 
 checkstyle {
-    toolVersion = '10.17.0'
+    toolVersion = '10.26.0'
     configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
     showViolations = true
 }
 
 tasks.withType(Checkstyle).configureEach {
     reports {
-        xml.required = false
-        html.required = true
+        html.required
         html.stylesheet rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
     }
 }
 
-
-
 jacocoTestReport {
     reports {
-        xml.required = false
-        csv.required = false
-        html.destination file("build/reports/jacoco")
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco"))
     }
 }
 
