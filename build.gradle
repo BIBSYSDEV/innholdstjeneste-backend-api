@@ -3,6 +3,7 @@ plugins {
     id 'checkstyle'
     id 'pmd'
     id 'jacoco'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'nebula.lint' version '20.6.2'
 }
 
@@ -48,6 +49,11 @@ dependencies {
 
 }
 
+shadowJar {
+    archiveClassifier.set('')
+    zip64 true
+}
+
 gradleLint {
     rules = ['all-dependency']
     reportFormat = 'html'
@@ -67,7 +73,12 @@ test {
     environment("COGNITO_AUTHORIZER_URLS", "https://test/jwks.json,https://test2/jwks.json")
 }
 
-jar.enabled = false
+tasks.named('jar').configure {
+    enabled = false
+}
+tasks.named('build').configure {
+    dependsOn tasks.named('shadowJar')
+}
 
 pmd {
     toolVersion = '7.16.0'
