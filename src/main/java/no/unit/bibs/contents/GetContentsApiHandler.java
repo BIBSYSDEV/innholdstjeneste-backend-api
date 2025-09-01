@@ -21,6 +21,7 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
     private final DBClient dbClient;
 
     @JacocoGenerated
+    @SuppressWarnings("unused")
     public GetContentsApiHandler() {
         this(new Environment());
     }
@@ -52,11 +53,12 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
      */
     @Override
     protected ContentsDocument processInput(Void input, RequestInfo requestInfo, Context context)
-            throws ApiGatewayException {
+        throws ApiGatewayException {
+
         var isbn = requestInfo.getQueryParameter(ISBN);
         var contents = dbClient.getContents(isbn);
         try {
-             return dtoObjectMapper.readValue(contents, ContentsDocument.class);
+            return dtoObjectMapper.readValue(contents, ContentsDocument.class);
         } catch (JsonProcessingException e) {
             throw new GatewayResponseSerializingException(e);
         }

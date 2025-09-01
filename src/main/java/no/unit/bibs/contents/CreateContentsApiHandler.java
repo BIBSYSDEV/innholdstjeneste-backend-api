@@ -26,6 +26,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
 
     @JacocoGenerated
+    @SuppressWarnings("unused")
     public CreateContentsApiHandler() {
         this(new Environment());
     }
@@ -52,7 +53,9 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
 
     @Override
-    protected void validateRequest(ContentsRequest input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+    protected void validateRequest(ContentsRequest input, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
+
         if (isNull(input)) {
             throw new BadRequestException(NO_PARAMETERS_GIVEN_TO_HANDLER);
         }

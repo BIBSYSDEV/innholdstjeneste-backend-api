@@ -305,7 +305,7 @@ Resources:
     Properties:
       Tracing: Active
       Handler: no.unit.bibs.contents.GetContentsApiHandler::handleRequest
-      Runtime: java11
+      Runtime: java21
       MemorySize: 1024
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
@@ -325,7 +325,7 @@ Resources:
     Properties:
       Tracing: Active
       Handler: no.unit.bibs.contents.CreateContentsApiHandler::handleRequest
-      Runtime: java11
+      Runtime: java21
       MemorySize: 1024
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
@@ -346,7 +346,7 @@ Resources:
     Properties:
       Tracing: Active
       Handler: no.unit.bibs.contents.UpdateContentsApiHandler::handleRequest
-      Runtime: java11
+      Runtime: java21
       MemorySize: 1024
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:

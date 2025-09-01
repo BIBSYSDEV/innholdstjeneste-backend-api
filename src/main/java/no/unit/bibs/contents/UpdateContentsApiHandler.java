@@ -17,8 +17,6 @@ import nva.commons.apigateway.exceptions.GatewayResponseSerializingException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
 
@@ -33,6 +31,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     private final StorageClient storageClient;
 
     @JacocoGenerated
+    @SuppressWarnings("unused")
     public UpdateContentsApiHandler() {
         this(new Environment());
     }
@@ -58,7 +57,9 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
 
     @Override
-    protected void validateRequest(ContentsRequest input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
+    protected void validateRequest(ContentsRequest input, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
+
         if (isNull(input)) {
             throw new BadRequestException(NO_PARAMETERS_GIVEN_TO_HANDLER);
         }
@@ -106,7 +107,8 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             this.waitAMoment(FOURTH_OF_A_SECOND);
             var createdContents = dbClient.getContents(contentsDocument.getIsbn());
             if (isEmpty(createdContents)) {
-                throw new NotFoundException("Contents with ISBN <" + contentsDocument.getIsbn() + "> not found after creation");
+                throw new NotFoundException("Contents with ISBN <" + contentsDocument.getIsbn()
+                                            + "> not found after creation");
             }
             return dtoObjectMapper.readValue(createdContents, ContentsDocument.class);
         } catch (JsonProcessingException ex) {
@@ -114,8 +116,9 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         }
     }
 
-    private ContentsDocument updateContents(ContentsDocument contentsDocument) throws CommunicationException,
-            GatewayResponseSerializingException, NotFoundException {
+    private ContentsDocument updateContents(ContentsDocument contentsDocument)
+        throws CommunicationException, GatewayResponseSerializingException, NotFoundException {
+
         try {
             dbClient.updateContents(contentsDocument);
             this.waitAMoment(FOURTH_OF_A_SECOND);
@@ -126,6 +129,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         }
     }
 
+    @SuppressWarnings("PMD.DoNotUseThreads")
     @JacocoGenerated
     private void waitAMoment(int millisec) {
         try {

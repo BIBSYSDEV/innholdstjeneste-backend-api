@@ -109,7 +109,7 @@ public class DBClientTest {
     @Test
     public void addDocumentTest() throws IOException, CommunicationException {
         var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        var document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        final var document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         var putItemResponse = mock(PutItemResponse.class);
 
         when(client.putItem(any(PutItemRequest.class)))
