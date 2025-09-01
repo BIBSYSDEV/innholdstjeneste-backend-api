@@ -70,7 +70,6 @@ test {
     finalizedBy jacocoTestReport
     testLogging {
         events "SKIPPED", "FAILED"
-        showStandardStreams = true
     }
     environment("COGNITO_AUTHORIZER_URLS", "https://test/jwks.json,https://test2/jwks.json")
 }
