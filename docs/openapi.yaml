@@ -1,0 +1,211 @@
+openapi: 3.0.3
+info:
+  title: Contents API
+  description: CRUD Contents for bibliographical data
+  version: '1.0'
+  contact:
+    email: kontakt@sikt.no
+servers:
+  - url: https://api.sandbox.bibs.aws.unit.no/contents
+  - url: https://api.bibs.aws.unit.no/contents
+paths:
+  /:
+    get:
+      summary: 'Get content by isbn'
+      description: 'Gets content metadata for bibliographical data matching provided isbn'
+      tags:
+        - Content
+      parameters:
+        - in: query
+          name: isbn
+          description: 'Isbn to look for contents.'
+          required: true
+          example: '9788202707255'
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentsApiFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contents'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: 'Internal Server Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    post:
+      summary: 'Create new content'
+      description: 'Creates new content for bibliographical data using the provided payload'
+      tags:
+        - Content
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateContentsApiFunction.Arn}/invocations
+        responses: {}
+        httpMethod: POST
+        type: AWS_PROXY
+      requestBody:
+        description: Payload containing valid content metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Contents'
+      responses:
+        '201':
+          description: 'Created'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contents'
+        '500':
+          description: 'Internal Server Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    put:
+      summary: 'Update content by payload isbn'
+      description: 'Updates existing content for bibliographical data using the provided payload having isbn to be updated. If isbn not existing already, creates new content'
+      tags:
+        - Content
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateContentsApiFunction.Arn}/invocations
+        responses: { }
+        httpMethod: POST
+        type: AWS_PROXY
+      requestBody:
+        description: Payload containing valid content metadata
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Contents'
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contents'
+        '201':
+          description: 'Created'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contents'
+        '500':
+          description: 'Internal Server Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  schemas:
+    Contents:
+      title: Content payload schema
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title
+          example: 'Pelsjegerliv blandt Nord-Canadas indianere'
+        author:
+          type: string
+          description: Author
+          example: 'Helge Ingstad'
+        isbn:
+          type: string
+          description: ISBN number
+          example: '9788202707255'
+        source:
+          type: string
+          description: Source of metadata
+          example: 'BOKBASEN'
+        modified:
+          type: string
+          format: date-time
+          description: Last modified
+          example: '2021-05-25T16:24:17.375131Z'
+        created:
+          type: string
+          format: date-time
+          description: Creation date
+          example: '2021-05-21T16:13:38.725876Z'
+        dateOfPublication:
+          type: string
+          description: Publication year
+          example: '1931'
+        descriptionShort:
+          type: string
+          description: Short Description
+          example: >
+            Det er ingen tvil om at Amine ønsket å ta livet sitt, men Amanda klarer å redde henne i siste liten.
+        descriptionLong:
+          type: string
+          description: Long Description
+          example: >
+            Det er ingen tvil om at Amine ønsket å ta livet sitt, men Amanda klarer å redde henne i siste liten. 
+            Hun tvinger søsteren til å fortelle direktøren at hun venter hans barn, men de møter på større prøvelser 
+            enn de kan forestille seg.
+        tableOfContents:
+          type: string
+          description: Table of Contents
+          example: 'The openingSecond breakfastCinco de mayo'
+        imageSmall:
+          type: string
+          format: uri
+          description: Small image URL. Used with base url
+          example: 'files/images/small/5/5/9788202707255.jpg'
+        imageLarge:
+          type: string
+          format: uri
+          description: Large image URL. Used with base url
+          example: 'files/images/large/5/5/9788202707255.jpg'
+        imageOriginal:
+          type: string
+          format: uri
+          description: Original image URL. Used with base url
+          example: 'files/images/original/5/5/9788202707255.jpg'
+        audioFile:
+          type: string
+          format: uri
+          description: Audio file URL. Used with base url
+          example: 'files/audio/mp3/5/5/9788202707255.mp3'
+
+    Problem:
+      type: object
+      description: Error message
+      properties:
+        title:
+          type: string
+          description: Type of error
+          example: 'Bad Request'
+        status:
+          type: integer
+          description: HTTP Status code
+          example: 400
+        detail:
+          type: string
+          description: Error detail
+          example: 'Missing from query parameters: isbn'
+        requestId:
+          type: string
+          description: ID of the request that caused the error
+          example: '1234-abcd'
