@@ -22,6 +22,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: '/contents/s3-storage-name'
     Description: Contents S3 bucket name
+  CognitoAuthorizerUrls:
+    Type: String
+    Default: 'https://test/jwks.json,https://test2/jwks.json'
+    Description: Cognito Authorizer Urls needed for using NVA libraries
 
 Conditions:
   HasDomainName: !Not [!Equals [!Ref CustomDomain, '']]
@@ -32,7 +36,7 @@ Globals:
     Timeout: 20
     Environment:
       Variables:
-        COGNITO_AUTHORIZER_URLS: "https://test/jwks.json,https://test2/jwks.json"
+        COGNITO_AUTHORIZER_URLS: !Ref CognitoAuthorizerUrls
   Api:
     Cors:
       AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
