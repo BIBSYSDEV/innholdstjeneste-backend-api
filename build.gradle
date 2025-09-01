@@ -63,8 +63,6 @@ test {
         events "SKIPPED", "FAILED"
         showStandardStreams = true
     }
-    environment("FOO", "bar")
-    environment("COGNITO_AUTHORIZER_URLS", "https://test/jwks.json,https://test2/jwks.json")
 }
 
 pmd {
