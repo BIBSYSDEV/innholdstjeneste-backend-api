@@ -30,6 +30,9 @@ Conditions:
 Globals:
   Function:
     Timeout: 20
+    Environment:
+      Variables:
+        COGNITO_AUTHORIZER_URLS: "https://test/jwks.json,https://test2/jwks.json"
   Api:
     Cors:
       AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
