@@ -1,10 +1,10 @@
 package no.unit.bibs.contents;
 
+import jakarta.ws.rs.core.HttpHeaders;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.ws.rs.core.HttpHeaders;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
@@ -113,7 +113,7 @@ public class S3Connection {
         Map<String, String> metadata = new ConcurrentHashMap<>();
         if (filename != null && !filename.isEmpty()) {
             metadata.put(HttpHeaders.CONTENT_DISPOSITION,
-                    String.format(CONTENT_DISPOSITION_FILENAME_TEMPLATE, filename));
+                         String.format(CONTENT_DISPOSITION_FILENAME_TEMPLATE, filename));
         }
 
         if (mimeType != null && mimeType.contains("/")) {
