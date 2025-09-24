@@ -1,6 +1,5 @@
 package no.unit.bibs.contents;
 
-import jakarta.ws.rs.core.HttpHeaders;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Map;
@@ -33,6 +32,8 @@ public class S3Connection {
     private static final String AWS_REGION = "AWS_REGION";
     private static final String BUCKET_NAME = "BUCKET_NAME";
     public static final String CANNOT_CONNECT_TO_S3 = "Cannot connect to S3";
+    public static final String CONTENT_DISPOSITION = "Content-Disposition";
+    public static final String CONTENT_TYPE = "Content-Type";
 
     public S3Connection(Environment environment) {
         initS3Client(environment);
@@ -112,12 +113,12 @@ public class S3Connection {
 
         Map<String, String> metadata = new ConcurrentHashMap<>();
         if (filename != null && !filename.isEmpty()) {
-            metadata.put(HttpHeaders.CONTENT_DISPOSITION,
+            metadata.put(CONTENT_DISPOSITION,
                          String.format(CONTENT_DISPOSITION_FILENAME_TEMPLATE, filename));
         }
 
         if (mimeType != null && mimeType.contains("/")) {
-            metadata.put(HttpHeaders.CONTENT_TYPE, mimeType);
+            metadata.put(CONTENT_TYPE, mimeType);
         }
 
         return PutObjectRequest.builder()
