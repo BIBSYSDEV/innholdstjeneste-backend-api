@@ -21,7 +21,7 @@ repositories {
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
-    gradleVersion = "8.14.2"
+    gradleVersion = "8.14.3"
 }
 
 
@@ -73,7 +73,7 @@ test {
 }
 
 pmd {
-    toolVersion = '7.16.0'
+    toolVersion = '7.17.0'
     ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
     ruleSets = []
     ignoreFailures = false
@@ -81,7 +81,7 @@ pmd {
 }
 
 checkstyle {
-    toolVersion = '10.26.0'
+    toolVersion = '10.26.1'
     configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
     showViolations = true
 }
