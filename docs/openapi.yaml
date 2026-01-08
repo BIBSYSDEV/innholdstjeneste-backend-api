@@ -8,9 +8,13 @@ info:
 servers:
   - url: https://api.sandbox.bibs.aws.unit.no/contents
   - url: https://api.bibs.aws.unit.no/contents
+tags:
+  - name: Content
+    description: Bibliographic content
 paths:
   /:
     get:
+      operationId: getContentByIsbn
       summary: 'Get content by isbn'
       description: 'Gets content metadata for bibliographical data matching provided isbn'
       tags:
@@ -49,6 +53,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
     post:
+      operationId: createNewContent
       summary: 'Create new content'
       description: 'Creates new content for bibliographical data using the provided payload'
       tags:
@@ -80,6 +85,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
     put:
+      operationId: updateContentByPayloadIsbn
       summary: 'Update content by payload isbn'
       description: 'Updates existing content for bibliographical data using the provided payload having isbn to be updated. If isbn not existing already, creates new content'
       tags:
@@ -170,22 +176,18 @@ components:
           example: 'The openingSecond breakfastCinco de mayo'
         imageSmall:
           type: string
-          format: uri
           description: Small image URL. Used with base url
           example: 'files/images/small/5/5/9788202707255.jpg'
         imageLarge:
           type: string
-          format: uri
           description: Large image URL. Used with base url
           example: 'files/images/large/5/5/9788202707255.jpg'
         imageOriginal:
           type: string
-          format: uri
           description: Original image URL. Used with base url
           example: 'files/images/original/5/5/9788202707255.jpg'
         audioFile:
           type: string
-          format: uri
           description: Audio file URL. Used with base url
           example: 'files/audio/mp3/5/5/9788202707255.mp3'
 
