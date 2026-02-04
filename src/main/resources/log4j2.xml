@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<Configuration strict="true" packages="com.amazonaws.services.lambda.runtime.log4j2">
+<Configuration strict="true" packages="com.amazonaws.services.lambda.runtime.log4j2" status="WARN">
   <Appenders>
     <Appender type="Lambda" name="Lambda">
       <PatternLayout>
@@ -10,7 +10,7 @@
 
   </Appenders>
   <Loggers>
-    <Root level="debug">
+    <Root level="INFO">
       <AppenderRef ref="Lambda" />
     </Root>
   </Loggers>
