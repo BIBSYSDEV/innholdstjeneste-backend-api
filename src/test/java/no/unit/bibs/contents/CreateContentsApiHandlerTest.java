@@ -14,6 +14,8 @@ import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.util.Map;
 
+import static no.unit.bibs.contents.ContentsRequest.DOCUMENT_JSON_NOT_VALID;
+import static no.unit.bibs.contents.ContentsRequest.MALFORMED_JSON_PAYLOAD;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
@@ -22,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -106,6 +109,28 @@ public class CreateContentsApiHandlerTest {
             assertThrows(BadRequestException.class,
                 () -> handler.validateRequest(null, requestInfo, context));
         assertTrue(exception.getMessage().contains(CreateContentsApiHandler.NO_PARAMETERS_GIVEN_TO_HANDLER));
+    }
+
+    @Test
+    public void shouldThrowExceptionOnMalformedPayload() {
+        var contentsRequest = mock(ContentsRequest.class);
+        doReturn(null).when(contentsRequest).getContents();
+
+        var exception = assertThrows(BadRequestException.class,
+                                     () -> handler.validateRequest(contentsRequest, requestInfo, context));
+
+        assertTrue(exception.getMessage().contains(MALFORMED_JSON_PAYLOAD));
+    }
+
+    @Test
+    public void shouldThrowExceptionOnInvalidJson() throws JsonProcessingException {
+        var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT)).replace(TEST_ISBN, EMPTY_STRING);
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        var request = new ContentsRequest(contentsDocument);
+        var exception = assertThrows(BadRequestException.class,
+                                     () -> handler.validateRequest(request, requestInfo, context));
+
+        assertTrue(exception.getMessage().contains(DOCUMENT_JSON_NOT_VALID));
     }
 
 }

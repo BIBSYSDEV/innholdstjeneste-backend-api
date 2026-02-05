@@ -70,7 +70,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Contents'
+              $ref: '#/components/schemas/UpsertContents'
       responses:
         '201':
           description: 'Created'
@@ -102,7 +102,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Contents'
+              $ref: '#/components/schemas/UpsertContents'
       responses:
         '200':
           description: 'OK'
@@ -124,6 +124,15 @@ paths:
                 $ref: '#/components/schemas/Problem'
 components:
   schemas:
+    UpsertContents:
+      title: Content payload upsert schema
+      type: object
+      properties:
+        contents:
+          $ref: '#/components/schemas/Contents'
+      required:
+        - contents
+
     Contents:
       title: Content payload schema
       type: object
@@ -147,12 +156,12 @@ components:
         modified:
           type: string
           format: date-time
-          description: Last modified
+          description: Last modified. Not to be used on POST/PUT
           example: '2021-05-25T16:24:17.375131Z'
         created:
           type: string
           format: date-time
-          description: Creation date
+          description: Creation date. Not to be used on POST/PUT
           example: '2021-05-21T16:13:38.725876Z'
         dateOfPublication:
           type: string
