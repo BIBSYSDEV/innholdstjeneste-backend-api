@@ -17,6 +17,8 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import static no.unit.bibs.contents.ContentsDocument.ISBN;
+import static no.unit.bibs.contents.ContentsRequest.DOCUMENT_JSON_NOT_VALID;
+import static no.unit.bibs.contents.ContentsRequest.MALFORMED_JSON_PAYLOAD;
 import static no.unit.bibs.contents.CreateContentsApiHandlerTest.TEST_ISBN;
 import static no.unit.bibs.contents.GetContentsApiHandlerTest.COGNITO_AUTHORIZER_URLS;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -79,9 +82,10 @@ class UpdateContentsApiHandlerTest {
         contents = contents.replace(TEST_ISBN, EMPTY_STRING);
         var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         var request = new ContentsRequest(contentsDocument);
-        assertThrows(BadRequestException.class, () ->
-            handler.validateRequest(request, requestInfo, context)
-        );
+        var exception = assertThrows(BadRequestException.class,
+                                     () -> handler.validateRequest(request, requestInfo, context));
+
+        assertTrue(exception.getMessage().contains(DOCUMENT_JSON_NOT_VALID));
     }
 
     @Test
@@ -128,6 +132,17 @@ class UpdateContentsApiHandlerTest {
             handler.validateRequest(null, requestInfo, context)
         );
         assertTrue(exception.getMessage().contains(UpdateContentsApiHandler.NO_PARAMETERS_GIVEN_TO_HANDLER));
+    }
+
+    @Test
+    public void shouldThrowExceptionOnMalformedPayload() {
+        var contentsRequest = mock(ContentsRequest.class);
+        doReturn(null).when(contentsRequest).getContents();
+
+        var exception = assertThrows(BadRequestException.class,
+                                     () -> handler.validateRequest(contentsRequest, requestInfo, context));
+
+        assertTrue(exception.getMessage().contains(MALFORMED_JSON_PAYLOAD));
     }
 
 }

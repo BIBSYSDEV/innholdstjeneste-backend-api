@@ -8,6 +8,9 @@ import java.util.Objects;
 
 public class ContentsRequest {
 
+    public static final String MALFORMED_JSON_PAYLOAD = "Malformed JSON Payload.";
+    public static final String DOCUMENT_JSON_NOT_VALID = "Document is not valid: ";
+
     private final ContentsDocument contents;
 
     @JsonCreator

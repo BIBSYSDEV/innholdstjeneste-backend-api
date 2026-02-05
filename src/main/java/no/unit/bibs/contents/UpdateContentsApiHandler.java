@@ -1,6 +1,8 @@
 package no.unit.bibs.contents;
 
 import static java.util.Objects.isNull;
+import static no.unit.bibs.contents.ContentsRequest.DOCUMENT_JSON_NOT_VALID;
+import static no.unit.bibs.contents.ContentsRequest.MALFORMED_JSON_PAYLOAD;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.core.StringUtils.isEmpty;
 
@@ -63,8 +65,11 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         if (isNull(input)) {
             throw new BadRequestException(NO_PARAMETERS_GIVEN_TO_HANDLER);
         }
+        if (isNull(input.getContents())) {
+            throw new BadRequestException(MALFORMED_JSON_PAYLOAD);
+        }
         if (!input.getContents().isValid()) {
-            throw new BadRequestException("Document is not valid: " + input.getContents());
+            throw new BadRequestException(DOCUMENT_JSON_NOT_VALID + input.getContents());
         }
     }
 
