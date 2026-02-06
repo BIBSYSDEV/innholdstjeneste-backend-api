@@ -11,13 +11,21 @@ import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocument> {
 
+    private static final Logger logger = LoggerFactory.getLogger(GetContentsApiHandler.class);
+
     public static final String ISBN = "isbn";
     public static final String MISSING_REQUIRED_QUERY_PARAMETER = "Missing required query parameter: ";
+    private static final String GETTING_CONTENT_FOR_ISBN = "Getting content for isbn {}";
+    private static final String CONTENT_FOUND = "Content found: {}";
+    private static final String COULD_NOT_DESERIALIZE_CONTENT = "Could not deserialize content for isbn {}. Error: {}";
+
     private final DBClient dbClient;
 
     @JacocoGenerated
@@ -56,10 +64,13 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
         throws ApiGatewayException {
 
         var isbn = requestInfo.getQueryParameter(ISBN);
+        logger.info(GETTING_CONTENT_FOR_ISBN, isbn);
         var contents = dbClient.getContents(isbn);
+        logger.info(CONTENT_FOUND, contents);
         try {
             return dtoObjectMapper.readValue(contents, ContentsDocument.class);
         } catch (JsonProcessingException e) {
+            logger.error(COULD_NOT_DESERIALIZE_CONTENT, isbn, e.getMessage());
             throw new GatewayResponseSerializingException(e);
         }
     }
