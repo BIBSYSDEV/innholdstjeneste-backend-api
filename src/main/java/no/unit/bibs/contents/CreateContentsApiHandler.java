@@ -12,6 +12,8 @@ import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.Objects.isNull;
 import static no.unit.bibs.contents.ContentsRequest.DOCUMENT_JSON_NOT_VALID;
@@ -20,8 +22,11 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, ContentsDocument> {
 
+    private static final Logger logger = LoggerFactory.getLogger(CreateContentsApiHandler.class);
+
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to CreateContentsApiHandler";
     public static final String COULD_NOT_INDEX_RECORD_PROVIDED = "Could not persist provided contents. ";
+    private static final String CREATING_CONTENT = "Creating content for input document: {}";
 
     private final DBClient dynamoDBClient;
     private final StorageClient storageClient;
@@ -84,6 +89,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     protected ContentsDocument processInput(ContentsRequest input, RequestInfo requestInfo,
                                             Context context) throws ApiGatewayException {
         var contentsDocument = input.getContents();
+        logger.info(CREATING_CONTENT, contentsDocument);
         try {
             storageClient.handleFiles(contentsDocument);
             dynamoDBClient.createContents(contentsDocument);

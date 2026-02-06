@@ -21,13 +21,17 @@ import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 
 import java.net.HttpURLConnection;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, ContentsDocument> {
+
+    private static final Logger logger = LoggerFactory.getLogger(UpdateContentsApiHandler.class);
 
     public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to UpdateContentsApiHandler";
     public static final String FAILED_AFTER_PERSISTING = "failed after persisting: ";
     public static final int FOURTH_OF_A_SECOND = 250;
+    private static final String CREATING_OR_UPDATING_CONTENT = "Creating or updating content from input document: {}";
 
     private final DBClient dbClient;
     private final StorageClient storageClient;
@@ -89,6 +93,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
                                             Context context) throws ApiGatewayException {
 
         var contentsDocument = input.getContents();
+        logger.info(CREATING_OR_UPDATING_CONTENT, contentsDocument);
         try {
             storageClient.handleFiles(contentsDocument);
             var contents = dbClient.getContents(contentsDocument.getIsbn());

@@ -171,7 +171,7 @@ public class DBClient {
                     .attributeUpdates(attributeUpdates)
                     .build();
             dynamoDbClient.updateItem(updateItemRequest);
-            logger.info("contents updated");
+            logger.info("ContentsDocument with ISBN {} updated successfully.", document.getIsbn());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Update error: " + e.getMessage(), e);
