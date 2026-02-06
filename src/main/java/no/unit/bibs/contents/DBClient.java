@@ -145,7 +145,7 @@ public class DBClient {
                     return parseAttributeValueMap(returnedItem);
                 }
             }
-            logger.info(String.format("No item found with the isbn %s!", isbn));
+            logger.info("No item found with the isbn {}", isbn);
             throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
         } catch (DynamoDbException | JsonProcessingException e) {
             logger.error(e.getMessage());
