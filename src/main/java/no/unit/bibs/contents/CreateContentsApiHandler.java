@@ -100,7 +100,7 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
             throw new GatewayResponseSerializingException(e);
         } catch (Exception e) {
             logger.error(COULD_NOT_INDEX_RECORD_PROVIDED, e);
-            throw new BadRequestException(COULD_NOT_INDEX_RECORD_PROVIDED + contentsDocument);
+            throw new BadRequestException(COULD_NOT_INDEX_RECORD_PROVIDED + e.getMessage());
         }
     }
 
