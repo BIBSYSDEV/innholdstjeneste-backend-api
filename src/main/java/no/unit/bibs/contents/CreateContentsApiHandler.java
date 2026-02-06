@@ -98,10 +98,9 @@ public class CreateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
 
         } catch (JsonProcessingException e) {
             throw new GatewayResponseSerializingException(e);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException(COULD_NOT_INDEX_RECORD_PROVIDED);
         } catch (Exception e) {
-            throw new BadRequestException(e.getMessage(), e);
+            logger.error(COULD_NOT_INDEX_RECORD_PROVIDED, e);
+            throw new BadRequestException(COULD_NOT_INDEX_RECORD_PROVIDED + e.getMessage());
         }
     }
 

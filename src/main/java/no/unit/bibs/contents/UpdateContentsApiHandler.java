@@ -32,6 +32,10 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     public static final String FAILED_AFTER_PERSISTING = "failed after persisting: ";
     public static final int FOURTH_OF_A_SECOND = 250;
     private static final String CREATING_OR_UPDATING_CONTENT = "Creating or updating content from input document: {}";
+    private static final String FAILED_TO_DESERIALIZE_AFTER_CREATION =
+        "Failed to deserialize new content after creation. ISBN: {}";
+    private static final String FAILED_TO_DESERIALIZE_AFTER_UPDATING =
+        "Failed to deserialize new content after updating. ISBN: {}";
 
     private final DBClient dbClient;
     private final StorageClient storageClient;
@@ -105,6 +109,7 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
         } catch (NotFoundException e) {
             return createContents(contentsDocument);
         } catch (Exception e) {
+            logger.error(FAILED_AFTER_PERSISTING, e);
             throw new ConflictException(FAILED_AFTER_PERSISTING + e.getMessage());
         }
     }
@@ -112,30 +117,28 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
     private ContentsDocument createContents(ContentsDocument contentsDocument) throws CommunicationException,
             NotFoundException, GatewayResponseSerializingException {
 
+        dbClient.createContents(contentsDocument);
+        this.waitAMoment(FOURTH_OF_A_SECOND);
+        var createdContents = dbClient.getContents(contentsDocument.getIsbn());
         try {
-            dbClient.createContents(contentsDocument);
-            this.waitAMoment(FOURTH_OF_A_SECOND);
-            var createdContents = dbClient.getContents(contentsDocument.getIsbn());
-            if (isEmpty(createdContents)) {
-                throw new NotFoundException("Contents with ISBN <" + contentsDocument.getIsbn()
-                                            + "> not found after creation");
-            }
             return dtoObjectMapper.readValue(createdContents, ContentsDocument.class);
-        } catch (JsonProcessingException ex) {
-            throw new GatewayResponseSerializingException(ex);
+        } catch (JsonProcessingException e) {
+            logger.error(FAILED_TO_DESERIALIZE_AFTER_CREATION, contentsDocument.getIsbn(), e);
+            throw new GatewayResponseSerializingException(e);
         }
     }
 
     private ContentsDocument updateContents(ContentsDocument contentsDocument)
         throws CommunicationException, GatewayResponseSerializingException, NotFoundException {
 
+        dbClient.updateContents(contentsDocument);
+        this.waitAMoment(FOURTH_OF_A_SECOND);
+        var updatedContents = dbClient.getContents(contentsDocument.getIsbn());
         try {
-            dbClient.updateContents(contentsDocument);
-            this.waitAMoment(FOURTH_OF_A_SECOND);
-            var updatedContents = dbClient.getContents(contentsDocument.getIsbn());
             return dtoObjectMapper.readValue(updatedContents, ContentsDocument.class);
-        } catch (JsonProcessingException ex) {
-            throw new GatewayResponseSerializingException(ex);
+        } catch (JsonProcessingException e) {
+            logger.error(FAILED_TO_DESERIALIZE_AFTER_UPDATING, contentsDocument.getIsbn(), e);
+            throw new GatewayResponseSerializingException(e);
         }
     }
 

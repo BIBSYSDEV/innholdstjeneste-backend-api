@@ -3,7 +3,6 @@ package no.unit.bibs.contents;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.concurrent.ConcurrentHashMap;
 import no.unit.bibs.contents.exception.CommunicationException;
-import nva.commons.apigateway.exceptions.BadGatewayException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -38,6 +37,7 @@ public class DBClient {
     public static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
     public static final String TABLE_NAME = "TABLE_NAME";
     public static final String PRIMARYKEY_ISBN = "isbn";
+    private static final String DOCUMENT_CREATED_SUCCESSFULLY = "ContentsDocument with ISBN {} created successfully.";
 
     private static String tableName;
     private DynamoDbClient dynamoDbClient;
@@ -75,7 +75,6 @@ public class DBClient {
      * @param document the document to be inserted
      * @throws CommunicationException when something goes wrong
      */
-    @SuppressWarnings("PMD.ExceptionAsFlowControl")
     public void createContents(ContentsDocument document) throws CommunicationException {
         try {
             var putItemRequest = PutItemRequest
@@ -83,15 +82,8 @@ public class DBClient {
                     .tableName(tableName)
                     .item(this.generateItemMap(document))
                     .build();
-            var response = dynamoDbClient.putItem(putItemRequest);
-            if (isNull(response.sdkHttpResponse())) {
-                throw new BadGatewayException("No response from DynamoDB");
-            }
-            if (!response.sdkHttpResponse().isSuccessful()) {
-                throw new BadGatewayException("Failed to create ContentsDocument: "
-                                              + response.sdkHttpResponse().statusCode());
-            }
-            logger.info("ContentsDocument with ISBN {} created successfully.", document.getIsbn());
+            dynamoDbClient.putItem(putItemRequest);
+            logger.info(DOCUMENT_CREATED_SUCCESSFULLY, document.getIsbn());
         } catch (Exception e) {
             throw new CommunicationException("Creation error: " + e.getMessage(), e);
         }
@@ -145,7 +137,7 @@ public class DBClient {
                     return parseAttributeValueMap(returnedItem);
                 }
             }
-            logger.info(String.format("No item found with the isbn %s!", isbn));
+            logger.info("No item found with the isbn {}", isbn);
             throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
         } catch (DynamoDbException | JsonProcessingException e) {
             logger.error(e.getMessage());
