@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 public class GetContentsApiHandlerTest {
 
-    public static final String SAMPLE_SEARCH_TERM = "searchTerm";
+    public static final String QUERY_PARAM_ISBN = "12345678";
     public static final String COGNITO_AUTHORIZER_URLS = "COGNITO_AUTHORIZER_URLS";
     private RequestInfo requestInfo;
     private DBClient dbClient;
@@ -58,7 +58,7 @@ public class GetContentsApiHandlerTest {
         var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
 
         when(requestInfo.getQueryParameter(anyString()))
-            .thenReturn(SAMPLE_SEARCH_TERM);
+            .thenReturn(QUERY_PARAM_ISBN);
         when(dbClient.getContents(anyString()))
             .thenReturn(contents);
 
