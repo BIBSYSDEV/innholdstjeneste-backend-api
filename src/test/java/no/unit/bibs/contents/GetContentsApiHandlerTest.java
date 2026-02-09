@@ -87,7 +87,7 @@ public class GetContentsApiHandlerTest {
     }
 
     @Test
-    void shouldThrowSerializingExceptionWhenContentFoundCouldNotBeDeserialized() throws IOException,
+    void shouldThrowInternalErrorExceptionWhenContentFoundCouldNotBeDeserialized() throws IOException,
                                                                                         NotFoundException {
         var queryParams = Map.of(ISBN, QUERY_PARAM_ISBN);
         doReturn("invalid-json").when(dbClient).getContents(QUERY_PARAM_ISBN);

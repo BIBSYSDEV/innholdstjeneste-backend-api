@@ -10,6 +10,7 @@ import no.unit.bibs.contents.exception.CommunicationException;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.exceptions.GatewayResponseSerializingException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.ioutils.IoUtils;
@@ -150,6 +151,42 @@ class UpdateContentsApiHandlerTest {
         assertThat(responseBody, equalTo(contentsDocument));
         assertThat(responseBody.getIsbn(), equalTo(contentsDocument.getIsbn()));
         assertThat(responseBody.getDescriptionLong(), equalTo(contentsDocument.getDescriptionLong()));
+    }
+
+    @Test
+    void shouldThrowConflictErrorCausedByInternalErrorExceptionWhenContentsDocumentFailedToDeserializeOnUpdate()
+        throws Exception {
+
+        var contents = getContentsString();
+        var contentsDocument = getContentsDocument(contents);
+        var contentsRequest = new ContentsRequest(contentsDocument);
+
+        when(dbClient.getContents(anyString())).thenReturn(contents).thenReturn("invalid-json");
+
+        var response = sendQuery(contentsRequest);
+
+        verify(dbClient, times(0)).createContents(contentsDocument);
+        verify(dbClient, times(1)).updateContents(contentsDocument);
+        assertThat(response.getStatusCode(), equalTo(HTTP_CONFLICT));
+        assertThat(response.getBody(), containsString(GatewayResponseSerializingException.ERROR_MESSAGE));
+    }
+
+    @Test
+    void shouldThrowConflictErrorCausedByInternalErrorExceptionWhenContentsDocumentFailedToDeserializeOnCreation()
+        throws Exception {
+
+        var contents = getContentsString();
+        var contentsDocument = getContentsDocument(contents);
+        var contentsRequest = new ContentsRequest(contentsDocument);
+
+        when(dbClient.getContents(anyString())).thenReturn(null).thenReturn("invalid-json");
+
+        var response = sendQuery(contentsRequest);
+
+        verify(dbClient, times(0)).updateContents(contentsDocument);
+        verify(dbClient, times(1)).createContents(contentsDocument);
+        assertThat(response.getStatusCode(), equalTo(HTTP_CONFLICT));
+        assertThat(response.getBody(), containsString(GatewayResponseSerializingException.ERROR_MESSAGE));
     }
 
     @Test

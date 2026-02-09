@@ -134,7 +134,7 @@ public class CreateContentsApiHandlerTest {
     }
 
     @Test
-    void shouldThrowBadRequestExceptionWhenContentsDocumentFailedToDeserialize() throws Exception {
+    void shouldThrowInternalErrorExceptionWhenContentsDocumentFailedToDeserialize() throws Exception {
         var contents = getContentsString();
         var contentsDocument = getContentsDocument(contents);
         var contentsRequest = new ContentsRequest(contentsDocument);
