@@ -37,21 +37,22 @@ dependencies {
     implementation group: 'software.amazon.awssdk', name: 'dynamodb', version: '2.34.2'
     implementation group: 'software.amazon.awssdk', name: 's3', version: '2.31.78'
     implementation group: 'software.amazon.awssdk', name: 'aws-core', version: '2.34.2'
-    implementation group: 'software.amazon.awssdk', name: 'http-client-spi', version: '2.34.2'
     implementation group: 'software.amazon.awssdk', name: 'regions', version: '2.34.2'
     implementation group: 'software.amazon.awssdk', name: 'sdk-core', version: '2.34.2'
 
     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.14.0'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.18.0'
 
-    implementation group: 'com.github.bibsysdev', name: 'json', version: '2.3.15'
-    implementation group: 'com.github.bibsysdev', name: 'core', version: '2.3.15'
-    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '2.3.15'
+    implementation group: 'com.github.bibsysdev', name: 'json', version: '2.3.18'
+    implementation group: 'com.github.bibsysdev', name: 'core', version: '2.3.18'
+    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '2.3.18'
 
+    testImplementation group: 'com.github.bibsysdev', name: 'nvatestutils', version: '2.3.18'
+    testImplementation group: 'software.amazon.awssdk', name: 'http-client-spi', version: '2.34.2'
+    testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '3.0'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.20.0'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '6.0.2'
-    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter', version: '6.0.2'
-    testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: '6.0.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.14.1'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.14.1'
 
 }
 
