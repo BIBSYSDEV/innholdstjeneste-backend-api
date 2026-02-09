@@ -32,10 +32,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class UpdateContentsApiHandlerTest {
@@ -73,13 +74,16 @@ class UpdateContentsApiHandlerTest {
         var contentsDocument = getContentsDocument(contents);
         var contentsRequest = new ContentsRequest(contentsDocument);
 
-        doNothing().when(dbClient).createContents(contentsDocument);
         when(dbClient.getContents(anyString())).thenReturn(null).thenReturn(contents);
 
         var response = sendQuery(contentsRequest);
+
+        verify(dbClient, times(1)).createContents(contentsDocument);
+        verify(dbClient, times(0)).updateContents(contentsDocument);
+        assertThat(response.getStatusCode(), equalTo(HTTP_CREATED));
+
         var responseBody = response.getBodyObject(ContentsDocument.class);
 
-        assertThat(response.getStatusCode(), equalTo(HTTP_CREATED));
         assertThat(responseBody, equalTo(contentsDocument));
         assertThat(responseBody.getIsbn(), equalTo(contentsDocument.getIsbn()));
         assertThat(responseBody.getDescriptionLong(), equalTo(contentsDocument.getDescriptionLong()));
@@ -93,13 +97,16 @@ class UpdateContentsApiHandlerTest {
         var contentsDocument = getContentsDocument(contents);
         var contentsRequest = new ContentsRequest(contentsDocument);
 
-        doNothing().when(dbClient).createContents(contentsDocument);
         when(dbClient.getContents(anyString())).thenThrow(NotFoundException.class).thenReturn(contents);
 
         var response = sendQuery(contentsRequest);
+
+        verify(dbClient, times(1)).createContents(contentsDocument);
+        verify(dbClient, times(0)).updateContents(contentsDocument);
+        assertThat(response.getStatusCode(), equalTo(HTTP_CREATED));
+
         var responseBody = response.getBodyObject(ContentsDocument.class);
 
-        assertThat(response.getStatusCode(), equalTo(HTTP_CREATED));
         assertThat(responseBody, equalTo(contentsDocument));
         assertThat(responseBody.getIsbn(), equalTo(contentsDocument.getIsbn()));
         assertThat(responseBody.getDescriptionLong(), equalTo(contentsDocument.getDescriptionLong()));
@@ -130,13 +137,16 @@ class UpdateContentsApiHandlerTest {
         var contentsDocument = getContentsDocument(contents);
         var contentsRequest = new ContentsRequest(contentsDocument);
 
-        doNothing().when(dbClient).createContents(contentsDocument);
         when(dbClient.getContents(anyString())).thenReturn(contents);
 
         var response = sendQuery(contentsRequest);
+
+        verify(dbClient, times(0)).createContents(contentsDocument);
+        verify(dbClient, times(1)).updateContents(contentsDocument);
+        assertThat(response.getStatusCode(), equalTo(HTTP_CREATED));
+
         var responseBody = response.getBodyObject(ContentsDocument.class);
 
-        assertThat(response.getStatusCode(), equalTo(HTTP_CREATED));
         assertThat(responseBody, equalTo(contentsDocument));
         assertThat(responseBody.getIsbn(), equalTo(contentsDocument.getIsbn()));
         assertThat(responseBody.getDescriptionLong(), equalTo(contentsDocument.getDescriptionLong()));
