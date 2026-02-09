@@ -20,16 +20,17 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Path;
 import java.util.Map;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static no.unit.bibs.contents.ContentsRequest.DOCUMENT_JSON_NOT_VALID;
 import static no.unit.bibs.contents.ContentsRequest.MALFORMED_JSON_PAYLOAD;
-import static no.unit.bibs.contents.GetContentsApiHandler.ISBN;
+import static no.unit.bibs.contents.CreateContentsApiHandler.NO_PARAMETERS_GIVEN_TO_HANDLER;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
@@ -120,22 +121,22 @@ public class CreateContentsApiHandlerTest {
     }
 
     @Test
-    void handlerThrowsExceptionWithEmptyRequest() {
-        var exception =
-            assertThrows(BadRequestException.class,
-                () -> handler.validateRequest(null, requestInfo, context));
-        assertTrue(exception.getMessage().contains(CreateContentsApiHandler.NO_PARAMETERS_GIVEN_TO_HANDLER));
+    void shouldThrowBadRequestExceptionWithEmptyRequest() throws IOException {
+        var response = sendQuery(null);
+
+        assertThat(response.getStatusCode(), equalTo(HTTP_BAD_REQUEST));
+        assertThat(response.getBody(), containsString(NO_PARAMETERS_GIVEN_TO_HANDLER));
     }
 
     @Test
-    public void shouldThrowExceptionOnMalformedPayload() {
+    public void shouldThrowBadRequestExceptionOnMalformedPayload() throws IOException {
         var contentsRequest = mock(ContentsRequest.class);
         doReturn(null).when(contentsRequest).getContents();
 
-        var exception = assertThrows(BadRequestException.class,
-                                     () -> handler.validateRequest(contentsRequest, requestInfo, context));
+        var response = sendQuery(contentsRequest);
 
-        assertTrue(exception.getMessage().contains(MALFORMED_JSON_PAYLOAD));
+        assertThat(response.getStatusCode(), equalTo(HTTP_BAD_REQUEST));
+        assertThat(response.getBody(), containsString(MALFORMED_JSON_PAYLOAD));
     }
 
     @Test
