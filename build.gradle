@@ -28,8 +28,6 @@ wrapper {
 dependencies {
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.25.2'
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.25.2'
 
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.19.1'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.19.1'
@@ -39,7 +37,6 @@ dependencies {
     implementation group: 'software.amazon.awssdk', name: 'dynamodb', version: '2.34.2'
     implementation group: 'software.amazon.awssdk', name: 's3', version: '2.31.78'
     implementation group: 'software.amazon.awssdk', name: 'aws-core', version: '2.34.2'
-    implementation group: 'software.amazon.awssdk', name: 'http-client-spi', version: '2.34.2'
     implementation group: 'software.amazon.awssdk', name: 'regions', version: '2.34.2'
     implementation group: 'software.amazon.awssdk', name: 'sdk-core', version: '2.34.2'
 
@@ -51,6 +48,7 @@ dependencies {
     implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '2.3.18'
     implementation group: 'com.github.bibsysdev', name: 'nvatestutils', version: '2.3.18'
 
+    testImplementation group: 'software.amazon.awssdk', name: 'http-client-spi', version: '2.34.2'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.20.0'
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.14.1'
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.14.1'
