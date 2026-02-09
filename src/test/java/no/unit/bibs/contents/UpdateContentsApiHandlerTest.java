@@ -20,7 +20,6 @@ import static no.unit.bibs.contents.ContentsDocument.ISBN;
 import static no.unit.bibs.contents.ContentsRequest.DOCUMENT_JSON_NOT_VALID;
 import static no.unit.bibs.contents.ContentsRequest.MALFORMED_JSON_PAYLOAD;
 import static no.unit.bibs.contents.CreateContentsApiHandlerTest.TEST_ISBN;
-import static no.unit.bibs.contents.GetContentsApiHandlerTest.COGNITO_AUTHORIZER_URLS;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static nva.commons.core.StringUtils.EMPTY_STRING;
@@ -35,6 +34,7 @@ import static org.mockito.Mockito.when;
 class UpdateContentsApiHandlerTest {
 
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
+    private static final String COGNITO_AUTHORIZER_URLS = "COGNITO_AUTHORIZER_URLS";
 
     private RequestInfo requestInfo;
     private DBClient dbClient;

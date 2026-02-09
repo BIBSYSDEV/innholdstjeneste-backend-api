@@ -1,6 +1,7 @@
 package no.unit.bibs.contents;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
@@ -21,6 +22,7 @@ import java.util.Map;
 import no.unit.nva.commons.json.JsonUtils;
 import no.unit.nva.testutils.HandlerRequestBuilder;
 import nva.commons.apigateway.GatewayResponse;
+import nva.commons.apigateway.exceptions.GatewayResponseSerializingException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.ioutils.IoUtils;
@@ -81,6 +83,18 @@ public class GetContentsApiHandlerTest {
 
         assertThat(response.getStatusCode(), equalTo(HTTP_BAD_REQUEST));
         assertThat(response.getBody(), containsString(MISSING_REQUIRED_QUERY_PARAMETER_ISBN));
+    }
+
+    @Test
+    void shouldThrowSerializingExceptionWhenContentFoundCouldNotBeDeserialized() throws IOException,
+                                                                                        NotFoundException {
+        var queryParams = Map.of("isbn", QUERY_PARAM_ISBN);
+        doReturn("invalid-json").when(dbClient).getContents(QUERY_PARAM_ISBN);
+
+        var response = sendQuery(queryParams);
+
+        assertThat(response.getStatusCode(), equalTo(HTTP_INTERNAL_ERROR));
+        assertThat(response.getBody(), containsString(GatewayResponseSerializingException.ERROR_MESSAGE));
     }
 
     private GatewayResponse<ContentsDocument> sendQuery(Map<String, String> queryParams) throws IOException {
