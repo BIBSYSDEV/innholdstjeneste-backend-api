@@ -46,7 +46,7 @@ class UpdateContentsApiHandlerTest {
     private UpdateContentsApiHandler handler;
 
     @BeforeEach
-    public void init() {
+    void init() {
         var environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV))
             .thenReturn("*");

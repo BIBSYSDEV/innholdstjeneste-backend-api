@@ -50,7 +50,7 @@ public class CreateContentsApiHandlerTest {
     private CreateContentsApiHandler handler;
 
     @BeforeEach
-    public void init() {
+    void init() {
         var environment = mock(Environment.class);
         when(environment.readEnv(ALLOWED_ORIGIN_ENV)).thenReturn("*");
         when(environment.readEnv("DYNAMODB_TABLE_NAME_ENV"))
@@ -134,7 +134,7 @@ public class CreateContentsApiHandlerTest {
     }
 
     @Test
-    public void shouldThrowBadRequestExceptionWhenContentsDocumentFailedToDeserialize() throws Exception {
+    void shouldThrowBadRequestExceptionWhenContentsDocumentFailedToDeserialize() throws Exception {
         var contents = getContentsString();
         var contentsDocument = getContentsDocument(contents);
         var contentsRequest = new ContentsRequest(contentsDocument);
