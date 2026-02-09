@@ -28,6 +28,8 @@ wrapper {
 dependencies {
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.25.2'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.25.2'
 
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.19.1'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.19.1'
@@ -44,14 +46,14 @@ dependencies {
     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.14.0'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.18.0'
 
-    implementation group: 'com.github.bibsysdev', name: 'json', version: '2.3.15'
-    implementation group: 'com.github.bibsysdev', name: 'core', version: '2.3.15'
-    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '2.3.15'
+    implementation group: 'com.github.bibsysdev', name: 'json', version: '2.3.18'
+    implementation group: 'com.github.bibsysdev', name: 'core', version: '2.3.18'
+    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '2.3.18'
+    implementation group: 'com.github.bibsysdev', name: 'nvatestutils', version: '2.3.18'
 
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.20.0'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '6.0.2'
-    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter', version: '6.0.2'
-    testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: '6.0.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.14.1'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.14.1'
 
 }
 
