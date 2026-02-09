@@ -111,8 +111,6 @@ public class CreateContentsApiHandlerTest {
     void shouldThrowBadRequestExceptionWhenInvalidContentsDocument() throws Exception {
         var contents = getContentsString().replace(TEST_ISBN, EMPTY_STRING);
         var contentsDocument = getContentsDocument(contents);
-        doNothing().when(dbClient).createContents(contentsDocument);
-        when(dbClient.getContents(anyString())).thenReturn(contents);
         var contentsRequest = new ContentsRequest(contentsDocument);
 
         var response = sendQuery(contentsRequest);
