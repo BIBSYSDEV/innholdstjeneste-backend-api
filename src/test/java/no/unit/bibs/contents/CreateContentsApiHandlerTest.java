@@ -81,14 +81,8 @@ public class CreateContentsApiHandlerTest {
     }
 
     @Test
-    void getSuccessStatusCodeReturnsOK() {
-        var statusCode = handler.getSuccessStatusCode(null, null);
-        assertEquals(HTTP_CREATED, statusCode);
-    }
-
-    @Test
-    void handlerReturnsSearchResultsWhenQueryIsSingleTerm() throws ApiGatewayException, IOException {
-        var queryParams = Map.of(ISBN, TEST_ISBN);
+    void shouldCreateContentsRequestResourceFromInputAndReturnHttpCodeCreated() throws ApiGatewayException,
+                                                                                       IOException {
         var contents = getContentsString();
         var contentsDocument = getContentsDocument(contents);
         var contentsRequest = new ContentsRequest(contentsDocument);
@@ -96,7 +90,7 @@ public class CreateContentsApiHandlerTest {
         doNothing().when(dbClient).createContents(contentsDocument);
         when(dbClient.getContents(anyString())).thenReturn(contents);
 
-        var response = sendQuery(queryParams, contentsRequest);
+        var response = sendQuery(contentsRequest);
         var responseBody = response.getBodyObject(ContentsDocument.class);
 
         assertThat(response.getStatusCode(), equalTo(HTTP_CREATED));
@@ -155,21 +149,20 @@ public class CreateContentsApiHandlerTest {
         assertTrue(exception.getMessage().contains(DOCUMENT_JSON_NOT_VALID));
     }
 
-    private GatewayResponse<ContentsDocument> sendQuery(Map<String, String> queryParams, ContentsRequest body)
+    private GatewayResponse<ContentsDocument> sendQuery(ContentsRequest body)
         throws IOException {
 
-        var input = requestWithQueryParameters(queryParams, body);
+        var input = requestWithQueryParameters(body);
         handler.handleRequest(input, output, context);
 
         return GatewayResponse.fromOutputStream(output, ContentsDocument.class);
     }
 
-    private InputStream requestWithQueryParameters(Map<String, String> map, ContentsRequest body)
+    private InputStream requestWithQueryParameters(ContentsRequest body)
         throws JsonProcessingException {
 
         return new HandlerRequestBuilder<ContentsRequest>(OBJECT_MAPPER)
                    .withBody(body)
-                   .withQueryParameters(map)
                    .build();
     }
 
