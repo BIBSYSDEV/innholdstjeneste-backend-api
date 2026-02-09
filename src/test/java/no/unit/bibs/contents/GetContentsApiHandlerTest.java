@@ -3,6 +3,7 @@ package no.unit.bibs.contents;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_OK;
+import static no.unit.bibs.contents.GetContentsApiHandler.ISBN;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static nva.commons.apigateway.ApiGatewayHandler.ALLOWED_ORIGIN_ENV;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -60,7 +61,7 @@ public class GetContentsApiHandlerTest {
 
     @Test
     void shouldReturnDocumentWhenHavingValidIsbn() throws IOException, NotFoundException {
-        var queryParams = Map.of("isbn", QUERY_PARAM_ISBN);
+        var queryParams = Map.of(ISBN, QUERY_PARAM_ISBN);
 
         var contents = getContentsString();
         var contentsDocument = getContentsDocument(contents);
@@ -88,7 +89,7 @@ public class GetContentsApiHandlerTest {
     @Test
     void shouldThrowSerializingExceptionWhenContentFoundCouldNotBeDeserialized() throws IOException,
                                                                                         NotFoundException {
-        var queryParams = Map.of("isbn", QUERY_PARAM_ISBN);
+        var queryParams = Map.of(ISBN, QUERY_PARAM_ISBN);
         doReturn("invalid-json").when(dbClient).getContents(QUERY_PARAM_ISBN);
 
         var response = sendQuery(queryParams);

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.exceptions.ApiGatewayException;
-import nva.commons.apigateway.exceptions.BadRequestException;
 import nva.commons.apigateway.exceptions.GatewayResponseSerializingException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -21,7 +20,6 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
     private static final Logger logger = LoggerFactory.getLogger(GetContentsApiHandler.class);
 
     public static final String ISBN = "isbn";
-    public static final String MISSING_REQUIRED_QUERY_PARAMETER = "Missing required query parameter: ";
     private static final String GETTING_CONTENT_FOR_ISBN = "Getting content for isbn {}";
     private static final String CONTENT_FOUND = "Content found: {}";
     private static final String COULD_NOT_DESERIALIZE_CONTENT = "Could not deserialize content for isbn {}. Error: {}";
@@ -46,9 +44,7 @@ public class GetContentsApiHandler extends ApiGatewayHandler<Void, ContentsDocum
 
     @Override
     protected void validateRequest(Void input, RequestInfo requestInfo, Context context) throws ApiGatewayException {
-        if (requestInfo.getQueryParameter(ISBN) == null) {
-            throw new BadRequestException(MISSING_REQUIRED_QUERY_PARAMETER + ISBN);
-        }
+        requestInfo.getQueryParameter(ISBN);
     }
 
     /**
