@@ -1,8 +1,15 @@
 package no.unit.bibs.contents;
 
+import java.io.ByteArrayInputStream;
+import java.net.URI;
+import no.unit.bibs.contents.exception.CommunicationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -11,8 +18,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class S3ConnectionTest {
@@ -40,11 +52,49 @@ public class S3ConnectionTest {
     @Test
     void generatePresignedWriteUrl() throws MalformedURLException {
         var presignedPutObjectRequest = mock(PresignedPutObjectRequest.class);
-        when(presignedPutObjectRequest.url()).thenReturn(new URL(SAMPLE_PRESIGNED_S3_WRITE_URL));
+        when(presignedPutObjectRequest.url()).thenReturn(presignedS3Url());
         when(s3Presigner.presignPutObject((PutObjectPresignRequest) any()))
                 .thenReturn(presignedPutObjectRequest);
         var url = s3Connection
                 .generatePresignedWriteUrl(SAMPLE_OBJECT_NAME, SAMPLE_FILE_NAME, SAMPLE_MIME_TYPE);
         assertNotNull(url);
     }
+
+    @Test
+    void shouldPutObjectInS3WhenUploadingFile() {
+        var putResponse = mock(PutObjectResponse.class);
+
+        doReturn("etag").when(putResponse).eTag();
+        doReturn(putResponse).when(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+
+        var bytes = new byte[0];
+        var objectName = "testobjectname";
+        var filename = "testfilename";
+        var mimeType = "testmime/type";
+
+        s3Connection.uploadFile(bytes, objectName, filename, mimeType);
+
+        verify(s3Client, times(1))
+            .putObject(any(PutObjectRequest.class), any(RequestBody.class));
+    }
+
+    @Test
+    void shouldHandleExceptionWhenPutObjectInS3Fails() {
+        var putResponse = mock(PutObjectResponse.class);
+
+        doReturn("etag").when(putResponse).eTag();
+        doThrow(S3Exception.class).when(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+
+        var bytes = new byte[0];
+        var objectName = "testobjectname";
+        var filename = "testfilename";
+        var mimeType = "testmime/type";
+
+        assertThrows(S3Exception.class, () -> s3Connection.uploadFile(bytes, objectName, filename, mimeType));
+    }
+
+    private URL presignedS3Url() throws MalformedURLException {
+        return URI.create(SAMPLE_PRESIGNED_S3_WRITE_URL).toURL();
+    }
+
 }
