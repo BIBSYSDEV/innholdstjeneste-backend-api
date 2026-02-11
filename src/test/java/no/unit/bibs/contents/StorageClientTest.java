@@ -8,6 +8,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.net.http.HttpClient;
@@ -23,6 +25,7 @@ public class StorageClientTest {
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     public static final String CREATE_CONTENTS_EVENT_ALL_VALUES = "createContentsEventForS3.json";
     public static final String CREATE_CONTENTS_BASE_64_EVENT = "createContentBase64EncodedImage.json";
+    public static final String CREATE_CONTENTS_EVENT_SINGLE_FILE_VALUE = "createContentsEventSingleS3File.json";
 
     private StorageClient storageClient;
     private S3Connection s3Connection;
@@ -119,7 +122,7 @@ public class StorageClientTest {
     }
 
     @Test
-    void shouldHandlerNonSuccessfulHttpResponseBeforeUploadingToS3()
+    void shouldNotUploadToS3WhenNonSuccessfulFetchHttpResource()
         throws IOException, InterruptedException {
 
         doReturn(200).when(httpResponse).statusCode();
@@ -131,10 +134,43 @@ public class StorageClientTest {
 
         storageClient = new StorageClient(s3Connection,  httpClient);
 
-        var contents = getContents(CREATE_CONTENTS_EVENT_ALL_VALUES);
+        var contents = getContents(CREATE_CONTENTS_EVENT_SINGLE_FILE_VALUE)
+                           .replace("https://....www.example.com/image-original.jpg",
+                                    "https://www.example.com/image-original.jpg");
         var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
 
         storageClient.handleFiles(contentsDocument);
+
+        verify(s3Connection, times(0)).uploadFile(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldNotUploadToS3WhenNonSuccessfulHttpResponseOnDownloadableFileCheck()
+        throws IOException, InterruptedException {
+
+        doReturn(500).when(httpResponse).statusCode();
+        doReturn(httpResponse).when(httpClient).send(any(), any(HttpResponse.BodyHandlers.discarding().getClass()));
+
+        storageClient = new StorageClient(s3Connection,  httpClient);
+
+        var contents = getContents(CREATE_CONTENTS_EVENT_SINGLE_FILE_VALUE)
+                           .replace("https://....www.example.com/image-original.jpg",
+                                    "https://www.example.com/image-original.jpg");
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+
+        storageClient.handleFiles(contentsDocument);
+
+        verify(s3Connection, times(0)).uploadFile(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldNotUploadToS3FilesThatAreNotHttpSchemeLinks() throws IOException {
+        var contents = getContents(CREATE_CONTENTS_EVENT_SINGLE_FILE_VALUE).replace("https", "ftp");
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+
+        storageClient.handleFiles(contentsDocument);
+
+        verify(s3Connection, times(0)).uploadFile(any(), any(), any(), any());
     }
 
     @SuppressWarnings("unchecked")

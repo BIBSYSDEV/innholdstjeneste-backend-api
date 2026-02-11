@@ -78,6 +78,7 @@ public class StorageClient {
             Matcher matcher = base64Pattern.matcher(input);
             return matcher.matches();
         } else {
+            // Unreachable dead code
             return false;
         }
     }
