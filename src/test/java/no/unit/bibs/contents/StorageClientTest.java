@@ -1,29 +1,35 @@
 package no.unit.bibs.contents;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
 import java.nio.file.Path;
 
 import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-
-
 public class StorageClientTest {
 
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
+    public static final String CREATE_CONTENTS_EVENT_ALL_VALUES = "createContentsEventForS3.json";
     public static final String CREATE_CONTENTS_BASE_64_EVENT = "createContentBase64EncodedImage.json";
 
     private StorageClient storageClient;
     private S3Connection s3Connection;
+    @SuppressWarnings("all")
+    private HttpResponse httpResponse;
+    private HttpClient httpClient;
 
 
     /**
@@ -32,7 +38,11 @@ public class StorageClientTest {
     @BeforeEach
     public void init() {
         s3Connection = mock(S3Connection.class);
-        storageClient = new StorageClient(s3Connection);
+        httpClient = mock(HttpClient.class);
+        httpResponse = mock(HttpResponse.class);
+        doNothing().when(s3Connection).uploadFile(any(), any(), any(), any());
+
+        storageClient = new StorageClient(s3Connection,  httpClient);
     }
 
     @Test
@@ -42,9 +52,8 @@ public class StorageClientTest {
 
     @Test
     void testHandleFilesWithBase64EncodedImageSmall() throws IOException {
-        var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        var contentsBase64Encoded = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_BASE_64_EVENT));
-        doNothing().when(s3Connection).uploadFile(any(byte[].class), anyString(), anyString(), anyString());
+        var contents = getContents(CREATE_CONTENTS_EVENT);
+        var contentsBase64Encoded = getContents(CREATE_CONTENTS_BASE_64_EVENT);
         var contentsDocument = dtoObjectMapper.readValue(contentsBase64Encoded, ContentsDocument.class);
         storageClient.handleFiles(contentsDocument);
         assertEquals(dtoObjectMapper.readValue(contents, ContentsDocument.class), contentsDocument);
@@ -52,7 +61,7 @@ public class StorageClientTest {
 
     @Test
     void testUpdateDocumentContent() throws IOException {
-        var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        var contents = getContents(CREATE_CONTENTS_EVENT);
         var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         var mockObjectKey = "blablah";
         storageClient.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, StorageClient.SMALL);
@@ -63,6 +72,71 @@ public class StorageClientTest {
         assertEquals(mockObjectKey, contentsDocument.getImageOriginal());
         storageClient.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, StorageClient.MP3);
         assertEquals(mockObjectKey, contentsDocument.getAudioFile());
+        storageClient.updateContentDocumentWithObjectKey(contentsDocument, mockObjectKey, "SomethingElse");
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void shouldHandleDifferentTypeOfContentGettingCorrectS3KeyWhenUploadingToS3()
+        throws IOException, InterruptedException {
+
+
+        //var byteResponse = createMockHttpByteResponse();
+
+        doReturn(200).when(httpResponse).statusCode();
+
+        doReturn(httpResponse).when(httpClient).send(any(), any(HttpResponse.BodyHandlers.discarding().getClass()));
+        doReturn(createMockHttpByteResponse())
+            .when(httpClient)
+            .send(any(), any(HttpResponse.BodyHandlers.ofByteArray().getClass()));
+
+        storageClient = new StorageClient(s3Connection,  httpClient);
+
+        var contents = getContents(CREATE_CONTENTS_EVENT_ALL_VALUES);
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+
+        storageClient.handleFiles(contentsDocument);
+
+        assertThat(contentsDocument.getImageSmall(), equalTo("files/images/small/7/4/9788205377547.jpg"));
+        assertThat(contentsDocument.getImageLarge(), equalTo("files/images/large/7/4/9788205377547.jpg"));
+        assertThat(contentsDocument.getImageOriginal(), equalTo("files/images/original/7/4/9788205377547.jpg"));
+        assertThat(contentsDocument.getAudioFile(), equalTo("files/audio/mp3/7/4/9788205377547.mp3"));
+    }
+
+    @SuppressWarnings("unchecked")
+    private HttpResponse<byte[]> createMockHttpByteResponse() {
+        var byteResponse = mock(HttpResponse.class);
+        doReturn(200).when(byteResponse).statusCode();
+        doReturn(new byte[0]).when(httpResponse).body();
+
+        return byteResponse;
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void shouldNotProcessFileThatIsNotDownloadable() throws Exception {
+
+        doReturn(200).when(httpResponse).statusCode();
+        doReturn(httpResponse).when(httpClient).send(any(), any(HttpResponse.BodyHandlers.discarding().getClass()));
+
+        doReturn(createMockHttpByteResponse())
+            .when(httpClient)
+            .send(any(), any(HttpResponse.BodyHandlers.ofByteArray().getClass()));
+
+        storageClient = new StorageClient(s3Connection,  httpClient);
+
+        var contents = getContents(CREATE_CONTENTS_EVENT_ALL_VALUES)
+                           .replace("https://www.example.com/image-large.jpg",
+                                    "https://....www.example.com/image-large.jpg");
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+
+        storageClient.handleFiles(contentsDocument);
+
+        assertThat(contentsDocument.getImageLarge(), equalTo(null)); // No longer there after processing
+        assertThat(contentsDocument.getImageSmall(), equalTo("files/images/small/7/4/9788205377547.jpg")); // Still here
+    }
+
+    private String getContents(String path) {
+        return IoUtils.stringFromResources(Path.of(path));
+    }
 }
