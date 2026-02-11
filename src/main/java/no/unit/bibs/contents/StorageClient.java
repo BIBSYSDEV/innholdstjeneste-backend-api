@@ -261,32 +261,34 @@ public class StorageClient {
         String firstLinkPart = isbn.substring(isbn.length() - 1);
 
         String objectKey = String.format(OBJECT_KEY_TEMPLATE, type, subtype, firstLinkPart, secondLinkPart, fileName);
+
         s3Connection.uploadFile(
                 bytesArray,
                 objectKey,
                 fileName,
                 mimeType
         );
+
         return objectKey;
     }
 
     protected String putFileS3(String isbn, String url, String type, String subtype, String fileExtension,
                                String mimeType) throws IOException, InterruptedException {
         String fileName = String.format(FILE_NAME_TEMPLATE, isbn, fileExtension);
-        URI downloadUri;
-        try {
-            downloadUri = URI.create(url);
-        } catch (IllegalArgumentException e) {
-            logger.error(String.format(ERROR_DOWNLOADING_FILE, isbn, url, fileName, type, e.getMessage()));
-            throw new MalformedURLException(e.getMessage());
-        }
-
         String secondLinkPart = isbn.substring(isbn.length() - 2, isbn.length() - 1);
         String firstLinkPart = isbn.substring(isbn.length() - 1);
 
         String objectKey = String.format(OBJECT_KEY_TEMPLATE, type, subtype, firstLinkPart, secondLinkPart, fileName);
 
-        var request = createHttpGetRequest(downloadUri);
+        HttpRequest request;
+        try {
+            var downloadUri = URI.create(url);
+            request = createHttpGetRequest(downloadUri);
+        } catch (IllegalArgumentException e) {
+            logger.error(String.format(ERROR_DOWNLOADING_FILE, isbn, url, fileName, type, e.getMessage()));
+            throw new MalformedURLException(e.getMessage());
+        }
+
         var response = fetchByteArrayResponse(request);
 
         s3Connection.uploadFile(

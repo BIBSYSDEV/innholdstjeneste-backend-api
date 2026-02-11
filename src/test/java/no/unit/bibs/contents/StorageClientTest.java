@@ -2,8 +2,10 @@ package no.unit.bibs.contents;
 
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -12,6 +14,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
@@ -122,6 +125,7 @@ public class StorageClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void shouldNotUploadToS3WhenNonSuccessfulFetchHttpResource()
         throws IOException, InterruptedException {
 
@@ -145,6 +149,7 @@ public class StorageClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void shouldNotUploadToS3WhenNonSuccessfulHttpResponseOnDownloadableFileCheck()
         throws IOException, InterruptedException {
 
@@ -171,6 +176,18 @@ public class StorageClientTest {
         storageClient.handleFiles(contentsDocument);
 
         verify(s3Connection, times(0)).uploadFile(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldThrowExceptionOnInvalidUrlWhenCallingPutFileS3Directly() {
+        var exception = assertThrows(MalformedURLException.class, () -> storageClient.putFileS3("12345678",
+                                                                                                "im-not-an-url",
+                                                                                                "type",
+                                                                                                "subtype",
+                                                                                                "extension",
+                                                                                                "mime"));
+
+        assertThat(exception.getMessage(), containsString("URI with undefined scheme"));
     }
 
     @SuppressWarnings("unchecked")
