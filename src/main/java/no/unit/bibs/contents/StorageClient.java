@@ -270,7 +270,7 @@ public class StorageClient {
     }
 
     protected String putFileS3(String isbn, String url, String type, String subtype, String fileExtension,
-                               String mimeType) throws IOException {
+                               String mimeType) throws IOException, InterruptedException {
         String fileName = String.format(FILE_NAME_TEMPLATE, isbn, fileExtension);
         URI downloadUri;
         try {
@@ -305,16 +305,12 @@ public class StorageClient {
                    .build();
     }
 
-    private HttpResponse<byte[]> fetchByteArrayResponse(HttpRequest request) {
-        try {
-            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            if (response.statusCode() >= BEGINNING_NON_SUCCESSUL_STATUS_CODES) {
-                throw new RuntimeException(NON_SUCCESSFUL_STATUS_CODE + response.statusCode());
-            }
-            return response;
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e.getMessage());
+    private HttpResponse<byte[]> fetchByteArrayResponse(HttpRequest request) throws IOException, InterruptedException {
+        var response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        if (response.statusCode() >= BEGINNING_NON_SUCCESSUL_STATUS_CODES) {
+            throw new IOException(NON_SUCCESSFUL_STATUS_CODE + response.statusCode());
         }
+        return response;
     }
 
 }

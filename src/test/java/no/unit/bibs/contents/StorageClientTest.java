@@ -4,7 +4,6 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -46,11 +45,6 @@ public class StorageClientTest {
     }
 
     @Test
-    public void constructorWithEnvironmentDefinedShouldCreateInstance() {
-        assertNotNull(storageClient);
-    }
-
-    @Test
     void testHandleFilesWithBase64EncodedImageSmall() throws IOException {
         var contents = getContents(CREATE_CONTENTS_EVENT);
         var contentsBase64Encoded = getContents(CREATE_CONTENTS_BASE_64_EVENT);
@@ -80,13 +74,10 @@ public class StorageClientTest {
     void shouldHandleDifferentTypeOfContentGettingCorrectS3KeyWhenUploadingToS3()
         throws IOException, InterruptedException {
 
-
-        //var byteResponse = createMockHttpByteResponse();
-
         doReturn(200).when(httpResponse).statusCode();
 
         doReturn(httpResponse).when(httpClient).send(any(), any(HttpResponse.BodyHandlers.discarding().getClass()));
-        doReturn(createMockHttpByteResponse())
+        doReturn(createMockHttpByteResponse(200))
             .when(httpClient)
             .send(any(), any(HttpResponse.BodyHandlers.ofByteArray().getClass()));
 
@@ -103,15 +94,6 @@ public class StorageClientTest {
         assertThat(contentsDocument.getAudioFile(), equalTo("files/audio/mp3/7/4/9788205377547.mp3"));
     }
 
-    @SuppressWarnings("unchecked")
-    private HttpResponse<byte[]> createMockHttpByteResponse() {
-        var byteResponse = mock(HttpResponse.class);
-        doReturn(200).when(byteResponse).statusCode();
-        doReturn(new byte[0]).when(httpResponse).body();
-
-        return byteResponse;
-    }
-
     @Test
     @SuppressWarnings("unchecked")
     void shouldNotProcessFileThatIsNotDownloadable() throws Exception {
@@ -119,7 +101,7 @@ public class StorageClientTest {
         doReturn(200).when(httpResponse).statusCode();
         doReturn(httpResponse).when(httpClient).send(any(), any(HttpResponse.BodyHandlers.discarding().getClass()));
 
-        doReturn(createMockHttpByteResponse())
+        doReturn(createMockHttpByteResponse(200))
             .when(httpClient)
             .send(any(), any(HttpResponse.BodyHandlers.ofByteArray().getClass()));
 
@@ -134,6 +116,34 @@ public class StorageClientTest {
 
         assertThat(contentsDocument.getImageLarge(), equalTo(null)); // No longer there after processing
         assertThat(contentsDocument.getImageSmall(), equalTo("files/images/small/7/4/9788205377547.jpg")); // Still here
+    }
+
+    @Test
+    void shouldHandlerNonSuccessfulHttpResponseBeforeUploadingToS3()
+        throws IOException, InterruptedException {
+
+        doReturn(200).when(httpResponse).statusCode();
+        doReturn(httpResponse).when(httpClient).send(any(), any(HttpResponse.BodyHandlers.discarding().getClass()));
+
+        doReturn(createMockHttpByteResponse(500))
+            .when(httpClient)
+            .send(any(), any(HttpResponse.BodyHandlers.ofByteArray().getClass()));
+
+        storageClient = new StorageClient(s3Connection,  httpClient);
+
+        var contents = getContents(CREATE_CONTENTS_EVENT_ALL_VALUES);
+        var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+
+        storageClient.handleFiles(contentsDocument);
+    }
+
+    @SuppressWarnings("unchecked")
+    private HttpResponse<byte[]> createMockHttpByteResponse(int statusCode) {
+        var byteResponse = mock(HttpResponse.class);
+        doReturn(statusCode).when(byteResponse).statusCode();
+        doReturn(new byte[0]).when(httpResponse).body();
+
+        return byteResponse;
     }
 
     private String getContents(String path) {
