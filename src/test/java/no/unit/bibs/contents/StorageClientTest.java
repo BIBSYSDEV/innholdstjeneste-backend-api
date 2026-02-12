@@ -170,7 +170,8 @@ public class StorageClientTest {
 
     @Test
     void shouldNotUploadToS3FilesThatAreNotHttpSchemeLinks() throws IOException {
-        var contents = getContents(CREATE_CONTENTS_EVENT_SINGLE_FILE_VALUE).replace("https", "ftp");
+        var contents = getContents(CREATE_CONTENTS_EVENT_SINGLE_FILE_VALUE).replace("https://....",
+                                                                                    "ftp://");
         var contentsDocument = dtoObjectMapper.readValue(contents, ContentsDocument.class);
 
         storageClient.handleFiles(contentsDocument);
