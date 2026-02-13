@@ -202,13 +202,8 @@ public class DBClientTest {
     @Test
     public void shouldUnescapeHtmlEntitiesWhenDocumentContainsThoseOnUpdate() throws CommunicationException,
                                                                                      JsonProcessingException {
-        var updateItemResponse = mock(UpdateItemResponse.class);
-        when(client.updateItem(any(UpdateItemRequest.class))).thenReturn(updateItemResponse);
-        Map<String, AttributeValue> returnedItem = new HashMap<>();
-        returnedItem.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(SAMPLE_TERM).build());
-        when(updateItemResponse.attributes()).thenReturn(returnedItem);
-        String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
-        ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        var contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
+        var document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
         document = spy(document);
         doReturn("Title &#65;").when(document).getTitle();
 
@@ -219,6 +214,26 @@ public class DBClientTest {
         verify(client, times(1)).updateItem(captor.capture());
 
         var capturedTitle = captor.getValue().attributeUpdates().get("title").value().s();
+
+        assertThat(capturedTitle, not(containsString("Title &#65;")));
+        assertThat(capturedTitle, containsString("Title A"));
+    }
+
+    @Test
+    public void shouldUnescapeHtmlEntitiesWhenDocumentContainsThoseOnCreation() throws CommunicationException,
+                                                                                     JsonProcessingException {
+        var contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
+        var document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        document = spy(document);
+        doReturn("Title &#65;").when(document).getTitle();
+
+        dbClient.createContents(document);
+
+        var captor = ArgumentCaptor.forClass(PutItemRequest.class);
+
+        verify(client, times(1)).putItem(captor.capture());
+
+        var capturedTitle = captor.getValue().item().get("title").s();
 
         assertThat(capturedTitle, not(containsString("Title &#65;")));
         assertThat(capturedTitle, containsString("Title A"));
