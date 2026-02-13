@@ -188,4 +188,14 @@ public class DBClientTest {
         assertThat(exception.getMessage(), containsString("Update error"));
     }
 
+    @Test
+    void shouldThrowNotFoundExceptionOnEmptyResponseFromDynamoDb() {
+        var itemResponse = mock(GetItemResponse.class);
+        doReturn(null).when(itemResponse).item();
+        when(client.getItem(any(GetItemRequest.class))).thenReturn(itemResponse);
+        var exception = assertThrows(NotFoundException.class, () -> dbClient.getContents(SAMPLE_TERM));
+
+        assertThat(exception.getMessage(), containsString(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, SAMPLE_TERM)));
+    }
+
 }
