@@ -30,6 +30,7 @@ import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -170,7 +171,7 @@ public class DBClientTest {
     }
 
     @Test
-    void shouldThrowNotFoundOnDynamoDbErrorWhenGettingContents() throws Exception {
+    void shouldThrowNotFoundOnDynamoDbErrorWhenGettingContents() {
         doThrow(DynamoDbException.class).when(client).getItem(any(GetItemRequest.class));
 
         var exception = assertThrows(NotFoundException.class, () -> dbClient.getContents(SAMPLE_TERM));
@@ -196,6 +197,31 @@ public class DBClientTest {
         var exception = assertThrows(NotFoundException.class, () -> dbClient.getContents(SAMPLE_TERM));
 
         assertThat(exception.getMessage(), containsString(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, SAMPLE_TERM)));
+    }
+
+    @Test
+    public void shouldUnescapeHtmlEntitiesWhenDocumentContainsThoseOnUpdate() throws CommunicationException,
+                                                                                     JsonProcessingException {
+        var updateItemResponse = mock(UpdateItemResponse.class);
+        when(client.updateItem(any(UpdateItemRequest.class))).thenReturn(updateItemResponse);
+        Map<String, AttributeValue> returnedItem = new HashMap<>();
+        returnedItem.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(SAMPLE_TERM).build());
+        when(updateItemResponse.attributes()).thenReturn(returnedItem);
+        String contents = IoUtils.stringFromResources(Path.of(GET_CONTENTS_JSON));
+        ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        document = spy(document);
+        doReturn("Title &#65;").when(document).getTitle();
+
+        dbClient.updateContents(document);
+
+        var captor = ArgumentCaptor.forClass(UpdateItemRequest.class);
+
+        verify(client, times(1)).updateItem(captor.capture());
+
+        var capturedTitle = captor.getValue().attributeUpdates().get("title").value().s();
+
+        assertThat(capturedTitle, not(containsString("Title &#65;")));
+        assertThat(capturedTitle, containsString("Title A"));
     }
 
 }
