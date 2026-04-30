@@ -1,11 +1,14 @@
 package no.unit.bibs.contents;
 
 import static java.util.Objects.isNull;
+import static no.unit.bibs.contents.ContentsRequest.DOCUMENT_JSON_NOT_VALID;
+import static no.unit.bibs.contents.ContentsRequest.MALFORMED_JSON_PAYLOAD;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
+import static nva.commons.core.StringUtils.isEmpty;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import no.unit.bibs.contents.exception.CommunicationException;
-import no.unit.bibs.contents.exception.ParameterException;
 import nva.commons.apigateway.ApiGatewayHandler;
 import nva.commons.apigateway.RequestInfo;
 import nva.commons.apigateway.RestRequestHandler;
@@ -16,58 +19,73 @@ import nva.commons.apigateway.exceptions.GatewayResponseSerializingException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
-import nva.commons.core.StringUtils;
+
+import java.net.HttpURLConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.HttpURLConnection;
-
-
 public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest, ContentsDocument> {
 
-    public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to UpdateContentsApiHandler";
-    public static final String COULD_NOT_UPDATE_PROVIDED_CONTENTS = "Could not update provided contents. ";
-    public static final String CONTENTS_CREATED = "contents created";
-    public static final String CONTENTS_UPDATED = "contents updated";
-    public static final String FAILED_AFTER_PERSISTING = "failed after persisting: ";
-    public static final String THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST = "This is my ContentsDocument to persist: ";
-    public static final String JSON_INPUT_LOOKS_LIKE_THAT = "json input looks like that :";
-    public static final int FOURTH_OF_A_SECOND = 250;
+    private static final Logger logger = LoggerFactory.getLogger(UpdateContentsApiHandler.class);
 
-    private final DynamoDBClient dynamoDBClient;
+    public static final String NO_PARAMETERS_GIVEN_TO_HANDLER = "No parameters given to UpdateContentsApiHandler";
+    public static final String FAILED_AFTER_PERSISTING = "failed after persisting: ";
+    public static final int FOURTH_OF_A_SECOND = 250;
+    private static final String CREATING_OR_UPDATING_CONTENT = "Creating or updating content from input document: {}";
+    private static final String FAILED_TO_DESERIALIZE_AFTER_CREATION =
+        "Failed to deserialize new content after creation. ISBN: {}";
+    private static final String FAILED_TO_DESERIALIZE_AFTER_UPDATING =
+        "Failed to deserialize new content after updating. ISBN: {}";
+
+    private final DBClient dbClient;
     private final StorageClient storageClient;
-    private final transient Logger logger = LoggerFactory.getLogger(UpdateContentsApiHandler.class);
 
     @JacocoGenerated
+    @SuppressWarnings("unused")
     public UpdateContentsApiHandler() {
         this(new Environment());
     }
 
     @JacocoGenerated
     public UpdateContentsApiHandler(Environment environment) {
-        this(environment, new DynamoDBClient(environment), new StorageClient(environment));
+        this(environment, new DBClient(environment), new StorageClient(environment));
     }
 
     /**
      * Constructor for injecting used in testing.
      *
      * @param environment    environment
-     * @param dynamoDBClient dynamoDBclient
+     * @param dbClient        dbClient
      * @param storageClient  storageClient
      */
-    public UpdateContentsApiHandler(Environment environment, DynamoDBClient dynamoDBClient,
+    public UpdateContentsApiHandler(Environment environment, DBClient dbClient,
                                     StorageClient storageClient) {
         super(ContentsRequest.class, environment);
-        this.dynamoDBClient = dynamoDBClient;
+        this.dbClient = dbClient;
         this.storageClient = storageClient;
     }
 
+
+    @Override
+    protected void validateRequest(ContentsRequest input, RequestInfo requestInfo, Context context)
+        throws ApiGatewayException {
+
+        if (isNull(input)) {
+            throw new BadRequestException(NO_PARAMETERS_GIVEN_TO_HANDLER);
+        }
+        if (isNull(input.getContents())) {
+            throw new BadRequestException(MALFORMED_JSON_PAYLOAD);
+        }
+        if (!input.getContents().isValid()) {
+            throw new BadRequestException(DOCUMENT_JSON_NOT_VALID + input.getContents());
+        }
+    }
 
     /**
      * Implements the main logic of the handler. Any exception thrown by this method will be handled by {@link
      * RestRequestHandler#handleExpectedException} method.
      *
-     * @param request     The input object to the method. Usually a deserialized json.
+     * @param input     The input object to the method. Usually a deserialized json.
      * @param requestInfo Request headers and path.
      * @param context     the ApiGateway context.
      * @return the Response body that is going to be serialized in json
@@ -75,67 +93,56 @@ public class UpdateContentsApiHandler extends ApiGatewayHandler<ContentsRequest,
      *                             method {@link RestRequestHandler#getFailureStatusCode}
      */
     @Override
-    protected ContentsDocument processInput(ContentsRequest request, RequestInfo requestInfo,
+    protected ContentsDocument processInput(ContentsRequest input, RequestInfo requestInfo,
                                             Context context) throws ApiGatewayException {
-        if (isNull(request)) {
-            throw new ParameterException(NO_PARAMETERS_GIVEN_TO_HANDLER);
-        }
-        ContentsDocument contentsDocument = request.getContents();
-        logger.info(JSON_INPUT_LOOKS_LIKE_THAT + contentsDocument.toString());
 
-        if (contentsDocument.isValid()) {
-
+        var contentsDocument = input.getContents();
+        logger.info(CREATING_OR_UPDATING_CONTENT, contentsDocument);
+        try {
             storageClient.handleFiles(contentsDocument);
-
-            logger.debug(THIS_IS_MY_CONTENTS_DOCUMENT_TO_PERSIST + contentsDocument.toString());
-            try {
-                String contents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-                if (StringUtils.isEmpty(contents)) {
-                    return createContents(contentsDocument);
-                } else {
-                    return updateContents(contentsDocument);
-                }
-            } catch (NotFoundException e) {
+            var contents = dbClient.getContents(contentsDocument.getIsbn());
+            if (isEmpty(contents)) {
                 return createContents(contentsDocument);
-            } catch (Exception e) {
-                String msg = FAILED_AFTER_PERSISTING + e.getMessage();
-                logger.error(msg, e);
-                throw new ConflictException(msg);
+            } else {
+                return updateContents(contentsDocument);
             }
-        } else {
-            logger.error(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument);
-            throw new BadRequestException(COULD_NOT_UPDATE_PROVIDED_CONTENTS + contentsDocument);
+        } catch (NotFoundException e) {
+            return createContents(contentsDocument);
+        } catch (Exception e) {
+            logger.error(FAILED_AFTER_PERSISTING, e);
+            throw new ConflictException(FAILED_AFTER_PERSISTING + e.getMessage());
         }
     }
 
     private ContentsDocument createContents(ContentsDocument contentsDocument) throws CommunicationException,
             NotFoundException, GatewayResponseSerializingException {
-        dynamoDBClient.createContents(contentsDocument);
+
+        dbClient.createContents(contentsDocument);
         this.waitAMoment(FOURTH_OF_A_SECOND);
-        String createdContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
-        logger.info(CONTENTS_CREATED);
+        var createdContents = dbClient.getContents(contentsDocument.getIsbn());
         try {
-            ContentsDocument contents = dtoObjectMapper.readValue(createdContents, ContentsDocument.class);
-            return contents;
-        } catch (JsonProcessingException ex) {
-            throw new GatewayResponseSerializingException(ex);
+            return dtoObjectMapper.readValue(createdContents, ContentsDocument.class);
+        } catch (JsonProcessingException e) {
+            logger.error(FAILED_TO_DESERIALIZE_AFTER_CREATION, contentsDocument.getIsbn(), e);
+            throw new GatewayResponseSerializingException(e);
         }
     }
 
-    private ContentsDocument updateContents(ContentsDocument contentsDocument) throws CommunicationException,
-            GatewayResponseSerializingException, NotFoundException {
-        dynamoDBClient.updateContents(contentsDocument);
-        logger.info(CONTENTS_UPDATED);
+    private ContentsDocument updateContents(ContentsDocument contentsDocument)
+        throws CommunicationException, GatewayResponseSerializingException, NotFoundException {
+
+        dbClient.updateContents(contentsDocument);
         this.waitAMoment(FOURTH_OF_A_SECOND);
-        String updatedContents = dynamoDBClient.getContents(contentsDocument.getIsbn());
+        var updatedContents = dbClient.getContents(contentsDocument.getIsbn());
         try {
-            ContentsDocument contents = dtoObjectMapper.readValue(updatedContents, ContentsDocument.class);
-            return contents;
-        } catch (JsonProcessingException ex) {
-            throw new GatewayResponseSerializingException(ex);
+            return dtoObjectMapper.readValue(updatedContents, ContentsDocument.class);
+        } catch (JsonProcessingException e) {
+            logger.error(FAILED_TO_DESERIALIZE_AFTER_UPDATING, contentsDocument.getIsbn(), e);
+            throw new GatewayResponseSerializingException(e);
         }
     }
 
+    @SuppressWarnings("PMD.DoNotUseThreads")
     @JacocoGenerated
     private void waitAMoment(int millisec) {
         try {

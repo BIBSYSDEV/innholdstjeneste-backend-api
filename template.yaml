@@ -22,6 +22,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: '/contents/s3-storage-name'
     Description: Contents S3 bucket name
+  CognitoAuthorizerUrls:
+    Type: String
+    Default: 'https://test/jwks.json,https://test2/jwks.json'
+    Description: Cognito Authorizer Urls needed for using NVA libraries
 
 Conditions:
   HasDomainName: !Not [!Equals [!Ref CustomDomain, '']]
@@ -30,12 +34,16 @@ Conditions:
 Globals:
   Function:
     Timeout: 20
+    Environment:
+      Variables:
+        COGNITO_AUTHORIZER_URLS: !Ref CognitoAuthorizerUrls
   Api:
     Cors:
       AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
       AllowMethods: '''OPTIONS, POST, GET, PUT'''
       AllowOrigin: '''*'''
     EndpointConfiguration: REGIONAL
+    OpenApiVersion: 3.0.1
 
 Resources:
 
@@ -117,6 +125,11 @@ Resources:
       Value: !GetAtt ContentsDynamoDBTable.StreamArn
       Description: Arn to contents table DynamoDB stream
 
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      RetentionInDays: 180
+
   ContentsApi:
     Type: AWS::Serverless::Api
     Metadata:
@@ -133,6 +146,9 @@ Resources:
       StageName: v1
       EndpointConfiguration:
         Type: REGIONAL
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+        Format: '{ "apiId": "$context.apiId", "requestId": "$context.requestId", "integrationId": "$context.integration.requestId", "time": "$context.requestTime", "timeEpoch": "$context.requestTimeEpoch", "ip": "$context.identity.sourceIp", "method": "$context.httpMethod", "path": "$context.path", "status": "$context.status", "latency": "$context.integration.latency", "userAgent": "$context.identity.userAgent", "error.message": "$context.error.message" }'
       Auth:
         ResourcePolicy:
           CustomStatements:
@@ -161,142 +177,17 @@ Resources:
               Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/POST/'
 
       DefinitionBody:
-        openapi: 3.0.3
-        info:
-          title: Contents API
-          version: '1.0'
-        paths:
-          /:
-            get:
-              description: "Search for contents by given isbn"
-              consumes:
-                - application/json
-              produces:
-                - application/json
-              parameters:
-                - in: query
-                  name: isbn
-                  description: "isbn to look for i contents."
-                  required: false
-                  schema:
-                    type: string
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetContentsApiFunction.Arn}/invocations
-                responses: {}
-                httpMethod: POST
-                type: AWS_PROXY
-              responses:
-                '200':
-                  description: "OK"
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/definitions/Contents'
-                '404':
-                  description: "Not Found"
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/definitions/Contents'
-                '500':
-                  description: "Internal Server Error"
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/definitions/Problem'
-            post:
-              description: "Adds contents"
-              consumes:
-                - application/json
-              produces:
-                - application/json
-              parameters:
-                - in: body
-                  name: contents
-                  description: "contents metadata"
-                  required: true
-                  schema:
-                    type: string
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateContentsApiFunction.Arn}/invocations
-                responses: {}
-                httpMethod: POST
-                type: AWS_PROXY
-              responses:
-                '201':
-                  description: "Created"
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/definitions/Contents'
-                '500':
-                  description: "Internal Server Error"
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/definitions/Problem'
-            put:
-              description: "Update or adds contents"
-              consumes:
-                - application/json
-              produces:
-                - application/json
-              parameters:
-                - in: body
-                  name: contents
-                  description: "contents metadata"
-                  required: true
-                  schema:
-                    type: string
-              x-amazon-apigateway-integration:
-                uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateContentsApiFunction.Arn}/invocations
-                responses: { }
-                httpMethod: POST
-                type: AWS_PROXY
-              responses:
-                '200':
-                  description: "OK"
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/definitions/Contents'
-                '201':
-                  description: "Created"
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/definitions/Contents'
-                '500':
-                  description: "Internal Server Error"
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/definitions/Problem'
-        definitions:
-          Contents:
-            type: object
-          Problem:
-            type: object
-            description: Internal Server Error is logged
-            properties:
-              title:
-                type: string
-              status:
-                type: integer
-              detail:
-                type: string
-              requestId:
-                type: string
+        'Fn::Transform':
+          Name: AWS::Include
+          Parameters:
+            Location: ./docs/openapi.yaml
 
   GetContentsApiFunction:
     Type: AWS::Serverless::Function
     Properties:
       Tracing: Active
       Handler: no.unit.bibs.contents.GetContentsApiHandler::handleRequest
-      Runtime: java11
+      Runtime: java21
       MemorySize: 1024
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
@@ -316,7 +207,7 @@ Resources:
     Properties:
       Tracing: Active
       Handler: no.unit.bibs.contents.CreateContentsApiHandler::handleRequest
-      Runtime: java11
+      Runtime: java21
       MemorySize: 1024
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
@@ -337,7 +228,7 @@ Resources:
     Properties:
       Tracing: Active
       Handler: no.unit.bibs.contents.UpdateContentsApiHandler::handleRequest
-      Runtime: java11
+      Runtime: java21
       MemorySize: 1024
       Role: !GetAtt AccessDynamoDBRole.Arn
       Environment:
