@@ -60,13 +60,29 @@ public class DBClient {
     @JacocoGenerated
     private void initDynamoDbClient(Environment environment) {
         try {
-            tableName = environment.readEnv(TABLE_NAME);
-            dynamoDbClient = DynamoDbClient.builder()
-                    .region(Region.of(environment.readEnv(AWS_REGION)))
-                    .build();
+            tableName = getTableName(environment);
+            var region = getRegion(environment);
+            dynamoDbClient = defaultDynamoDbClient(region);
         } catch (Exception e) {
             logger.error(CANNOT_CONNECT_TO_DYNAMO_DB, e);
         }
+    }
+
+    @JacocoGenerated
+    private String getRegion(Environment environment) {
+        return environment.readEnv(AWS_REGION);
+    }
+
+    @JacocoGenerated
+    private String getTableName(Environment environment) {
+        return environment.readEnv(TABLE_NAME);
+    }
+
+    @JacocoGenerated
+    private DynamoDbClient defaultDynamoDbClient(String region) {
+        return DynamoDbClient.builder()
+                   .region(Region.of(region))
+                   .build();
     }
 
     /**
