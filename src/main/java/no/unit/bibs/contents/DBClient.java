@@ -1,6 +1,7 @@
 package no.unit.bibs.contents;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.concurrent.ConcurrentHashMap;
 import no.unit.bibs.contents.exception.CommunicationException;
 import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.Environment;
@@ -20,47 +21,47 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
+import static java.util.Objects.isNull;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 
 
-public class DynamoDBClient {
+public class DBClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(DynamoDBClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(DBClient.class);
 
     public static final String AWS_REGION = "AWS_REGION";
     public static final String DOCUMENT_WITH_ID_WAS_NOT_FOUND = "Document with id=%s was not found.";
     public static final String CANNOT_CONNECT_TO_DYNAMO_DB = "Cannot connect to DynamoDB";
     public static final String TABLE_NAME = "TABLE_NAME";
     public static final String PRIMARYKEY_ISBN = "isbn";
+    private static final String DOCUMENT_CREATED_SUCCESSFULLY = "ContentsDocument with ISBN {} created successfully.";
 
     private static String tableName;
-    private DynamoDbClient dbClient;
+    private DynamoDbClient dynamoDbClient;
 
     /**
      * Creates a new DynamoDBClient.
      */
     @JacocoGenerated
-    public DynamoDBClient(Environment environment) {
+    public DBClient(Environment environment) {
         initDynamoDbClient(environment);
     }
 
     /**
      * Creates a new DynamoDBClient.
      */
-    public DynamoDBClient(DynamoDbClient dbClient) {
-        this.dbClient = dbClient;
+    public DBClient(DynamoDbClient dynamoDbClient) {
+        this.dynamoDbClient = dynamoDbClient;
     }
 
     @JacocoGenerated
     private void initDynamoDbClient(Environment environment) {
         try {
             tableName = environment.readEnv(TABLE_NAME);
-            dbClient = DynamoDbClient.builder()
+            dynamoDbClient = DynamoDbClient.builder()
                     .region(Region.of(environment.readEnv(AWS_REGION)))
                     .build();
         } catch (Exception e) {
@@ -76,21 +77,20 @@ public class DynamoDBClient {
      */
     public void createContents(ContentsDocument document) throws CommunicationException {
         try {
-            PutItemRequest putItemRequest = PutItemRequest
+            var putItemRequest = PutItemRequest
                     .builder()
                     .tableName(tableName)
                     .item(this.generateItemMap(document))
                     .build();
-            dbClient.putItem(putItemRequest);
-            logger.info("contents created");
+            dynamoDbClient.putItem(putItemRequest);
+            logger.info(DOCUMENT_CREATED_SUCCESSFULLY, document.getIsbn());
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
             throw new CommunicationException("Creation error: " + e.getMessage(), e);
         }
     }
 
     private Map<String, AttributeValue> generateItemMap(ContentsDocument document) {
-        Map<String, AttributeValue> itemMap = new HashMap<>();
+        Map<String, AttributeValue> itemMap = new ConcurrentHashMap<>();
         itemMap.put(ContentsDocument.ISBN,
                 AttributeValue.builder().s(document.getIsbn().toUpperCase(Locale.getDefault())).build());
         conditionalAddForCreate(itemMap, document.getTitle(), ContentsDocument.TITLE, true);
@@ -107,7 +107,7 @@ public class DynamoDBClient {
         conditionalAddForCreate(itemMap, document.getImageOriginal(), ContentsDocument.IMAGE_ORIGINAL, false);
         conditionalAddForCreate(itemMap, document.getAudioFile(), ContentsDocument.AUDIO_FILE, false);
         itemMap.put(ContentsDocument.SOURCE, AttributeValue.builder().s(document.getSource()).build());
-        if (Objects.isNull(document.getCreated())) {
+        if (isNull(document.getCreated())) {
             itemMap.put(ContentsDocument.CREATED, AttributeValue.builder().s(Instant.now().toString()).build());
         } else {
             itemMap.put(ContentsDocument.CREATED, AttributeValue.builder().s(document.getCreated().toString()).build());
@@ -123,21 +123,21 @@ public class DynamoDBClient {
      * @throws NotFoundException contentsDocument not found
      */
     public String getContents(String isbn) throws NotFoundException {
-        HashMap<String, AttributeValue> keyToGet = new HashMap<>();
+        Map<String, AttributeValue> keyToGet = new ConcurrentHashMap<>();
         keyToGet.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(isbn).build());
         GetItemRequest request = GetItemRequest.builder()
                 .key(keyToGet)
                 .tableName(tableName)
                 .build();
         try {
-            GetItemResponse itemResponse = dbClient.getItem(request);
+            GetItemResponse itemResponse = dynamoDbClient.getItem(request);
             if (itemResponse != null) {
                 Map<String, AttributeValue> returnedItem = itemResponse.item();
                 if (returnedItem != null && !returnedItem.isEmpty()) {
                     return parseAttributeValueMap(returnedItem);
                 }
             }
-            logger.info(String.format("No item found with the isbn %s!", isbn));
+            logger.info("No item found with the isbn {}", isbn);
             throw new NotFoundException(String.format(DOCUMENT_WITH_ID_WAS_NOT_FOUND, isbn));
         } catch (DynamoDbException | JsonProcessingException e) {
             logger.error(e.getMessage());
@@ -153,7 +153,7 @@ public class DynamoDBClient {
      */
     protected void updateContents(ContentsDocument document) throws CommunicationException {
         try {
-            HashMap<String, AttributeValue> keyToUpdate = new HashMap<>();
+            Map<String, AttributeValue> keyToUpdate = new ConcurrentHashMap<>();
             keyToUpdate.put(PRIMARYKEY_ISBN, AttributeValue.builder().s(document.getIsbn()).build());
             Map<String, AttributeValueUpdate> attributeUpdates = this.findValuesToUpdate(document);
             UpdateItemRequest updateItemRequest = UpdateItemRequest
@@ -162,8 +162,8 @@ public class DynamoDBClient {
                     .tableName(tableName)
                     .attributeUpdates(attributeUpdates)
                     .build();
-            dbClient.updateItem(updateItemRequest);
-            logger.info("contents updated");
+            dynamoDbClient.updateItem(updateItemRequest);
+            logger.info("ContentsDocument with ISBN {} updated successfully.", document.getIsbn());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new CommunicationException("Update error: " + e.getMessage(), e);
@@ -171,7 +171,7 @@ public class DynamoDBClient {
     }
 
     protected String parseAttributeValueMap(Map<String, AttributeValue> returnedItem) throws JsonProcessingException {
-        Map<String, String> item = new HashMap<>();
+        Map<String, String> item = new ConcurrentHashMap<>();
         returnedItem.keySet()
                 .forEach(key -> item.put(key,
                         returnedItem.get(key).getValueForField("S", String.class).orElse(null)));
@@ -179,7 +179,7 @@ public class DynamoDBClient {
     }
 
     private Map<String, AttributeValueUpdate> findValuesToUpdate(ContentsDocument document) {
-        Map<String, AttributeValueUpdate> updateValueMap = new HashMap<>();
+        Map<String, AttributeValueUpdate> updateValueMap = new ConcurrentHashMap<>();
         this.conditionalAddForUpdate(updateValueMap, document.getTitle(), ContentsDocument.TITLE, true);
         this.conditionalAddForUpdate(updateValueMap, document.getAuthor(), ContentsDocument.AUTHOR, true);
         this.conditionalAddForUpdate(updateValueMap, document.getDateOfPublication(),

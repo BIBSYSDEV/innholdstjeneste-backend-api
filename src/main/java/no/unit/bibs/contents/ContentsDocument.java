@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.time.Instant;
 import java.util.Objects;
 
-@SuppressWarnings("PMD.TooManyFields")
 public class ContentsDocument implements JsonSerializable {
 
     public static final String TITLE = "title";
@@ -200,10 +199,9 @@ public class ContentsDocument implements JsonSerializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ContentsDocument)) {
+        if (!(o instanceof ContentsDocument that)) {
             return false;
         }
-        ContentsDocument that = (ContentsDocument) o;
         return Objects.equals(author, that.author)
                 && Objects.equals(title, that.title)
                 && Objects.equals(dateOfPublication, that.dateOfPublication)

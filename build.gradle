@@ -3,16 +3,16 @@ plugins {
     id 'checkstyle'
     id 'pmd'
     id 'jacoco'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
-    id 'nebula.lint' version '17.7.0'
-    id "org.owasp.dependencycheck" version "7.2.1"
+    id 'nebula.lint' version '20.6.2'
 }
 
 group 'no.unit.bibs'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = JavaVersion.VERSION_11  // source-code version and must be <= targetCompatibility
-targetCompatibility = JavaVersion.VERSION_11 // bytecode target version
+java {
+    sourceCompatibility = JavaVersion.VERSION_21 // source-code version and must be <= targetCompatibility
+    targetCompatibility = JavaVersion.VERSION_21 // bytecode target version
+}
 
 repositories {
     mavenCentral()
@@ -21,80 +21,87 @@ repositories {
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
-    gradleVersion = "7.3.1"
+    gradleVersion = "8.14.3"
 }
 
-allprojects {
-    apply plugin: 'nebula.lint'
-    gradleLint.rules = ['unused-dependency']
-}
-
-dependencyCheck {
-    failBuildOnCVSS=5
-}
 
 dependencies {
-    compileOnly group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.1.1'
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.36'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.13.3'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.13.3'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.3'
-    implementation group: 'software.amazon.awssdk', name: 'dynamodb', version: '2.17.191'
-    implementation group: 'software.amazon.awssdk', name: 's3', version: '2.17.191'
-    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
-    implementation group: 'com.github.bibsysdev', name: 'json', version: '1.27.6'
 
-    implementation group: 'com.github.bibsysdev', name: 'core', version: '1.27.6'
-    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '1.25.17'
-    testImplementation group: 'com.github.bibsysdev', name: 'nvatestutils', version: '1.25.16'
-    testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.5.1'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
 
-    shadowJar {
-        archiveClassifier.set('')
-        zip64 true
-    }
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.19.1'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.19.1'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.19.1'
+
+    implementation group: 'com.amazonaws', name: 'aws-lambda-java-core', version: '1.3.0'
+    implementation group: 'software.amazon.awssdk', name: 'dynamodb', version: '2.34.2'
+    implementation group: 'software.amazon.awssdk', name: 's3', version: '2.31.78'
+    implementation group: 'software.amazon.awssdk', name: 'aws-core', version: '2.34.2'
+    implementation group: 'software.amazon.awssdk', name: 'regions', version: '2.34.2'
+    implementation group: 'software.amazon.awssdk', name: 'sdk-core', version: '2.34.2'
+
+    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.14.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.18.0'
+
+    implementation group: 'com.github.bibsysdev', name: 'json', version: '2.3.18'
+    implementation group: 'com.github.bibsysdev', name: 'core', version: '2.3.18'
+    implementation group: 'com.github.bibsysdev', name: 'apigateway', version: '2.3.18'
+
+    testImplementation group: 'com.github.bibsysdev', name: 'nvatestutils', version: '2.3.18'
+    testImplementation group: 'software.amazon.awssdk', name: 'http-client-spi', version: '2.34.2'
+    testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '3.0'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.20.0'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.14.1'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.14.1'
+
+}
+
+gradleLint {
+    rules = ['all-dependency']
+    reportFormat = 'html'
+    reportOnlyFixableViolations = true
 }
 
 test {
+
     useJUnitPlatform()
     failFast = true
     finalizedBy jacocoTestReport
+    testLogging {
+        events "SKIPPED", "FAILED"
+    }
+    environment("COGNITO_AUTHORIZER_URLS", "https://test/jwks.json,https://test2/jwks.json")
 }
 
-jar.enabled = false
-project.tasks.build.dependsOn project.tasks.shadowJar
-
 pmd {
+    toolVersion = '7.17.0'
     ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
     ruleSets = []
     ignoreFailures = false
+
 }
 
 checkstyle {
+    toolVersion = '10.26.1'
     configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
     showViolations = true
-    toolVersion '8.41';    // your choice here
 }
 
-tasks.withType(Checkstyle) {
+tasks.withType(Checkstyle).configureEach {
     reports {
-        xml.enabled false
-        html.enabled true
-        html.stylesheet rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
+        html.required
+        html.stylesheet = rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
     }
 }
 
 jacocoTestReport {
     reports {
-        xml.enabled false
-        csv.enabled false
-        html.destination file("${buildDir}/reports/jacoco")
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco"))
     }
 }
 
 jacoco {
-    toolVersion = "0.8.7"
+    toolVersion = "0.8.13"
 }
 
 check.dependsOn jacocoTestCoverageVerification
