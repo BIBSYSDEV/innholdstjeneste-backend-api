@@ -40,3 +40,6 @@ _POST_ - legge til nye contents data i basen (feiler, da isbn finnes fra før)
 
 _PUT_ - legge til eller oppdatere contents data (isbn, source er obligatoriske felt og kan ikke oppdateres).
 
+# API-documentation
+
+To see API-documentation in a interactive Swagger UI. Click [here for development specification](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/BIBSYSDEV/innholdstjeneste-backend-api/develop/docs/openapi.yaml). Or click [here for production](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/BIBSYSDEV/innholdstjeneste-backend-api/master/docs/openapi.yaml).

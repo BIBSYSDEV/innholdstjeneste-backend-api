@@ -2,9 +2,8 @@ package no.unit.bibs.contents;
 
 import java.net.URL;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
-import javax.ws.rs.core.HttpHeaders;
+import java.util.concurrent.ConcurrentHashMap;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
@@ -33,6 +32,8 @@ public class S3Connection {
     private static final String AWS_REGION = "AWS_REGION";
     private static final String BUCKET_NAME = "BUCKET_NAME";
     public static final String CANNOT_CONNECT_TO_S3 = "Cannot connect to S3";
+    public static final String CONTENT_DISPOSITION = "Content-Disposition";
+    public static final String CONTENT_TYPE = "Content-Type";
 
     public S3Connection(Environment environment) {
         initS3Client(environment);
@@ -74,7 +75,6 @@ public class S3Connection {
      * @param mimeType    mimeType
      */
     @JacocoGenerated
-    @SuppressWarnings("PMD.AssignmentInOperand")
     protected void uploadFile(byte[] bytesArray, String objectName, String filename, String mimeType) {
         try {
             PutObjectRequest putObjectRequest = createPutObjectRequest(objectName, filename, mimeType);
@@ -111,14 +111,14 @@ public class S3Connection {
 
     private PutObjectRequest createPutObjectRequest(String objectName, String filename, String mimeType) {
 
-        Map<String, String> metadata = new HashMap<>();
+        Map<String, String> metadata = new ConcurrentHashMap<>();
         if (filename != null && !filename.isEmpty()) {
-            metadata.put(HttpHeaders.CONTENT_DISPOSITION,
-                    String.format(CONTENT_DISPOSITION_FILENAME_TEMPLATE, filename));
+            metadata.put(CONTENT_DISPOSITION,
+                         String.format(CONTENT_DISPOSITION_FILENAME_TEMPLATE, filename));
         }
 
-        if (mimeType != null && !mimeType.isEmpty() && mimeType.contains("/")) {
-            metadata.put(HttpHeaders.CONTENT_TYPE, mimeType);
+        if (mimeType != null && mimeType.contains("/")) {
+            metadata.put(CONTENT_TYPE, mimeType);
         }
 
         return PutObjectRequest.builder()
