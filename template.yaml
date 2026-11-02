@@ -92,6 +92,8 @@ Resources:
 
   ContentsDynamoDBTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
@@ -107,6 +109,7 @@ Resources:
         PointInTimeRecoveryEnabled: true
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
+      DeletionProtectionEnabled: true
 
   DynamoDBTableNameContentsParameter:
     Type: AWS::SSM::Parameter
