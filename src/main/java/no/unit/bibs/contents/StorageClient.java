@@ -99,6 +99,7 @@ public class StorageClient {
      * @return String s3 objectKey
      */
     @JacocoGenerated
+    @SuppressWarnings("PMD.AvoidDeeplyNestedIfStmts")
     private String sendToS3Bucket(String isbn, String input, String type, String subtype, String fileExtension,
                                   String mimeType) {
         if (StringUtils.isNotEmpty(input)) {
