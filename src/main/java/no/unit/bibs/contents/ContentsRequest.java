@@ -8,6 +8,9 @@ import java.util.Objects;
 
 public class ContentsRequest {
 
+    public static final String MALFORMED_JSON_PAYLOAD = "Malformed JSON Payload.";
+    public static final String DOCUMENT_JSON_NOT_VALID = "Document is not valid: ";
+
     private final ContentsDocument contents;
 
     @JsonCreator
@@ -26,15 +29,8 @@ public class ContentsRequest {
     @JacocoGenerated
     @Override
     public boolean equals(Object o) {
-
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ContentsRequest)) {
-            return false;
-        }
-        ContentsRequest that = (ContentsRequest) o;
-        return Objects.equals(contents, that.contents);
+        return this == o
+               || (o instanceof ContentsRequest && Objects.equals(contents, ((ContentsRequest) o).contents));
     }
 
     @JacocoGenerated
@@ -47,9 +43,6 @@ public class ContentsRequest {
     public static final class Builder {
 
         private ContentsDocument contents;
-
-        public Builder() {
-        }
 
         public ContentsRequest.Builder withContents(ContentsDocument contents) {
             this.contents = contents;

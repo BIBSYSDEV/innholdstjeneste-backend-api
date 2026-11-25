@@ -10,19 +10,14 @@
   <exclude-pattern>.*/test/.*</exclude-pattern>
 
   <rule ref="category/java/errorprone.xml">
-    <exclude name="DataflowAnomalyAnalysis"/>
     <exclude name="MissingSerialVersionUID"/>
-    <exclude name="BeanMembersShouldSerialize"/>
   </rule>
 
-  <rule ref="category/java/multithreading.xml">
-    <exclude name="UseConcurrentHashMap" />
-  </rule>
+  <rule ref="category/java/multithreading.xml"/>
 
   <rule ref="category/java/bestpractices.xml">
     <exclude name="SystemPrintln"/>
     <exclude name="GuardLogStatement"/>
-    <exclude name="AvoidPrintStackTrace"/>
 
     <!-- In TableManager we map ResourceNotFoundException to TableNotFoundException -->
     <exclude name="PreserveStackTrace"/>
@@ -40,8 +35,6 @@
     <exclude name="ClassNamingConventions"/>
     <exclude name="UnnecessaryConstructor"/>
 
-    <!--<exclude name="BeanMembersShouldSerialize"/>-->
-
     <exclude name="ConfusingTernary"/>
 
     <!-- printStackTrace is used in the Default Amazon handler in a static clause
@@ -58,6 +51,9 @@
 
     <!-- Sometimes it is useful in debugging to assign the return value to a local variable  -->
     <exclude name="UnnecessaryLocalBeforeReturn"/>
+
+    <!-- We don't want to exclude use of "var" -->
+    <exclude name="UseExplicitTypes"/>
 
 
   </rule>

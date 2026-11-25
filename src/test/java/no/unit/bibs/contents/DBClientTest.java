@@ -7,6 +7,7 @@ import nva.commons.apigateway.exceptions.NotFoundException;
 import nva.commons.core.ioutils.IoUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
@@ -21,26 +22,24 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import static no.unit.bibs.contents.DynamoDBClient.DOCUMENT_WITH_ID_WAS_NOT_FOUND;
-import static no.unit.bibs.contents.DynamoDBClient.PRIMARYKEY_ISBN;
+import static no.unit.bibs.contents.DBClient.DOCUMENT_WITH_ID_WAS_NOT_FOUND;
+import static no.unit.bibs.contents.DBClient.PRIMARYKEY_ISBN;
 import static no.unit.nva.commons.json.JsonUtils.dtoObjectMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class DynamoDBClientTest {
+public class DBClientTest {
 
     public static final String SAMPLE_TERM = "SampleSearchTerm";
     public static final String CREATE_CONTENTS_EVENT = "createContentsEvent.json";
     public static final String GET_CONTENTS_JSON = "get_contents.json";
 
-    DynamoDBClient dbClient;
+    DBClient dbClient;
     private DynamoDbClient client;
 
 
@@ -50,12 +49,12 @@ public class DynamoDBClientTest {
     @BeforeEach
     public void init() {
         client = mock(DynamoDbClient.class);
-        dbClient = new DynamoDBClient(client);
+        dbClient = new DBClient(client);
     }
 
     @Test
     public void constructorWithEnvironmentDefinedShouldCreateInstance() {
-        DynamoDBClient dynamoDBClient = new DynamoDBClient(client);
+        DBClient dynamoDBClient = new DBClient(client);
         assertNotNull(dynamoDBClient);
     }
 
@@ -109,11 +108,20 @@ public class DynamoDBClientTest {
 
     @Test
     public void addDocumentTest() throws IOException, CommunicationException {
-        String contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
-        ContentsDocument document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
-        PutItemResponse putItemReponse = mock(PutItemResponse.class);
-        when(client.putItem(any(PutItemRequest.class))).thenReturn(putItemReponse);
-        when(putItemReponse.hasAttributes()).thenReturn(true);
+        var contents = IoUtils.stringFromResources(Path.of(CREATE_CONTENTS_EVENT));
+        final var document = dtoObjectMapper.readValue(contents, ContentsDocument.class);
+        var putItemResponse = mock(PutItemResponse.class);
+
+        when(client.putItem(any(PutItemRequest.class)))
+            .thenReturn(putItemResponse);
+        when(putItemResponse.hasAttributes())
+            .thenReturn(true);
+        when(putItemResponse.sdkHttpResponse())
+            .thenReturn(mock(SdkHttpResponse.class));
+        when(putItemResponse.sdkHttpResponse().isSuccessful())
+            .thenReturn(true);
+        when(putItemResponse.sdkHttpResponse().statusCode())
+            .thenReturn(200);
         dbClient.createContents(document);
     }
 

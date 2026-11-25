@@ -11,8 +11,10 @@ Metadata:
       - Label:
           default: Git Settings
         Parameters:
+          - GitHubOwner
           - GitRepo
           - GitBranch
+          - GitHubConnectionArn
       - Label:
           default: Stack Settings
         Parameters:
@@ -33,6 +35,8 @@ Metadata:
         default: Git Repo
       GitBranch:
         default: Git Branch
+      GitHubConnectionArn:
+        default: SSM parameter with CodeConnections (GitHub App) connection ARN
       StackTemplatePath:
         default: Stack template path
       StackTemplateConfigurationPath:
@@ -59,13 +63,12 @@ Parameters:
     Type: String
     Default: contents-backend
     Description: The name to use for the CloudFormation stack managed by this pipeline. (The stack created with the template in StackTemplatePath).
-  GitHubOAuthToken:
-    Description: OAuth token used by AWS CodePipeline to connect to GitHub
-    NoEcho: true
-    Type: String
-    Default: '{{resolve:secretsmanager:githubtoken:SecretString}}'
+  GitHubConnectionArn:
+    Description: SSM parameter holding the ARN of the CodeConnections (GitHub App) connection used by CodePipeline to read the repo
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: github-connection
   GitHubOwner:
-    Description: GitHub username owning the repo
+    Description: GitHub organization owning the repo
     Type: String
     Default: BIBSYSDEV
   GitRepo:
@@ -182,7 +185,6 @@ Resources:
                 Action:
                   - s3:PutObject
                   - s3:PutObjectAcl
-                  - s3:CreateMultipartUpload
                   - s3:ListMultipartUploadParts
                   - s3:AbortMultipartUpload
                   - s3:DeleteObject
@@ -208,6 +210,11 @@ Resources:
                   - codebuild:StartBuild
                 Resource:
                   - !GetAtt CodeBuildProject.Arn
+              - Effect: Allow
+                Action:
+                  - codestar-connections:UseConnection
+                  - codeconnections:UseConnection
+                Resource: !Ref GitHubConnectionArn
               - !If
                 - IsPipelineApprovalActionCondition
                 - Effect: "Allow"
@@ -255,6 +262,8 @@ Resources:
                   - codebuild:*
                   - codedeploy:*
                   - codepipeline:*
+                  - codestar-connections:PassConnection
+                  - codeconnections:PassConnection
                   - dynamoDB:*
                   - ec2:*
                   - ecs:*
@@ -311,8 +320,6 @@ Resources:
                   - s3:GetObject
                   - s3:GetObjectVersion
                   - s3:PutObject
-                  #            - s3:PutObjectAcl
-                  - s3:CreateMultipartUpload
                   - s3:ListMultipartUploadParts
                   - s3:AbortMultipartUpload
                 Resource: !Sub
@@ -332,7 +339,7 @@ Resources:
         Type: NO_ARTIFACTS
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/standard:5.0
+        Image: aws/codebuild/standard:7.0
         Type: LINUX_CONTAINER
         EnvironmentVariables:
           - Name: S3_BUCKET
@@ -345,7 +352,7 @@ Resources:
         Type: GITHUB
         Location: https://github.com/BIBSYSDEV/innholdstjeneste-backend-api.git
       Triggers:
-        Webhook: true
+        Webhook: false
       TimeoutInMinutes: 30
       Cache:
         Type: S3
@@ -372,15 +379,14 @@ Resources:
             - Name: Source
               ActionTypeId:
                 Category: Source
-                Owner: ThirdParty
+                Owner: AWS
                 Version: '1'
-                Provider: GitHub
+                Provider: CodeStarSourceConnection
               Configuration:
-                Owner: !Ref GitHubOwner
-                OAuthToken: !Ref GitHubOAuthToken
-                Repo: !Ref GitRepo
-                Branch: !Ref GitBranch
-                PollForSourceChanges: false
+                ConnectionArn: !Ref GitHubConnectionArn
+                FullRepositoryId: !Sub '${GitHubOwner}/${GitRepo}'
+                BranchName: !Ref GitBranch
+                DetectChanges: true
               OutputArtifacts: [Name: SourceArtifacts]
               Namespace: SourceVariables
               RunOrder: 1
@@ -408,7 +414,7 @@ Resources:
                 Provider: CloudFormation
                 Version: '1'
               Configuration:
-                ActionMode: REPLACE_ON_FAILURE
+                ActionMode: CREATE_UPDATE
                 RoleArn: !GetAtt 'CloudFormationRole.Arn'
                 StackName: !Ref 'AWS::StackName'
                 Capabilities: CAPABILITY_IAM
