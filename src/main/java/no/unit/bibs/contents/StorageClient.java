@@ -1,10 +1,14 @@
 package no.unit.bibs.contents;
 
+import static java.net.http.HttpClient.Redirect.ALWAYS;
+import static java.net.http.HttpClient.Version.HTTP_1_1;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,14 +38,19 @@ public class StorageClient {
     public static final String MIME_TYPE_IMAGE_JPG = "image/jpg";
     public static final String MIME_TYPE_AUDIO_MP3 = "audio/mpeg";
     public static final String HTTP_PREFIX = "http";
+    private static final String NON_SUCCESSFUL_STATUS_CODE = "Response responded with non successful status code: ";
+    private static final int BEGINNING_NON_SUCCESSUL_STATUS_CODES = 300;
 
     private final S3Connection s3Connection;
+    private final HttpClient httpClient;
 
     /**
      * Creates a new StorageClient.
      */
+    @JacocoGenerated
     public StorageClient(Environment environment) {
-        s3Connection = new S3Connection(environment);
+        this.s3Connection = new S3Connection(environment);
+        this.httpClient = defaultHttpClient();
     }
 
     /**
@@ -49,8 +58,17 @@ public class StorageClient {
      *
      * @param s3Connection s3Connection
      */
-    public StorageClient(S3Connection s3Connection) {
+    public StorageClient(S3Connection s3Connection, HttpClient httpClient) {
         this.s3Connection = s3Connection;
+        this.httpClient = httpClient;
+    }
+
+    @JacocoGenerated
+    private HttpClient defaultHttpClient() {
+        return HttpClient.newBuilder()
+                   .version(HTTP_1_1)
+                   .followRedirects(ALWAYS)
+                   .build();
     }
 
     private boolean isStringBase64Encoded(String input) {
@@ -60,6 +78,7 @@ public class StorageClient {
             Matcher matcher = base64Pattern.matcher(input);
             return matcher.matches();
         } else {
+            // Unreachable dead code
             return false;
         }
     }
@@ -75,7 +94,6 @@ public class StorageClient {
      * @param mimeType      "image/jpg", "audio/mpeg
      * @return String objectKey
      */
-    @JacocoGenerated
     private String decodeBase64Attributes(String isbn, String input, String type, String subtype,
                                                    String fileExtension, String mimeType) {
         return putFileS3(
@@ -98,7 +116,6 @@ public class StorageClient {
      * @param mimeType      "image/jpg", "audio/mpeg
      * @return String s3 objectKey
      */
-    @JacocoGenerated
     private String sendToS3Bucket(String isbn, String input, String type, String subtype, String fileExtension,
                                   String mimeType) {
         if (StringUtils.isNotEmpty(input)) {
@@ -122,7 +139,7 @@ public class StorageClient {
                             mimeType
                         );
                     }
-                } catch (IOException e) {
+                } catch (IOException | InterruptedException e) {
                     logger.error(ERROR_STORING_FILE + e.getMessage(), e);
                 }
             }
@@ -155,7 +172,6 @@ public class StorageClient {
      *
      * @param contentsDocument contentsDocument
      */
-    @JacocoGenerated
     public void handleFiles(ContentsDocument contentsDocument) {
 
         String imageSmall = contentsDocument.getImageSmall();
@@ -210,20 +226,33 @@ public class StorageClient {
         }
     }
 
-    @JacocoGenerated
-    private boolean isDownloadableFile(String fileUrl) throws IOException {
-        if (StringUtils.isNotEmpty(fileUrl) && fileUrl.startsWith(HTTP_PREFIX)) {
-            URL url = new URL(fileUrl);
-            HttpURLConnection.setFollowRedirects(true);
-            HttpURLConnection huc = (HttpURLConnection) url.openConnection();
-            huc.setRequestMethod("HEAD");
-            int responseCode = huc.getResponseCode();
-            return responseCode < 300;
+    private boolean isDownloadableFile(String fileUrl) throws IOException, InterruptedException {
+        if (StringUtils.isEmpty(fileUrl) || !fileUrl.startsWith(HTTP_PREFIX)) {
+            return false;
         }
-        return false;
+
+        HttpRequest request;
+
+        try {
+            var uri = URI.create(fileUrl);
+            request = createHttpHeadRequest(uri);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+
+        var response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+
+        return response.statusCode() < BEGINNING_NON_SUCCESSUL_STATUS_CODES;
     }
 
-    @JacocoGenerated
+    private HttpRequest createHttpHeadRequest(URI uri) {
+        return HttpRequest.newBuilder()
+                   .uri(uri)
+                   .HEAD()
+                   .timeout(Duration.ofSeconds(10))
+                   .build();
+    }
+
     protected String putFileS3(String isbn, byte[] bytesArray, String type, String subtype, String fileExtension,
                                String mimeType) {
         String fileName = String.format(FILE_NAME_TEMPLATE, isbn, fileExtension);
@@ -232,39 +261,59 @@ public class StorageClient {
         String firstLinkPart = isbn.substring(isbn.length() - 1);
 
         String objectKey = String.format(OBJECT_KEY_TEMPLATE, type, subtype, firstLinkPart, secondLinkPart, fileName);
+
         s3Connection.uploadFile(
                 bytesArray,
                 objectKey,
                 fileName,
                 mimeType
         );
+
         return objectKey;
     }
 
-    @JacocoGenerated
     protected String putFileS3(String isbn, String url, String type, String subtype, String fileExtension,
-                               String mimeType) throws IOException {
+                               String mimeType) throws IOException, InterruptedException {
         String fileName = String.format(FILE_NAME_TEMPLATE, isbn, fileExtension);
-        URL downloadUrl;
-        try {
-            downloadUrl = new URL(url);
-        } catch (MalformedURLException e) {
-            logger.error(String.format(ERROR_DOWNLOADING_FILE, isbn, url, fileName, type, e.getMessage()));
-            throw e;
-        }
-
         String secondLinkPart = isbn.substring(isbn.length() - 2, isbn.length() - 1);
         String firstLinkPart = isbn.substring(isbn.length() - 1);
 
         String objectKey = String.format(OBJECT_KEY_TEMPLATE, type, subtype, firstLinkPart, secondLinkPart, fileName);
-        try (InputStream inputStream = downloadUrl.openStream()) {
-            s3Connection.uploadFile(
-                inputStream.readAllBytes(),
-                objectKey,
-                fileName,
-                mimeType
-            );
+
+        HttpRequest request;
+        try {
+            var downloadUri = URI.create(url);
+            request = createHttpGetRequest(downloadUri);
+        } catch (IllegalArgumentException e) {
+            logger.error(String.format(ERROR_DOWNLOADING_FILE, isbn, url, fileName, type, e.getMessage()));
+            throw new MalformedURLException(e.getMessage());
         }
+
+        var response = fetchByteArrayResponse(request);
+
+        s3Connection.uploadFile(
+            response.body(),
+            objectKey,
+            fileName,
+            mimeType
+        );
+
         return objectKey;
     }
+
+    private HttpRequest createHttpGetRequest(URI downloadUri) {
+        return HttpRequest.newBuilder()
+                   .uri(downloadUri)
+                   .GET()
+                   .build();
+    }
+
+    private HttpResponse<byte[]> fetchByteArrayResponse(HttpRequest request) throws IOException, InterruptedException {
+        var response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        if (response.statusCode() >= BEGINNING_NON_SUCCESSUL_STATUS_CODES) {
+            throw new IOException(NON_SUCCESSFUL_STATUS_CODE + response.statusCode());
+        }
+        return response;
+    }
+
 }

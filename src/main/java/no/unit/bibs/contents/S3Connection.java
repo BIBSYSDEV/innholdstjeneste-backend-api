@@ -26,6 +26,7 @@ public class S3Connection {
     public static final String CONTENT_DISPOSITION_FILENAME_TEMPLATE = "filename=\"%s\"";
     @SuppressWarnings("PMD.UseUnderscoresInNumericLiterals")
     private static final int PRESIGNED_URL_EXPIRY_MILLISECONDS = 10000;
+    private static final String ETAG_FOR_UPLOADED_FILE = "Etag for uploaded file: {}";
     private String bucketName;
     private S3Presigner s3Presigner;
     private S3Client s3Client;
@@ -35,8 +36,16 @@ public class S3Connection {
     public static final String CONTENT_DISPOSITION = "Content-Disposition";
     public static final String CONTENT_TYPE = "Content-Type";
 
+    @JacocoGenerated
     public S3Connection(Environment environment) {
-        initS3Client(environment);
+        try {
+            var region = getRegion(environment);
+            this.s3Client = defaultS3CLient(region);
+            this.s3Presigner = defaultS3Presigner(region);
+            this.bucketName = getBucketName(environment);
+        } catch (Exception e) {
+            logger.error(CANNOT_CONNECT_TO_S3, e);
+        }
     }
 
     /**
@@ -52,18 +61,27 @@ public class S3Connection {
     }
 
     @JacocoGenerated
-    private void initS3Client(Environment environment) {
-        try {
-            this.s3Client = S3Client.builder()
-                    .region(Region.of(environment.readEnv(AWS_REGION)))
-                    .build();
-            this.s3Presigner = S3Presigner.builder()
-                    .region(Region.of(environment.readEnv(AWS_REGION)))
-                    .build();
-            this.bucketName = environment.readEnv(BUCKET_NAME);
-        } catch (Exception e) {
-            logger.error(CANNOT_CONNECT_TO_S3, e);
-        }
+    private String getRegion(Environment environment) {
+        return environment.readEnv(AWS_REGION);
+    }
+
+    @JacocoGenerated
+    private String getBucketName(Environment environment) {
+        return environment.readEnv(BUCKET_NAME);
+    }
+
+    @JacocoGenerated
+    private S3Presigner defaultS3Presigner(String region) {
+        return S3Presigner.builder()
+                   .region(Region.of(region))
+                   .build();
+    }
+
+    @JacocoGenerated
+    private S3Client defaultS3CLient(String region) {
+        return S3Client.builder()
+                   .region(Region.of(region))
+                   .build();
     }
 
     /**
@@ -74,13 +92,12 @@ public class S3Connection {
      * @param filename    filename
      * @param mimeType    mimeType
      */
-    @JacocoGenerated
     protected void uploadFile(byte[] bytesArray, String objectName, String filename, String mimeType) {
         try {
             PutObjectRequest putObjectRequest = createPutObjectRequest(objectName, filename, mimeType);
             PutObjectResponse putObjectResponse =
                     s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytesArray));
-            logger.info("Etag for uploaded file: " + putObjectResponse.eTag());
+            logger.info(ETAG_FOR_UPLOADED_FILE, putObjectResponse.eTag());
         } catch (S3Exception e) {
             logger.error(ERROR_UPLOADING_FILE, e);
             throw e;
