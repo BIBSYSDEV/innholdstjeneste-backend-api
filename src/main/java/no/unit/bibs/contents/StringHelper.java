@@ -5,13 +5,17 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class StringHelper {
+public final class StringHelper {
 
     private static final Pattern pattern = Pattern.compile("&(?:#x([0-9a-fA-F]+)|#([0-9]+)|([0-9A-Za-z]+));");
     public static final int OVERSIZED_7 = 7;
     public static final int OVERSIZED_6 = 6;
 
     private static Set<String> namedEntities = new HashSet<>();
+
+    private StringHelper() {
+        //NO-OP
+    }
 
     static {
         namedEntities.add("quot");
@@ -274,7 +278,7 @@ public class StringHelper {
      * @param string string to check
      * @return TRUE if the string contains an html escaped char
      */
-    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.AssignmentInOperand"})
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.AssignmentInOperand", "PMD.AvoidDeeplyNestedIfStmts"})
     public static boolean isValidHtmlEscapeCode(String string) {
         if (string == null) {
             return false;
